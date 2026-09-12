@@ -1,0 +1,365 @@
+[
+  {
+    "name": "eq_match: field equals value (true)",
+    "ast": { "kind": "compare", "operator": "==", "field": "c_Side", "value": "1", "children": null },
+    "formState": { "c_Side": "1" },
+    "expected": true
+  },
+  {
+    "name": "eq_mismatch: field does not equal value (false)",
+    "ast": { "kind": "compare", "operator": "==", "field": "c_Side", "value": "1", "children": null },
+    "formState": { "c_Side": "2" },
+    "expected": false
+  },
+  {
+    "name": "neq_match: field not-equal passes (true)",
+    "ast": { "kind": "compare", "operator": "!=", "field": "c_Side", "value": "1", "children": null },
+    "formState": { "c_Side": "2" },
+    "expected": true
+  },
+  {
+    "name": "neq_mismatch: field not-equal fails when equal (false)",
+    "ast": { "kind": "compare", "operator": "!=", "field": "c_Side", "value": "1", "children": null },
+    "formState": { "c_Side": "1" },
+    "expected": false
+  },
+  {
+    "name": "gt_numeric: 10 > 5 (true)",
+    "ast": { "kind": "compare", "operator": ">", "field": "c_Qty", "value": 5, "children": null },
+    "formState": { "c_Qty": 10 },
+    "expected": true
+  },
+  {
+    "name": "gt_numeric_false: 3 > 5 (false)",
+    "ast": { "kind": "compare", "operator": ">", "field": "c_Qty", "value": 5, "children": null },
+    "formState": { "c_Qty": 3 },
+    "expected": false
+  },
+  {
+    "name": "lt_numeric: 3 < 5 (true)",
+    "ast": { "kind": "compare", "operator": "<", "field": "c_Qty", "value": 5, "children": null },
+    "formState": { "c_Qty": 3 },
+    "expected": true
+  },
+  {
+    "name": "lt_numeric_false: 7 < 5 (false)",
+    "ast": { "kind": "compare", "operator": "<", "field": "c_Qty", "value": 5, "children": null },
+    "formState": { "c_Qty": 7 },
+    "expected": false
+  },
+  {
+    "name": "ge_numeric: 5 >= 5 boundary (true)",
+    "ast": { "kind": "compare", "operator": ">=", "field": "c_Qty", "value": 5, "children": null },
+    "formState": { "c_Qty": 5 },
+    "expected": true
+  },
+  {
+    "name": "ge_numeric_false: 4 >= 5 (false)",
+    "ast": { "kind": "compare", "operator": ">=", "field": "c_Qty", "value": 5, "children": null },
+    "formState": { "c_Qty": 4 },
+    "expected": false
+  },
+  {
+    "name": "le_numeric: 5 <= 5 boundary (true)",
+    "ast": { "kind": "compare", "operator": "<=", "field": "c_Qty", "value": 5, "children": null },
+    "formState": { "c_Qty": 5 },
+    "expected": true
+  },
+  {
+    "name": "le_numeric_false: 6 <= 5 (false)",
+    "ast": { "kind": "compare", "operator": "<=", "field": "c_Qty", "value": 5, "children": null },
+    "formState": { "c_Qty": 6 },
+    "expected": false
+  },
+  {
+    "name": "and_both_true: AND(true, true) = true",
+    "ast": {
+      "kind": "and", "operator": null, "field": null, "value": null,
+      "children": [
+        { "kind": "compare", "operator": "==", "field": "c_Side", "value": "1", "children": null },
+        { "kind": "compare", "operator": "==", "field": "c_Qty",  "value": 100, "children": null }
+      ]
+    },
+    "formState": { "c_Side": "1", "c_Qty": 100 },
+    "expected": true
+  },
+  {
+    "name": "and_one_false: AND(true, false) = false",
+    "ast": {
+      "kind": "and", "operator": null, "field": null, "value": null,
+      "children": [
+        { "kind": "compare", "operator": "==", "field": "c_Side", "value": "1", "children": null },
+        { "kind": "compare", "operator": "==", "field": "c_Qty",  "value": 100, "children": null }
+      ]
+    },
+    "formState": { "c_Side": "1", "c_Qty": 999 },
+    "expected": false
+  },
+  {
+    "name": "and_empty_children: AND([]) = true (vacuous truth)",
+    "ast": { "kind": "and", "operator": null, "field": null, "value": null, "children": [] },
+    "formState": {},
+    "expected": true
+  },
+  {
+    "name": "or_both_false: OR(false, false) = false",
+    "ast": {
+      "kind": "or", "operator": null, "field": null, "value": null,
+      "children": [
+        { "kind": "compare", "operator": "==", "field": "c_Side", "value": "1", "children": null },
+        { "kind": "compare", "operator": "==", "field": "c_Qty",  "value": 100, "children": null }
+      ]
+    },
+    "formState": { "c_Side": "2", "c_Qty": 999 },
+    "expected": false
+  },
+  {
+    "name": "or_one_true: OR(false, true) = true",
+    "ast": {
+      "kind": "or", "operator": null, "field": null, "value": null,
+      "children": [
+        { "kind": "compare", "operator": "==", "field": "c_Side", "value": "1", "children": null },
+        { "kind": "compare", "operator": "==", "field": "c_Qty",  "value": 100, "children": null }
+      ]
+    },
+    "formState": { "c_Side": "2", "c_Qty": 100 },
+    "expected": true
+  },
+  {
+    "name": "or_empty_children: OR([]) = false",
+    "ast": { "kind": "or", "operator": null, "field": null, "value": null, "children": [] },
+    "formState": {},
+    "expected": false
+  },
+  {
+    "name": "not_wraps_true: NOT(true) = false",
+    "ast": {
+      "kind": "not", "operator": null, "field": null, "value": null,
+      "children": [
+        { "kind": "compare", "operator": "==", "field": "c_Side", "value": "1", "children": null }
+      ]
+    },
+    "formState": { "c_Side": "1" },
+    "expected": false
+  },
+  {
+    "name": "not_wraps_false: NOT(false) = true",
+    "ast": {
+      "kind": "not", "operator": null, "field": null, "value": null,
+      "children": [
+        { "kind": "compare", "operator": "==", "field": "c_Side", "value": "1", "children": null }
+      ]
+    },
+    "formState": { "c_Side": "2" },
+    "expected": true
+  },
+  {
+    "name": "exists_field_present: exists returns true when field has a non-null value",
+    "ast": { "kind": "compare", "operator": "exists", "field": "c_TIF", "value": null, "children": null },
+    "formState": { "c_TIF": "DAY" },
+    "expected": true
+  },
+  {
+    "name": "exists_field_absent: exists returns false when field missing from formState",
+    "ast": { "kind": "compare", "operator": "exists", "field": "c_TIF", "value": null, "children": null },
+    "formState": {},
+    "expected": false
+  },
+  {
+    "name": "exists_field_null_value: exists returns false when field is present-but-null (no value = not set)",
+    "ast": { "kind": "compare", "operator": "exists", "field": "c_TIF", "value": null, "children": null },
+    "formState": { "c_TIF": null },
+    "expected": false
+  },
+  {
+    "name": "not_exists_field_absent: not-exists returns true when field missing",
+    "ast": { "kind": "compare", "operator": "not-exists", "field": "c_TIF", "value": null, "children": null },
+    "formState": {},
+    "expected": true
+  },
+  {
+    "name": "not_exists_field_present: not-exists returns false when field has a value",
+    "ast": { "kind": "compare", "operator": "not-exists", "field": "c_TIF", "value": null, "children": null },
+    "formState": { "c_TIF": "DAY" },
+    "expected": false
+  },
+  {
+    "name": "missing_field_compare: comparing a missing field returns false (fail-safe)",
+    "ast": { "kind": "compare", "operator": "==", "field": "c_Missing", "value": "x", "children": null },
+    "formState": {},
+    "expected": false
+  },
+  {
+    "name": "nested_2deep: AND(OR(C1,C2), NOT(C3))",
+    "ast": {
+      "kind": "and", "operator": null, "field": null, "value": null,
+      "children": [
+        {
+          "kind": "or", "operator": null, "field": null, "value": null,
+          "children": [
+            { "kind": "compare", "operator": "==", "field": "c_Side",  "value": "1", "children": null },
+            { "kind": "compare", "operator": "==", "field": "c_OrdTyp", "value": "2", "children": null }
+          ]
+        },
+        {
+          "kind": "not", "operator": null, "field": null, "value": null,
+          "children": [
+            { "kind": "compare", "operator": "==", "field": "c_TIF", "value": "IOC", "children": null }
+          ]
+        }
+      ]
+    },
+    "formState": { "c_Side": "1", "c_OrdTyp": "1", "c_TIF": "DAY" },
+    "expected": true
+  },
+  {
+    "name": "contradiction: AND(C, NOT(C)) = always false",
+    "ast": {
+      "kind": "and", "operator": null, "field": null, "value": null,
+      "children": [
+        { "kind": "compare", "operator": "==", "field": "c_Side", "value": "1", "children": null },
+        {
+          "kind": "not", "operator": null, "field": null, "value": null,
+          "children": [
+            { "kind": "compare", "operator": "==", "field": "c_Side", "value": "1", "children": null }
+          ]
+        }
+      ]
+    },
+    "formState": { "c_Side": "1" },
+    "expected": false
+  },
+  {
+    "name": "tautology: OR(C, NOT(C)) = always true",
+    "ast": {
+      "kind": "or", "operator": null, "field": null, "value": null,
+      "children": [
+        { "kind": "compare", "operator": "==", "field": "c_Side", "value": "1", "children": null },
+        {
+          "kind": "not", "operator": null, "field": null, "value": null,
+          "children": [
+            { "kind": "compare", "operator": "==", "field": "c_Side", "value": "1", "children": null }
+          ]
+        }
+      ]
+    },
+    "formState": { "c_Side": "2" },
+    "expected": true
+  },
+  {
+    "name": "numeric_coercion_string_field_number_ast: field=\"5\" (string), AST value=5 (number) - loose coerce both to double for ==",
+    "ast": { "kind": "compare", "operator": "==", "field": "c_Qty", "value": 5, "children": null },
+    "formState": { "c_Qty": "5" },
+    "expected": true
+  },
+  {
+    "name": "numeric_coercion_number_field_string_ast: field=5 (number), AST value=\"5\" (string) - loose coerce both to double for ==",
+    "ast": { "kind": "compare", "operator": "==", "field": "c_Qty", "value": "5", "children": null },
+    "formState": { "c_Qty": 5 },
+    "expected": true
+  },
+  {
+    "name": "xor_true_false: XOR(true, false) = true",
+    "ast": {
+      "kind": "xor", "operator": null, "field": null, "value": null,
+      "children": [
+        { "kind": "compare", "operator": "==", "field": "c_Side", "value": "1", "children": null },
+        { "kind": "compare", "operator": "==", "field": "c_Side", "value": "2", "children": null }
+      ]
+    },
+    "formState": { "c_Side": "1" },
+    "expected": true
+  },
+  {
+    "name": "xor_true_true: XOR(true, true) = false",
+    "ast": {
+      "kind": "xor", "operator": null, "field": null, "value": null,
+      "children": [
+        { "kind": "compare", "operator": "==", "field": "c_Side", "value": "1", "children": null },
+        { "kind": "compare", "operator": "==", "field": "c_Qty",  "value": 100, "children": null }
+      ]
+    },
+    "formState": { "c_Side": "1", "c_Qty": 100 },
+    "expected": false
+  },
+  {
+    "name": "xor_false_false: XOR(false, false) = false",
+    "ast": {
+      "kind": "xor", "operator": null, "field": null, "value": null,
+      "children": [
+        { "kind": "compare", "operator": "==", "field": "c_Side", "value": "1", "children": null },
+        { "kind": "compare", "operator": "==", "field": "c_Qty",  "value": 100, "children": null }
+      ]
+    },
+    "formState": { "c_Side": "2", "c_Qty": 999 },
+    "expected": false
+  },
+  {
+    "name": "not_exists_field_null_value: not-exists returns true when field is present-but-null (null counts as not set)",
+    "ast": { "kind": "compare", "operator": "not-exists", "field": "c_TIF", "value": null, "children": null },
+    "formState": { "c_TIF": null },
+    "expected": true
+  },
+  {
+    "name": "ge_coercion_fail: non-numeric field against numeric AST value returns false (fail-safe, not true)",
+    "ast": { "kind": "compare", "operator": ">=", "field": "c_AlgoType", "value": 100, "children": null },
+    "formState": { "c_AlgoType": "VWAP" },
+    "expected": false
+  },
+  {
+    "name": "le_coercion_fail: non-numeric field against numeric AST value returns false (fail-safe, not true)",
+    "ast": { "kind": "compare", "operator": "<=", "field": "c_AlgoType", "value": 100, "children": null },
+    "formState": { "c_AlgoType": "VWAP" },
+    "expected": false
+  },
+  {
+    "name": "gt_coercion_fail: non-numeric field against numeric AST value returns false (fail-safe, not true)",
+    "ast": { "kind": "compare", "operator": ">", "field": "c_AlgoType", "value": 100, "children": null },
+    "formState": { "c_AlgoType": "VWAP" },
+    "expected": false
+  },
+  {
+    "name": "lt_coercion_fail: non-numeric field against numeric AST value returns false (fail-safe, not true)",
+    "ast": { "kind": "compare", "operator": "<", "field": "c_AlgoType", "value": 100, "children": null },
+    "formState": { "c_AlgoType": "VWAP" },
+    "expected": false
+  },
+  {
+    "name": "empty_string_ge_zero: field=\"\" >= 0 returns false (empty string is not numeric 0, not 0 >= 0)",
+    "ast": { "kind": "compare", "operator": ">=", "field": "c_Qty", "value": 0, "children": null },
+    "formState": { "c_Qty": "" },
+    "expected": false
+  },
+  {
+    "name": "empty_string_eq_zero: field=\"\" == 0 returns false (empty string not coerced to numeric 0)",
+    "ast": { "kind": "compare", "operator": "==", "field": "c_Qty", "value": 0, "children": null },
+    "formState": { "c_Qty": "" },
+    "expected": false
+  },
+  {
+    "name": "xor_nary_three_true: XOR of three true children = true (odd parity)",
+    "ast": {
+      "kind": "xor", "operator": null, "field": null, "value": null,
+      "children": [
+        { "kind": "compare", "operator": "==", "field": "c_A", "value": "1", "children": null },
+        { "kind": "compare", "operator": "==", "field": "c_B", "value": "1", "children": null },
+        { "kind": "compare", "operator": "==", "field": "c_C", "value": "1", "children": null }
+      ]
+    },
+    "formState": { "c_A": "1", "c_B": "1", "c_C": "1" },
+    "expected": true
+  },
+  {
+    "name": "xor_nary_two_true: XOR of three children with two true = false (even parity)",
+    "ast": {
+      "kind": "xor", "operator": null, "field": null, "value": null,
+      "children": [
+        { "kind": "compare", "operator": "==", "field": "c_A", "value": "1", "children": null },
+        { "kind": "compare", "operator": "==", "field": "c_B", "value": "1", "children": null },
+        { "kind": "compare", "operator": "==", "field": "c_C", "value": "1", "children": null }
+      ]
+    },
+    "formState": { "c_A": "1", "c_B": "1", "c_C": "2" },
+    "expected": false
+  }
+]
