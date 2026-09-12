@@ -1,10 +1,10 @@
 # FixPortal.FixAtdl.React
 
-React 19 components and browser-side helpers for FIXatdl strategy forms, extracted from FixPortal Simulator. The npm package is `@fix-portal/fixatdl-react`.
+React 19 components and browser-side helpers for FIXatdl strategy forms, extracted from FixPortal Simulator. The public npm package is [`@fix-portal/fixatdl-react`](https://www.npmjs.com/package/@fix-portal/fixatdl-react).
 
 ## Package boundary
 
-The host supplies a parsed `AtdlStrategyDto`. FixPortal Simulator obtains it from its .NET backend, which parses XML through `FixPortal.FixAtdl` and maps the model into this contract. This package has no HTTP client, authentication, router or application store.
+The host supplies a parsed `AtdlStrategyDto`. FixPortal Simulator obtains it from its .NET backend, which parses XML through the headless [`FixPortal.FixAtdl`](https://www.nuget.org/packages/FixPortal.FixAtdl/) core and maps the model into this contract. This package has no HTTP client, authentication, router or application store.
 
 Included: recursive panels, native controls, form state, parameter/strategy validation, state-rule evaluation/explanation and a StrategyParametersGrp FIX preview. Uploading XML, schema validation, persistence, order submission and authoritative FIX serialization belong to the host/backend.
 
@@ -17,6 +17,20 @@ npm install @fix-portal/fixatdl-react
 ```
 
 React and React DOM 19.2+ are peer dependencies. Node 24.15+ is required for development.
+
+## Related packages
+
+- [`FixPortal.FixAtdl`](https://www.nuget.org/packages/FixPortal.FixAtdl/)
+  ([repository](https://github.com/FixPortal/fixportal-fixatdl)) parses and
+  validates strategy XML and emits FIX-tag values. It is a .NET backend/core
+  package, not a dependency of this browser package.
+- [`FixPortal.FixAtdl.Wpf`](https://www.nuget.org/packages/FixPortal.FixAtdl.Wpf/)
+  ([repository](https://github.com/FixPortal/fixportal-fixatdl-wpf)) is a
+  separate WPF desktop adapter. It is not a dependency of this React package.
+
+Choose the adapter for the host UI. The host remains responsible for obtaining
+and validating strategy XML, mapping it to `AtdlStrategyDto`, persistence,
+order construction and authoritative server-side FIX validation/serialization.
 
 ## Render a strategy
 
@@ -94,12 +108,14 @@ npm pack
 
 ## Releases
 
-Merge the version change through a PR, then tag the merged commit `v<version>`.
-CI verifies that the tag is on `main` and matches `package.json`, runs the checks,
-then publishes to npm with provenance. Configure npm trusted publishing for owner
-`FixPortal`, repository `fixportal-fixatdl-react`, workflow `ci.yml`, with no
-environment. The package is already registered with this trusted publisher.
+Merge a version change through a PR, then tag the merged commit `v<version>`.
+CI verifies the tag is reachable from `main` and matches `package.json`, then
+publishes the public package to npm with provenance through npm trusted
+publishing. Ordinary branch and pull-request builds validate and pack the
+package but do not publish it.
 
-## Provenance
+## Attribution
 
-Extracted from `FixPortal/fixportal-simulator-frontend` commit `17a57e0d`. FIXatdl is maintained by the FIX Trading Community. Apache-2.0; see LICENSE and NOTICE.
+Extracted from `FixPortal/fixportal-simulator-frontend` commit `17a57e0d`.
+FIXatdl is maintained by the FIX Trading Community. This package is licensed
+under Apache-2.0; see [LICENSE](LICENSE) and [NOTICE](NOTICE).
