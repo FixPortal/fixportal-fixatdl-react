@@ -42,7 +42,7 @@ export function useAtdlFormState(strategy: AtdlStrategyDto, options: AtdlFormOpt
   const { values: validatedExternalValues, errors: externalErrors } = validateExternalValues(options.externalValues)
   const contextKey = `${JSON.stringify(validatedExternalValues)}`
   const externalValues = useMemo(() => JSON.parse(contextKey) as Record<string, unknown>, [contextKey])
-  const documentKey = JSON.stringify(strategy)
+  const documentKey = useMemo(() => JSON.stringify(strategy), [strategy])
   const readonlyIds = useMemo(() => new Set(flattenControls(strategy)
     .filter(control => control.parameter?.constValue != null || (options.isAmendment && control.parameter?.mutableOnCxlRpl === false))
     .map(control => control.id)), [strategy, options.isAmendment])
@@ -109,7 +109,8 @@ function seedValues(strategy: AtdlStrategyDto, options: AtdlFormOptions) {
   const seeded: Record<string, unknown> = {}
   const errors: Record<string, string> = {}
   const now = options.clock?.()
-  for (const control of flattenControls(strategy)) {
+  const controls = flattenControls(strategy)
+  for (const control of controls) {
     const parameter = control.parameter
     const fixTag = options.isAmendment ? parameter?.fixTag : control.initPolicy === 'UseFixField' ? control.initFixField : null
     let value: unknown
@@ -136,7 +137,7 @@ function seedValues(strategy: AtdlStrategyDto, options: AtdlFormOptions) {
         }
       }
       if (fromWire && isBinaryControl(control) && parameter?.enumValues?.length) {
-        const siblingSelected = control.type === 'RadioButton_t' && control.radioGroup && flattenControls(strategy).some(sibling =>
+        const siblingSelected = control.type === 'RadioButton_t' && control.radioGroup && controls.some(sibling =>
           sibling.type === 'RadioButton_t' && sibling.radioGroup === control.radioGroup &&
           (sibling.parameterRef ?? sibling.parameter?.name) === (control.parameterRef ?? parameter.name) && sibling.checkedEnumRef === value)
         if (value != null && value !== control.checkedEnumRef && value !== control.uncheckedEnumRef && !siblingSelected) {
