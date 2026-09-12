@@ -15,6 +15,7 @@ export interface ControlProps {
   value: unknown
   onChange(next: unknown): void
   state: ControlFormState
+  radioGroupName?: string
 }
 
 // ---------------------------------------------------------------------------
@@ -38,8 +39,8 @@ import { CheckBoxListControl } from './CheckBoxListControl'
 
 export const controlRegistry: Record<string, ComponentType<ControlProps>> = {
   TextField_t: TextFieldControl,
-  // Both spinner variants produce a numeric input; the only difference
-  // (single vs double spinner) is visual chrome we treat identically.
+  // Both spinner variants produce a numeric input.
+  // DoubleSpinner additionally exposes its authored outer increment.
   DoubleSpinner_t: NumericFieldControl,
   SingleSpinner_t: NumericFieldControl,
   // DropDownList and SingleSelectList both render as a <select>; the
@@ -47,11 +48,10 @@ export const controlRegistry: Record<string, ComponentType<ControlProps>> = {
   DropDownList_t: DropDownControl,
   SingleSelectList_t: DropDownControl,
   CheckBox_t: CheckBoxControl,
-  // RadioButton_t is a single-item variant; mapping to RadioListControl handles
-  // it correctly because the list component renders one radio per listItem.
-  RadioButton_t: RadioListControl,
+  RadioButton_t: CheckBoxControl,
   RadioButtonList_t: RadioListControl,
   Label_t: LabelControl,
+  HiddenField_t: () => null,
   // T22 batch 2 - interactive controls
   EditableDropDownList_t: EditableDropDownControl,
   Clock_t: ClockControl,

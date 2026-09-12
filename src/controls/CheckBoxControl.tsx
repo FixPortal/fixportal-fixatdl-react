@@ -5,7 +5,7 @@ import type { ControlProps } from './controlRegistry'
  * Renders a FIXatdl CheckBox_t as a checkbox input wrapped in a clickable
  * label so the whole label row is the hit target.
  */
-export function CheckBoxControl({ control, value, onChange, state }: ControlProps) {
+export function CheckBoxControl({ control, value, onChange, state, radioGroupName }: ControlProps) {
   const errorId = useId()
   if (!state.visible) return null
 
@@ -15,7 +15,8 @@ export function CheckBoxControl({ control, value, onChange, state }: ControlProp
     <div className="space-y-1">
       <label className="flex items-center gap-2 cursor-pointer select-none">
         <input
-          type="checkbox"
+          type={control.type === 'RadioButton_t' ? 'radio' : 'checkbox'}
+          name={control.type === 'RadioButton_t' ? radioGroupName : undefined}
           checked={value === true || value === 'true' || value === 'Y'}
           onChange={(e) => onChange(e.target.checked)}
           disabled={!state.enabled}

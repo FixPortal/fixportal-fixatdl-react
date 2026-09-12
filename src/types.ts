@@ -5,6 +5,12 @@ export interface AtdlStrategyDto {
   parameters: AtdlParameterDto[]
   panel: AtdlPanelDto
   sourceXml: string
+  strategyEdits?: AtdlStrategyEditDto[] | null
+}
+
+export interface AtdlStrategyEditDto {
+  errorMessage: string
+  expression: StateRuleAstNodeDto
 }
 
 /** Mirrors C# AtdlParameterDto - a FIXatdl Parameter with type metadata and optional enum values. */
@@ -19,6 +25,14 @@ export interface AtdlParameterDto {
   mutableOnCxlRpl: boolean
   useValue: string | null
   defaultValue: unknown
+  trueWireValue?: string | null
+  falseWireValue?: string | null
+  invertOnWire?: boolean | null
+  constValue?: unknown
+  minLength?: number | null
+  maxLength?: number | null
+  multiplyBy100?: boolean | null
+  localMktTz?: string | null
 }
 
 /** Mirrors C# AtdlEnumPairDto - one enumeration identifier paired with its FIX wire value. */
@@ -44,6 +58,16 @@ export interface AtdlControlDto {
   initValue: unknown
   stateRules: AtdlStateRuleDto[]
   tooltip: string | null
+  checkedEnumRef?: string | null
+  uncheckedEnumRef?: string | null
+  radioGroup?: string | null
+  increment?: number | null
+  innerIncrement?: number | null
+  outerIncrement?: number | null
+  initPolicy?: string | null
+  initFixField?: number | null
+  initValueMode?: number | null
+  localMktTz?: string | null
 }
 
 /** Mirrors C# AtdlPanelDto - a FIXatdl StrategyPanel with layout metadata and ordered children. */
@@ -86,4 +110,6 @@ export interface StateRuleAstNodeDto {
   field: string | null
   value: unknown
   children: StateRuleAstNodeDto[] | null
+  field2?: string | null
+  comparisonType?: string | null
 }

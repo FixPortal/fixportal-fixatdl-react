@@ -6,20 +6,14 @@ React 19 components and browser-side helpers for FIXatdl strategy forms, extract
 
 The host supplies a parsed `AtdlStrategyDto`. FixPortal Simulator obtains it from its .NET backend, which parses XML through `FixPortal.FixAtdl` and maps the model into this contract. This package has no HTTP client, authentication, router or application store.
 
-Included: recursive panels, native controls, form state, control validation, state-rule evaluation/explanation and an approximate StrategyParametersGrp FIX preview. Uploading XML, schema validation, persistence, order submission and authoritative FIX formatting belong to the host/backend.
+Included: recursive panels, native controls, form state, parameter/strategy validation, state-rule evaluation/explanation and a StrategyParametersGrp FIX preview. Uploading XML, schema validation, persistence, order submission and authoritative FIX serialization belong to the host/backend.
 
 ## Installation
 
-The package targets public npm and needs no registry token to install after release:
+The package is public and needs no registry token to install:
 
 ```sh
 npm install @fix-portal/fixatdl-react
-```
-
-Until the first release, consume a locally built archive:
-
-```sh
-npm install ./fix-portal-fixatdl-react-0.1.0.tgz
 ```
 
 React and React DOM 19.2+ are peer dependencies. Node 24.15+ is required for development.
@@ -30,7 +24,7 @@ React and React DOM 19.2+ are peer dependencies. Node 24.15+ is required for dev
 import { FormRenderer, type AtdlStrategyDto } from '@fix-portal/fixatdl-react'
 
 export function StrategyEditor({ strategy }: { strategy: AtdlStrategyDto }) {
-  return <FormRenderer strategy={strategy} />
+  return <FormRenderer strategy={strategy} options={{ clock: () => new Date() }} />
 }
 ```
 
@@ -43,10 +37,11 @@ import {
 } from '@fix-portal/fixatdl-react'
 
 export function Workbench({ strategy }: { strategy: AtdlStrategyDto }) {
-  const { values, setValue, controlState } = useAtdlFormState(strategy)
-  const hasErrors = Object.values(controlState).some(control => control.errors.length > 0)
+  const { values, setValue, controlState, hasErrors, strategyErrors } =
+    useAtdlFormState(strategy, { clock: () => new Date() })
   const preview = emitStrategyParametersGrp(strategy, mapControlValuesToParameters(strategy, values))
   return <>
+    {strategyErrors.map((error, index) => <p role="alert" key={index}>{error}</p>)}
     <PanelRenderer panel={strategy.panel} values={values} setValue={setValue}
       state={controlState} highlightedControlId={null} onHighlightControl={() => {}} />
     <output>{hasErrors ? 'Correct the highlighted fields.' : JSON.stringify(preview)}</output>
@@ -54,7 +49,11 @@ export function Workbench({ strategy }: { strategy: AtdlStrategyDto }) {
 }
 ```
 
-Mount a new keyed workbench when changing the document/strategy. `FormRenderer` does this internally using strategy name and source XML. Each mounted editor has independent state, DOM IDs and radio groups. `FormRendererHandle.getValues()` exposes the current control-value map; it is not an order validation or submission API.
+State resets when the strategy name or source XML changes. Each mounted editor has independent state, DOM IDs and radio groups. `FormRendererHandle.getValues()` returns a snapshot of the control-value map; `isValid()` and `getErrors()` include both control and strategy errors. Hosts using the hook must honour `hasErrors`, including when copying or submitting a preview.
+
+`AtdlFormOptions` also accepts `initialValues` (control IDs), `initialFixValues` (numeric FIX tags), `externalValues` (named fields such as `FIX_OrderQty`) and `isAmendment`. Explicit null suppresses defaults. New-order `UseFixField` initialization falls back to authored values on conversion failure; amendment loading reports invalid wire values. Constants and parameters marked immutable on amendment cannot be edited. Supply every referenced external field; explicit null means known absent. Initialization options seed a new document; remount the editor to load another order into the same document.
+
+Supply `clock` at the host boundary when resolving time-only values or current-time initialization. Clock values retain both the UTC instant and the displayed local date/time in a `ClockValue` object, preserving loaded instants across DST overlaps. Use `clockDisplayValue`, `clockWireValue` or `mapControlValuesToParameters` instead of stringifying this object. Numeric inputs retain decimal strings when JavaScript numbers would lose precision. These value-shape changes are part of the 0.2.0 migration.
 
 `PanelRenderer.text` accepts optional `unsupportedControlType` and `whyRule` objects with `value` and optional HTML text attributes, allowing hosts to retain localization and text-edit tooling. All broker text is rendered as React text, never HTML or XAML.
 
@@ -73,12 +72,12 @@ The package does not import global CSS or fetch a theme. Hosts own their stylesh
 
 ## Supported surface and limits
 
-- The inherited registry handles 14 names: TextField_t, DoubleSpinner_t, SingleSpinner_t, DropDownList_t, SingleSelectList_t, CheckBox_t, RadioButton_t, RadioButtonList_t, Label_t, EditableDropDownList_t, Clock_t, Slider_t, MultiSelectList_t and CheckBoxList_t. Spinner variants share a numeric input; single-select variants share a select; multi-select and checkbox lists share checkboxes. This is the simulator's supported surface, not a claim of complete FIXatdl control fidelity.
-- Basic required/numeric/range validation runs in the browser. The DTO does not expose strategy edits, control increments, clock timezone metadata or full amendment semantics. Hosts must validate submitted values authoritatively. There is no XML parser in this package.
-- Value state rules are edge-triggered and applied in a single pass, preserving the existing simulator behaviour. Cascades do not settle to a fixed point within one edit; null restoration is not implemented. Enabled/visible rules are recalculated on each edit.
-- The shared backend rule corpus covers coercion and logical operators. Passing it proves agreement on those cases, not full conformance of all three FixPortal libraries.
-- `emitStrategyParametersGrp` is an approximate preview of tags 957-960. It is not a canonical wire encoder: date/time formatting, decimal fidelity, direct parameter tags and complete order construction remain backend responsibilities.
-- The currently supported radio shape uses list items on each control. Separate RadioButton_t controls sharing a parameter require additional semantic work before claiming WPF parity.
+- The registry handles 15 names: TextField_t, DoubleSpinner_t, SingleSpinner_t, DropDownList_t, SingleSelectList_t, CheckBox_t, RadioButton_t, RadioButtonList_t, Label_t, EditableDropDownList_t, Clock_t, Slider_t, MultiSelectList_t, CheckBoxList_t and HiddenField_t. Sliders support numeric ranges or enum positions; spinners honour increments. Shared binary radio groups preserve the selected parameter value. Native HTML controls provide the presentation.
+- Browser validation covers required values, declared enums, Boolean mappings, character lengths, numeric ranges, temporal values and mapped StrategyEdits. Typed comparisons preserve string identity, decimal precision, enum IDs, field-to-field comparisons, and exactly-one XOR semantics. Invalid expressions and missing external context make the form invalid.
+- Value rules settle cascades within one edit. NULL activation snapshots and clears a value, then restores it on deactivation. False enabled/visible conditions apply the inverse attribute, including on initialization. A bounded iteration guard reports cycles as form errors.
+- Clock display uses the control's market timezone; parameter timezones apply to daily bounds. DST overlaps choose the earlier instant for newly entered times, while loaded instants remain intact. Gaps shift forward by the skipped interval. TZ wire values normalize offsets to UTC. Year zero, leap seconds and timezone suffixes on authored Clock initialization are unsupported and rejected.
+- `emitStrategyParametersGrp` previews tags 957–960 with enum/Boolean/NULL mappings, inverted lists, percentage scaling, decimal rounding and temporal formatting. Direct parameter tags, arbitrary repeating groups and complete order construction remain host responsibilities. The host must also perform schema validation, ISO code-list checks and final order validation. Binary Data comparisons are unsupported; presence checks are supported.
+- Conformance evidence targets FIXatdl 1.1 with December 2010 errata. The shared rule corpus and six shared state-transition scenarios prove agreement on those cases; they are not full FIXatdl certification. The [core conformance record](https://github.com/FixPortal/fixportal-fixatdl/blob/main/docs/conformance.md) records the assessed scope and remaining limits.
 
 ## Development
 
@@ -91,7 +90,7 @@ npm run build
 npm pack
 ```
 
-The tests were extracted with the implementation. `contracts/state-rule-cases.json` is a verbatim snapshot of the backend-owned simulator corpus; the simulator integration checks it for drift. Built declarations and ESM are included in the archive, with README, LICENSE and NOTICE. Simulator application files and credentials are excluded.
+`contracts/state-rule-cases.json` is a verbatim snapshot of the backend-owned simulator corpus; the simulator integration checks it for drift. `contracts/state-transitions.json` is also consumed by the WPF model tests. Built declarations and ESM are included in the archive, with README, LICENSE and NOTICE. Simulator application files and credentials are excluded.
 
 ## Releases
 
@@ -99,7 +98,7 @@ Merge the version change through a PR, then tag the merged commit `v<version>`.
 CI verifies that the tag is on `main` and matches `package.json`, runs the checks,
 then publishes to npm with provenance. Configure npm trusted publishing for owner
 `FixPortal`, repository `fixportal-fixatdl-react`, workflow `ci.yml`, with no
-environment. The initial package registration requires an npm maintainer login.
+environment. The package is already registered with this trusted publisher.
 
 ## Provenance
 

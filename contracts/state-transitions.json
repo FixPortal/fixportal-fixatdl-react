@@ -1,0 +1,407 @@
+[
+  {
+    "name": "initial-false-inverts-enabled-and-visible",
+    "controls": [
+      {
+        "id": "trigger",
+        "type": "TextField_t",
+        "initValue": "off",
+        "stateRules": []
+      },
+      {
+        "id": "target",
+        "type": "TextField_t",
+        "initValue": "saved",
+        "stateRules": [
+          {
+            "effect": "enabled",
+            "targetValue": true,
+            "targetStringValue": null,
+            "expression": {
+              "kind": "compare",
+              "operator": "==",
+              "field": "trigger",
+              "value": "on",
+              "children": null
+            }
+          },
+          {
+            "effect": "visible",
+            "targetValue": true,
+            "targetStringValue": null,
+            "expression": {
+              "kind": "compare",
+              "operator": "==",
+              "field": "trigger",
+              "value": "on",
+              "children": null
+            }
+          }
+        ]
+      }
+    ],
+    "steps": [
+      {
+        "expected": {
+          "values": {
+            "target": "saved"
+          },
+          "states": {
+            "target": {
+              "enabled": false,
+              "visible": false
+            }
+          }
+        }
+      },
+      {
+        "set": {
+          "id": "trigger",
+          "value": "on"
+        },
+        "expected": {
+          "states": {
+            "target": {
+              "enabled": true,
+              "visible": true
+            }
+          }
+        }
+      },
+      {
+        "set": {
+          "id": "trigger",
+          "value": "off"
+        },
+        "expected": {
+          "states": {
+            "target": {
+              "enabled": false,
+              "visible": false
+            }
+          }
+        }
+      }
+    ]
+  },
+  {
+    "name": "null-rule-clears-and-restores-latest-value",
+    "controls": [
+      {
+        "id": "trigger",
+        "type": "TextField_t",
+        "initValue": "off",
+        "stateRules": []
+      },
+      {
+        "id": "target",
+        "type": "TextField_t",
+        "initValue": "initial",
+        "stateRules": [
+          {
+            "effect": "value",
+            "targetValue": false,
+            "targetStringValue": "{NULL}",
+            "expression": {
+              "kind": "compare",
+              "operator": "==",
+              "field": "trigger",
+              "value": "on",
+              "children": null
+            }
+          }
+        ]
+      }
+    ],
+    "steps": [
+      {
+        "expected": {
+          "values": {
+            "target": "initial"
+          }
+        }
+      },
+      {
+        "set": {
+          "id": "target",
+          "value": "edited"
+        },
+        "expected": {
+          "values": {
+            "target": "edited"
+          }
+        }
+      },
+      {
+        "set": {
+          "id": "trigger",
+          "value": "on"
+        },
+        "expected": {
+          "values": {
+            "target": null
+          }
+        }
+      },
+      {
+        "set": {
+          "id": "trigger",
+          "value": "off"
+        },
+        "expected": {
+          "values": {
+            "target": "edited"
+          }
+        }
+      },
+      {
+        "set": {
+          "id": "target",
+          "value": "later"
+        },
+        "expected": {
+          "values": {
+            "target": "later"
+          }
+        }
+      },
+      {
+        "set": {
+          "id": "trigger",
+          "value": "on"
+        },
+        "expected": {
+          "values": {
+            "target": null
+          }
+        }
+      },
+      {
+        "set": {
+          "id": "trigger",
+          "value": "off"
+        },
+        "expected": {
+          "values": {
+            "target": "later"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "name": "initial-null-rule-restores-initial-value",
+    "controls": [
+      {
+        "id": "trigger",
+        "type": "TextField_t",
+        "initValue": "on",
+        "stateRules": []
+      },
+      {
+        "id": "target",
+        "type": "TextField_t",
+        "initValue": "initial",
+        "stateRules": [
+          {
+            "effect": "value",
+            "targetValue": false,
+            "targetStringValue": "{NULL}",
+            "expression": {
+              "kind": "compare",
+              "operator": "==",
+              "field": "trigger",
+              "value": "on",
+              "children": null
+            }
+          }
+        ]
+      }
+    ],
+    "steps": [
+      {
+        "expected": {
+          "values": {
+            "target": null
+          }
+        }
+      },
+      {
+        "set": {
+          "id": "trigger",
+          "value": "off"
+        },
+        "expected": {
+          "values": {
+            "target": "initial"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "name": "reverse-document-order-cascade-settles-in-one-edit",
+    "controls": [
+      {
+        "id": "c",
+        "type": "TextField_t",
+        "initValue": null,
+        "stateRules": [
+          {
+            "effect": "value",
+            "targetValue": false,
+            "targetStringValue": "done",
+            "expression": {
+              "kind": "compare",
+              "operator": "==",
+              "field": "b",
+              "value": "go",
+              "children": null
+            }
+          }
+        ]
+      },
+      {
+        "id": "b",
+        "type": "TextField_t",
+        "initValue": null,
+        "stateRules": [
+          {
+            "effect": "value",
+            "targetValue": false,
+            "targetStringValue": "go",
+            "expression": {
+              "kind": "compare",
+              "operator": "==",
+              "field": "a",
+              "value": "go",
+              "children": null
+            }
+          }
+        ]
+      },
+      {
+        "id": "a",
+        "type": "TextField_t",
+        "initValue": "stop",
+        "stateRules": []
+      }
+    ],
+    "steps": [
+      {
+        "expected": {
+          "values": {
+            "a": "stop",
+            "b": null,
+            "c": null
+          }
+        }
+      },
+      {
+        "set": {
+          "id": "a",
+          "value": "go"
+        },
+        "expected": {
+          "values": {
+            "a": "go",
+            "b": "go",
+            "c": "done"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "name": "ordinary-value-rule-does-not-restore-on-false",
+    "controls": [
+      {
+        "id": "trigger",
+        "type": "TextField_t",
+        "initValue": "off",
+        "stateRules": []
+      },
+      {
+        "id": "target",
+        "type": "TextField_t",
+        "initValue": "initial",
+        "stateRules": [
+          {
+            "effect": "value",
+            "targetValue": false,
+            "targetStringValue": "assigned",
+            "expression": {
+              "kind": "compare",
+              "operator": "==",
+              "field": "trigger",
+              "value": "on",
+              "children": null
+            }
+          }
+        ]
+      }
+    ],
+    "steps": [
+      {
+        "expected": {
+          "values": {
+            "target": "initial"
+          }
+        }
+      },
+      {
+        "set": {
+          "id": "trigger",
+          "value": "on"
+        },
+        "expected": {
+          "values": {
+            "target": "assigned"
+          }
+        }
+      },
+      {
+        "set": {
+          "id": "trigger",
+          "value": "off"
+        },
+        "expected": {
+          "values": {
+            "target": "assigned"
+          }
+        }
+      }
+    ]
+  },
+  {
+    "name": "cyclic-null-rule-blocks-submission",
+    "controls": [
+      {
+        "id": "target",
+        "type": "TextField_t",
+        "initValue": "initial",
+        "stateRules": [
+          {
+            "effect": "value",
+            "targetValue": false,
+            "targetStringValue": "{NULL}",
+            "expression": {
+              "kind": "compare",
+              "operator": "exists",
+              "field": "target",
+              "value": null,
+              "children": null
+            }
+          }
+        ]
+      }
+    ],
+    "steps": [
+      {
+        "expected": {
+          "hasErrors": true
+        }
+      }
+    ]
+  }
+]

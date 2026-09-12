@@ -8,7 +8,7 @@
  */
 
 export type StateRuleAstNode =
-  | { kind: 'compare'; operator: StateRuleOperator; field: string; value: unknown; children?: null }
+  | { kind: 'compare'; operator: StateRuleOperator; field: string; field2?: string | null; comparisonType?: string | null; value: unknown; children?: null }
   | { kind: 'and'; children: StateRuleAstNode[] }
   | { kind: 'or'; children: StateRuleAstNode[] }
   | { kind: 'not'; children: [StateRuleAstNode] }

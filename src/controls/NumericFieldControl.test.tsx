@@ -37,6 +37,25 @@ const BASE_CONTROL: AtdlControlDto = {
 const ENABLED: ControlFormState = { enabled: true, visible: true, required: false, errors: [] }
 
 describe('NumericFieldControl', () => {
+  it('applies the outer increment with exact decimal arithmetic and clamps to bounds', () => {
+    const onChange = vi.fn()
+    const control = { ...BASE_CONTROL, outerIncrement: 0.2, parameter: makeParam({ max: 0.3 }) }
+    render(<NumericFieldControl control={control} value={0.1} onChange={onChange} state={ENABLED} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Increase Order Qty by 0.2' }))
+    expect(onChange).toHaveBeenCalledWith(0.3)
+  })
+  it('preserves a decimal that cannot round-trip through a JavaScript number', () => {
+    const onChange = vi.fn()
+    render(<NumericFieldControl control={BASE_CONTROL} value={null} onChange={onChange} state={ENABLED} />)
+    fireEvent.change(screen.getByRole('spinbutton'), { target: { value: '9007199254740993' } })
+    expect(onChange).toHaveBeenCalledWith('9007199254740993')
+  })
+
+  it('uses authored increments before display precision', () => {
+    const control = { ...BASE_CONTROL, type: 'SingleSpinner_t', increment: 0.25, parameter: makeParam({ precision: 2 }) }
+    render(<NumericFieldControl control={control} value={1} onChange={vi.fn()} state={ENABLED} />)
+    expect(screen.getByRole('spinbutton')).toHaveAttribute('step', '0.25')
+  })
   it('emits a number when the user types a numeric value', () => {
     const onChange = vi.fn()
     render(<NumericFieldControl control={BASE_CONTROL} value={null} onChange={onChange} state={ENABLED} />)

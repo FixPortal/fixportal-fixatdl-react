@@ -1,5 +1,5 @@
 import type { AtdlStrategyDto } from './types'
-import { flattenControls } from './atdlControls'
+import { flattenControls, controlValuesForRules } from './atdlControls'
 import { evaluateStateRule } from './StateRuleEvaluator'
 import { stateRuleToText } from './stateRuleToText'
 import type { StateRuleAstNode } from './stateRuleAst'
@@ -24,8 +24,10 @@ export interface RuleRow {
 export function collectRuleRows(
   strategy: AtdlStrategyDto,
   values: Record<string, unknown>,
+  externalValues: Record<string, unknown> = {},
 ): RuleRow[] {
   const rows: RuleRow[] = []
+  const ruleValues = { ...externalValues, ...controlValuesForRules(strategy, values) }
   for (const control of flattenControls(strategy)) {
     for (const rule of control.stateRules) {
       // expression is typed StateRuleAstNodeDto on the wire; cast to the evaluator's
@@ -38,7 +40,7 @@ export function collectRuleRows(
         targetValue: rule.effect === 'value' ? rule.targetStringValue : rule.targetValue,
         conditionText: stateRuleToText(expression),
         expression,
-        firing: evaluateStateRule(expression, values),
+        firing: evaluateStateRule(expression, ruleValues),
       })
     }
   }

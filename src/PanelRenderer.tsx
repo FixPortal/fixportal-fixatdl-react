@@ -1,6 +1,9 @@
 import type { AtdlPanelDto, AtdlControlDto, AtdlPanelChildDto } from './types'
 import type { ControlFormState } from './useAtdlFormState'
 import { controlRegistry } from './controls/controlRegistry'
+import { createContext, useContext, useId } from 'react'
+
+const FormInstance = createContext<string | null>(null)
 export interface PanelRendererText {
   unsupportedControlType?: { value: string; attrs?: Record<string, string> }
   whyRule?: { value: string; attrs?: Record<string, string> }
@@ -42,6 +45,8 @@ export function PanelRenderer({
   onHighlightControl,
   text,
 }: PanelRendererProps) {
+  const parentInstance = useContext(FormInstance)
+  const instanceId = useId()
   // WHY: FIXatdl orientation is HORIZONTAL/VERTICAL (uppercase in the XML),
   // but the C# AtdlDtoMapper calls enum.ToString() which yields PascalCase
   // ("Horizontal" / "Vertical"). We normalise to uppercase before comparing
@@ -58,6 +63,7 @@ export function PanelRenderer({
   const borderClass = hasBorder ? 'border border-border-base rounded-md p-3' : ''
 
   const body = (
+    <FormInstance value={parentInstance ?? instanceId}>
     <div className={`${layout} ${borderClass}`}>
       {(panel.children ?? []).map((child, i) => (
         <PanelChild
@@ -72,6 +78,7 @@ export function PanelRenderer({
         />
       ))}
     </div>
+    </FormInstance>
   )
 
   if (panel.collapsible) {
@@ -130,6 +137,7 @@ function PanelChild({
   onHighlightControl,
   text,
 }: PanelChildProps) {
+  const instanceId = useContext(FormInstance)
   const unsupportedT = text?.unsupportedControlType ?? { value: 'Unsupported control type:', attrs: {} }
   const whyT = text?.whyRule ?? { value: 'why?', attrs: {} }
 
@@ -193,6 +201,7 @@ function PanelChild({
         value={values[control.id]}
         onChange={(next) => setValue(control.id, next)}
         state={controlState}
+        radioGroupName={control.radioGroup ? `${instanceId}:${control.radioGroup}` : undefined}
       />
       {ruleDisabledOrHidden && (
         <button

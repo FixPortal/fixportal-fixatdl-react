@@ -1,11 +1,11 @@
 import { useId } from 'react'
 import type { ControlProps } from './controlRegistry'
+import { compareDecimals, decimalInputValue, addDecimals } from '../decimalValue'
 
 /**
  * Renders FIXatdl DoubleSpinner_t and SingleSpinner_t as a numeric <input>.
- * String-to-number conversion happens here at the onChange boundary so that
- * useAtdlFormState receives a number (or null for blank) to validate against
- * parameter min/max constraints.
+ * Values stay decimal strings when conversion to Number would lose precision;
+ * blank input produces null. DoubleSpinner also exposes the outer increment.
  */
 export function NumericFieldControl({ control, value, onChange, state }: ControlProps) {
   const inputId = useId()
@@ -22,16 +22,26 @@ export function NumericFieldControl({ control, value, onChange, state }: Control
   const isFloatPrice = paramType === 'Float_t' || paramType === 'Price_t' || paramType === 'PriceOffset_t'
   const isFloatQtyAmt = paramType === 'Qty_t' || paramType === 'Amt_t' || paramType === 'Percentage_t'
   const isFloat = isFloatPrice || isFloatQtyAmt
-  const step =
+  const step = control.increment ?? control.innerIncrement ?? (
     isFloat && param?.precision != null
       ? Math.pow(10, -param.precision)
-      : isFloat ? 'any' : undefined
+      : isFloat ? 'any' : undefined)
 
   const baseInput =
     'w-full rounded border px-2 py-1 text-sm bg-card text-text font-mono focus:outline-none focus:ring-2'
   const borderClass = hasError
     ? 'border-bad-border focus:ring-bad-border'
     : 'border-border-base focus:ring-brand-soft'
+  const scale = param?.type === 'Percentage_t' ? 100 : 1
+  const min = param?.min != null ? Number(param.min) * scale : undefined
+  const max = param?.max != null ? Number(param.max) * scale : undefined
+  const outerStep = (direction: number) => {
+    let next = addDecimals(value ?? min ?? 0, direction * (control.outerIncrement ?? 1))
+    if (next === null) return
+    if (min !== undefined && compareDecimals(next, min) === -1) next = String(min)
+    if (max !== undefined && compareDecimals(next, max) === 1) next = String(max)
+    onChange(decimalInputValue(next))
+  }
 
   return (
     <div className="space-y-1">
@@ -48,11 +58,11 @@ export function NumericFieldControl({ control, value, onChange, state }: Control
         type="number"
         value={value == null ? '' : String(value)}
         onChange={(e) =>
-          onChange(e.target.value === '' ? null : Number(e.target.value))
+          onChange(decimalInputValue(e.target.value))
         }
         step={step}
-        min={param?.min != null ? Number(param.min) : undefined}
-        max={param?.max != null ? Number(param.max) : undefined}
+        min={min}
+        max={max}
         disabled={!state.enabled}
         aria-disabled={!state.enabled}
         aria-label={control.label == null ? control.id : undefined}
@@ -62,6 +72,12 @@ export function NumericFieldControl({ control, value, onChange, state }: Control
         title={control.tooltip ?? undefined}
         className={`${baseInput} ${borderClass} disabled:opacity-50 disabled:cursor-not-allowed`}
       />
+      {control.type === 'DoubleSpinner_t' && control.outerIncrement != null && (
+        <div className="flex gap-1">
+          <button type="button" disabled={!state.enabled} aria-label={`Decrease ${control.label ?? control.id} by ${control.outerIncrement}`} onClick={() => outerStep(-1)}>−{control.outerIncrement}</button>
+          <button type="button" disabled={!state.enabled} aria-label={`Increase ${control.label ?? control.id} by ${control.outerIncrement}`} onClick={() => outerStep(1)}>+{control.outerIncrement}</button>
+        </div>
+      )}
       {hasError && (
         <ul id={errorId} className="space-y-0.5">
           {state.errors.map((err) => (

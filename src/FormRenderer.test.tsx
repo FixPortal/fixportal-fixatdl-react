@@ -33,6 +33,14 @@ function cloneStrategyWithSourceXml(nextSourceXml: string): AtdlStrategyDto {
 // ---------------------------------------------------------------------------
 
 describe('FormRenderer', () => {
+  it('exposes strategy validation to both the user and the submit handle', () => {
+    const ref = createRef<FormRendererHandle>()
+    const invalid = { ...strategy, strategyEdits: [{ errorMessage: 'Choose a valid combination.', expression: { kind: 'compare', operator: '==', field: strategy.parameters[0].name, value: 'impossible', children: null } }] }
+    render(<FormRenderer ref={ref} strategy={invalid} />)
+    expect(screen.getByRole('alert')).toHaveTextContent('Choose a valid combination.')
+    expect(ref.current!.isValid()).toBe(false)
+    expect(ref.current!.getErrors()).toContain('Choose a valid combination.')
+  })
   it('returns detached snapshots, including selected-value arrays', () => {
     const ref = createRef<FormRendererHandle>()
     renderForm(ref)

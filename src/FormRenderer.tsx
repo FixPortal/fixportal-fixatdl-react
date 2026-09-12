@@ -3,6 +3,7 @@ import type { Ref } from 'react'
 import type { AtdlStrategyDto } from './types'
 import { PanelRenderer } from './PanelRenderer'
 import { useAtdlFormState } from './useAtdlFormState'
+import type { AtdlFormOptions } from './useAtdlFormState'
 
 // ---------------------------------------------------------------------------
 // Imperative handle - lets parent pages pull current values without prop drilling
@@ -11,6 +12,8 @@ import { useAtdlFormState } from './useAtdlFormState'
 export interface FormRendererHandle {
   /** Returns a snapshot of all current control values keyed by controlId. */
   getValues(): Record<string, unknown>
+  isValid(): boolean
+  getErrors(): string[]
 }
 
 // ---------------------------------------------------------------------------
@@ -20,11 +23,13 @@ export interface FormRendererHandle {
 export interface FormRendererProps {
   strategy: AtdlStrategyDto
   ref?: Ref<FormRendererHandle>
+  options?: AtdlFormOptions
 }
 
 interface FormRendererInnerProps {
   strategy: AtdlStrategyDto
   forwardedRef?: Ref<FormRendererHandle>
+  options?: AtdlFormOptions
 }
 
 /**
@@ -40,15 +45,21 @@ interface FormRendererInnerProps {
  * (resetting state) when the strategy changes. A component cannot key itself,
  * so the outer shell applies the key to its child.
  */
-function FormRendererInner({ strategy, forwardedRef }: FormRendererInnerProps) {
-  const { values, setValue, controlState } = useAtdlFormState(strategy)
+function FormRendererInner({ strategy, forwardedRef, options }: FormRendererInnerProps) {
+  const { values, setValue, controlState, hasErrors, strategyErrors } = useAtdlFormState(strategy, options)
 
   // WHY [values] dependency: the closure must capture the latest values map
   // so getValues() always returns current state, not a stale snapshot from
   // the render that installed the handle.
-  useImperativeHandle(forwardedRef, () => ({ getValues: () => structuredClone(values) }), [values])
+  useImperativeHandle(forwardedRef, () => ({
+    getValues: () => structuredClone(values),
+    isValid: () => !hasErrors,
+    getErrors: () => [...strategyErrors, ...Object.values(controlState).flatMap(state => state.errors)],
+  }), [values, hasErrors, strategyErrors, controlState])
 
   return (
+    <>
+    {strategyErrors.length > 0 && <ul role="alert">{strategyErrors.map((error, index) => <li key={index}>{error}</li>)}</ul>}
     <PanelRenderer
       panel={strategy.panel}
       values={values}
@@ -57,15 +68,17 @@ function FormRendererInner({ strategy, forwardedRef }: FormRendererInnerProps) {
       highlightedControlId={null}
       onHighlightControl={() => {}}
     />
+    </>
   )
 }
 
-export function FormRenderer({ strategy, ref }: FormRendererProps) {
+export function FormRenderer({ strategy, ref, options }: FormRendererProps) {
   return (
     <FormRendererInner
       key={`${strategy.name}::${strategy.sourceXml ?? ''}`}
       strategy={strategy}
       forwardedRef={ref}
+      options={options}
     />
   )
 }
