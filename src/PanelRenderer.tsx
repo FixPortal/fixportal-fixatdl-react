@@ -20,7 +20,7 @@ export interface PanelRendererProps {
   setValue(controlId: string, next: unknown): void
   state: Record<string, ControlFormState>
   highlightedControlId: string | null
-  onHighlightControl(id: string | null): void
+  onHighlightControl?(id: string | null): void
 }
 
 // ---------------------------------------------------------------------------
@@ -125,7 +125,7 @@ interface PanelChildProps {
   setValue(controlId: string, next: unknown): void
   state: Record<string, ControlFormState>
   highlightedControlId: string | null
-  onHighlightControl(id: string | null): void
+  onHighlightControl?(id: string | null): void
 }
 
 function PanelChild({
@@ -164,7 +164,7 @@ function PanelChild({
   }
 
   const control = child as AtdlControlDto
-  const Component = controlRegistry[control.type]
+  const Component = Object.hasOwn(controlRegistry, control.type) ? controlRegistry[control.type] : undefined
 
   if (!Component) {
     // WHY: unknown control types must not silently vanish - they indicate an
@@ -203,7 +203,7 @@ function PanelChild({
         state={controlState}
         radioGroupName={control.radioGroup ? `${instanceId}:${control.radioGroup}` : undefined}
       />
-      {ruleDisabledOrHidden && (
+      {ruleDisabledOrHidden && onHighlightControl && (
         <button
           {...whyT.attrs}
           type="button"

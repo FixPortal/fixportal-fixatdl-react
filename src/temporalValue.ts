@@ -84,7 +84,8 @@ function parseMonthYear(value: unknown): number[] | null {
 /** Normalizes a FIX timezone offset to a UTC wire value without reading now. */
 export function normalizeTzTemporal(value: unknown, type?: string): string | null {
   if (typeof value !== 'string') return null
-  const match = /^(.*)(Z|[+-]\d{2}(?::\d{2})?)$/.exec(value)
+  const suffix = /^(.*)(Z|[+-]\d{2}(?::\d{2})?)$/.exec(value)
+  const match = suffix?.[1].includes(':') ? suffix : null
   if (!match && !/\d{2}:\d{2}:\d{2}/.test(value)) return null
   const parsed = parseTemporal(match?.[1] ?? value)
   if (!parsed) return null

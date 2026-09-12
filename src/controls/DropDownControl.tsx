@@ -66,6 +66,9 @@ export function DropDownControl({ control, value, onChange, state }: ControlProp
         title={control.tooltip ?? undefined}
         className={`${baseSelect} ${borderClass} disabled:opacity-50 disabled:cursor-not-allowed`}
       >
+        {currentValue !== '' && !options.some(option => option.enumId === currentValue) && (
+          <option value={currentValue} disabled>Unknown selection: {currentValue}</option>
+        )}
         {/* Optional fields can be cleared; an empty required field must stay visibly empty. */}
         {(!state.required || currentValue === '') && (
           <option value="">-</option>
@@ -78,8 +81,8 @@ export function DropDownControl({ control, value, onChange, state }: ControlProp
       </select>
       {hasError && (
         <ul id={errorId} className="space-y-0.5">
-          {state.errors.map((err) => (
-            <li key={err} className="text-xs text-bad-text">{err}</li>
+          {state.errors.map((err, index) => (
+            <li key={index} className="text-xs text-bad-text">{err}</li>
           ))}
         </ul>
       )}

@@ -50,7 +50,7 @@ export function settleValueRules(
           return { values, rules, errors: [`${control.id}: ${error instanceof Error ? error.message : String(error)}`] }
         }
       } else if (rule.targetStringValue === '{NULL}') {
-        value = structuredClone(memory.previousValue)
+        value = values[control.id] === null ? structuredClone(memory.previousValue) : values[control.id]
       } else { memory.active = false; continue }
       try { changed = assignControlValue(strategy, values, control, value, readonlyIds, now) || changed }
       catch (error) { return { values, rules, errors: [`${control.id}: ${error instanceof Error ? error.message : String(error)}`] } }

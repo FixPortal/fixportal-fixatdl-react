@@ -24,6 +24,9 @@ describe('core domain value parsing', () => {
 
 
 describe('FIX timezone values', () => {
+  it.each(['20260912-13:00', '20260912-15:00'])('rejects seconds-less timestamps without a designator: %s', raw => {
+    expect(normalizeTzTemporal(raw, 'TZTimestamp_t')).toBeNull()
+  })
   it.each([
     ['15:39+08', '07:39:00Z'],
     ['10:00:00.123', '10:00:00.123Z'],

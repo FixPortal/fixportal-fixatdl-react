@@ -30,7 +30,7 @@ export function emitStrategyParametersGrp(
   // pass in declaration order so the 957 count is exact before emission.
   const filled: { p: (typeof strategy.parameters)[number]; wire: string }[] = []
   for (const p of strategy.parameters) {
-    const raw = p.constValue ?? filledValues[p.name]
+    const raw = p.constValue ?? (Object.hasOwn(filledValues, p.name) ? filledValues[p.name] : undefined)
     // Formatting handles NULL suppression and complements inverted selections.
     const wire = parameterWireValue(p, raw)
     if (wire !== null) filled.push({ p, wire })

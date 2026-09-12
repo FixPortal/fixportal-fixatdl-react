@@ -1,6 +1,6 @@
 import { useId } from 'react'
 import type { ControlProps } from './controlRegistry'
-import { compareDecimals, decimalInputValue, addDecimals } from '../decimalValue'
+import { compareDecimals, decimalInputValue, addDecimals, formatDecimal } from '../decimalValue'
 
 /**
  * Renders FIXatdl DoubleSpinner_t and SingleSpinner_t as a numeric <input>.
@@ -32,9 +32,9 @@ export function NumericFieldControl({ control, value, onChange, state }: Control
   const borderClass = hasError
     ? 'border-bad-border focus:ring-bad-border'
     : 'border-border-base focus:ring-brand-soft'
-  const scale = param?.type === 'Percentage_t' ? 100 : 1
-  const min = param?.min != null ? Number(param.min) * scale : undefined
-  const max = param?.max != null ? Number(param.max) * scale : undefined
+  const shift = param?.type === 'Percentage_t' ? -2 : 0
+  const min = formatDecimal(param?.min, null, shift) ?? undefined
+  const max = formatDecimal(param?.max, null, shift) ?? undefined
   const outerStep = (direction: number) => {
     let next = addDecimals(value ?? min ?? 0, direction * (control.outerIncrement ?? 1))
     if (next === null) return
@@ -80,8 +80,8 @@ export function NumericFieldControl({ control, value, onChange, state }: Control
       )}
       {hasError && (
         <ul id={errorId} className="space-y-0.5">
-          {state.errors.map((err) => (
-            <li key={err} className="text-xs text-bad-text">{err}</li>
+          {state.errors.map((err, index) => (
+            <li key={index} className="text-xs text-bad-text">{err}</li>
           ))}
         </ul>
       )}

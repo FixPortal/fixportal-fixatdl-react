@@ -69,8 +69,8 @@ export function RadioListControl({ control, value, onChange, state }: ControlPro
       </div>
       {hasError && (
         <ul id={errorId} className="space-y-0.5">
-          {state.errors.map((err) => (
-            <li key={err} className="text-xs text-bad-text">{err}</li>
+          {state.errors.map((err, index) => (
+            <li key={index} className="text-xs text-bad-text">{err}</li>
           ))}
         </ul>
       )}

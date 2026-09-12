@@ -8,7 +8,7 @@ export interface TreeLine {
 }
 
 function formatValue(value: unknown): string {
-  return typeof value === 'number' ? String(value) : `"${String(value)}"`
+  return typeof value === 'string' ? JSON.stringify(value) : String(value)
 }
 
 function compareText(node: Extract<StateRuleAstNode, { kind: 'compare' }>): string {
@@ -21,7 +21,7 @@ function compareText(node: Extract<StateRuleAstNode, { kind: 'compare' }>): stri
 // reading; comparisons and NOT are already self-delimiting.
 function wrap(node: StateRuleAstNode, depth: number): string {
   const text = stateRuleToText(node, depth)
-  return node.kind === 'compare' || node.kind === 'not' ? text : `(${text})`
+  return !node || node.kind === 'compare' || node.kind === 'not' ? text : `(${text})`
 }
 
 export function stateRuleToText(node: StateRuleAstNode, depth = 0): string {

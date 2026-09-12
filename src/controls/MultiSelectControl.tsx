@@ -47,8 +47,6 @@ export function MultiSelectControl({ control, value, onChange, state }: ControlP
         <span className="block text-xs text-muted font-medium">
           {control.label}
           {state.required && (
-            // WHY: asterisk on the span (not a <label>) because this group has
-            // no single associated input - screen readers read it as group text.
             <span className="text-bad-text ml-1" aria-hidden="true">*</span>
           )}
         </span>
@@ -57,10 +55,7 @@ export function MultiSelectControl({ control, value, onChange, state }: ControlP
           boundary for the checkbox cluster, matching ARIA checkbox group best
           practice without requiring a <fieldset>/<legend> layout. */}
       <fieldset
-        aria-label={control.label ?? control.id}
-        // WHY: role="group" supports neither aria-required nor aria-invalid;
-        // the required asterisk conveys the former, and aria-describedby points
-        // assistive tech at the error list (below) for the latter.
+        aria-label={`${control.label ?? control.id}${state.required ? ' (Required)' : ''}`}
         aria-describedby={hasError ? `${inputId}-errors` : undefined}
         className={`space-y-1 rounded border px-2 py-1 min-w-0 ${borderClass}`}
       >
@@ -88,8 +83,8 @@ export function MultiSelectControl({ control, value, onChange, state }: ControlP
       </fieldset>
       {hasError && (
         <ul id={`${inputId}-errors`} className="space-y-0.5">
-          {state.errors.map((err) => (
-            <li key={err} className="text-xs text-bad-text">{err}</li>
+          {state.errors.map((err, index) => (
+            <li key={index} className="text-xs text-bad-text">{err}</li>
           ))}
         </ul>
       )}

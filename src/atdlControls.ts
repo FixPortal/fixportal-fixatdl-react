@@ -47,7 +47,7 @@ export function mapControlValuesToParameters(
   strategy: AtdlStrategyDto,
   controlValues: Record<string, unknown>,
 ): Record<string, unknown> {
-  const out: Record<string, unknown> = {}
+  const out: Record<string, unknown> = Object.create(null)
   for (const control of flattenControls(strategy)) {
     const paramName = control.parameterRef ?? control.parameter?.name
     if (paramName == null) continue
@@ -91,14 +91,22 @@ export function assignControlValue(strategy: AtdlStrategyDto, values: Record<str
     if (readonlyIds.has(sibling.id)) continue
     let next = values[sibling.id]
     if (sibling.id === control.id) next = value
+    else if (control.type === 'RadioButton_t' && value === true && control.radioGroup && sibling.type === 'RadioButton_t' && sibling.radioGroup === control.radioGroup) next = false
     else if (parameterName && parameterName === (sibling.parameterRef ?? sibling.parameter?.name)) {
       next = normalizeControlValue(sibling, parameterValue)
       if (isBinaryControl(sibling) && (sibling.checkedEnumRef || sibling.uncheckedEnumRef)) next = parameterValue == null ? null : parameterValue === sibling.checkedEnumRef
       if (sibling.parameter?.type === 'Percentage_t' && !sibling.parameter.enumValues?.length) next = isUnfilledAtdlValue(parameterValue) ? null : formatDecimal(parameterValue, null, -2) ?? parameterValue
-      if (sibling.type === 'Clock_t') next = createClockValue(sibling, control.type === 'Clock_t' ? clockWireValue(value) : parameterValue, now, 'wire')
-    } else if (control.type === 'RadioButton_t' && value === true && control.radioGroup && sibling.type === 'RadioButton_t' && sibling.radioGroup === control.radioGroup) next = false
+      if (sibling.type === 'Clock_t') {
+        try { next = createClockValue(sibling, control.type === 'Clock_t' ? clockWireValue(value) : parameterValue, now, 'wire') }
+        catch { continue } // Partial text stays on the edited control for validation.
+      }
+    }
     const equal = Object.is(values[sibling.id], next) || (Array.isArray(values[sibling.id]) && Array.isArray(next) && JSON.stringify(values[sibling.id]) === JSON.stringify(next))
-    if (!equal) { values[sibling.id] = next; changed = true }
+    if (!equal) {
+      if (next === undefined) delete values[sibling.id]
+      else values[sibling.id] = next
+      changed = true
+    }
   }
   return changed
 }

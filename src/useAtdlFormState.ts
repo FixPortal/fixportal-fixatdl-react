@@ -18,9 +18,9 @@ export interface ControlFormState {
 }
 
 export interface AtdlFormOptions {
-  /** Loaded control values. An explicit null suppresses the authored default. */
+  /** Mount-only control values. Explicit null suppresses defaults; remount when switching orders. */
   initialValues?: Record<string, unknown>
-  /** FIX tag values from the order being edited or initialization context. */
+  /** Mount-only FIX seed values. Give FormRenderer an order-specific React key when switching orders. */
   initialFixValues?: Record<number, unknown>
   /** Named FIX fields as strings, finite numbers, booleans, or null (known absent). */
   externalValues?: Record<string, unknown>
@@ -42,7 +42,7 @@ export function useAtdlFormState(strategy: AtdlStrategyDto, options: AtdlFormOpt
   const { values: validatedExternalValues, errors: externalErrors } = validateExternalValues(options.externalValues)
   const contextKey = `${JSON.stringify(validatedExternalValues)}`
   const externalValues = useMemo(() => JSON.parse(contextKey) as Record<string, unknown>, [contextKey])
-  const documentKey = `${strategy.name}\u0000${strategy.sourceXml ?? ''}`
+  const documentKey = JSON.stringify(strategy)
   const readonlyIds = useMemo(() => new Set(flattenControls(strategy)
     .filter(control => control.parameter?.constValue != null || (options.isAmendment && control.parameter?.mutableOnCxlRpl === false))
     .map(control => control.id)), [strategy, options.isAmendment])
@@ -116,7 +116,11 @@ function seedValues(strategy: AtdlStrategyDto, options: AtdlFormOptions) {
     let fromWire = false
     if (parameter?.constValue != null) {
       fromWire = true
-      value = parameter.type === 'Boolean_t' ? parameter.constValue : parameterFromWire(parameter, parameterWireValue(parameter, parameter.constValue))
+      try { value = parameter.type === 'Boolean_t' ? parameter.constValue : parameterFromWire(parameter, parameterWireValue(parameter, parameter.constValue)) }
+      catch (error) {
+        value = parameter.constValue
+        errors[control.id] = error instanceof Error ? error.message : String(error)
+      }
     }
     else if (options.initialValues && Object.hasOwn(options.initialValues, control.id)) value = options.initialValues[control.id]
     else if (fixTag != null && options.initialFixValues && Object.hasOwn(options.initialFixValues, fixTag)) {
@@ -132,7 +136,10 @@ function seedValues(strategy: AtdlStrategyDto, options: AtdlFormOptions) {
         }
       }
       if (fromWire && isBinaryControl(control) && parameter?.enumValues?.length) {
-        if (value != null && value !== control.checkedEnumRef && value !== control.uncheckedEnumRef) {
+        const siblingSelected = control.type === 'RadioButton_t' && control.radioGroup && flattenControls(strategy).some(sibling =>
+          sibling.type === 'RadioButton_t' && sibling.radioGroup === control.radioGroup &&
+          (sibling.parameterRef ?? sibling.parameter?.name) === (control.parameterRef ?? parameter.name) && sibling.checkedEnumRef === value)
+        if (value != null && value !== control.checkedEnumRef && value !== control.uncheckedEnumRef && !siblingSelected) {
           if (!options.isAmendment) { value = control.initValue ?? false; fromWire = false }
           else errors[control.id] = 'Unknown binary enumeration value.'
         } else value = value == null ? null : value === control.checkedEnumRef
@@ -192,10 +199,10 @@ function deriveControlState(strategy: AtdlStrategyDto, values: Record<string, un
 
 function validateStrategy(strategy: AtdlStrategyDto, values: Record<string, unknown>, externalValues: Record<string, unknown> = {}): string[] {
   const parameters = mapControlValuesToParameters(strategy, values)
-  const wireValues: Record<string, unknown> = { ...externalValues }
+  const wireValues: Record<string, unknown> = Object.assign(Object.create(null), externalValues)
   const errors: string[] = []
   for (const parameter of strategy.parameters) {
-    const logical = parameter.constValue ?? parameters[parameter.name]
+    const logical = parameter.constValue ?? (Object.hasOwn(parameters, parameter.name) ? parameters[parameter.name] : undefined)
     const wire = parameterWireValue(parameter, logical)
     wireValues[parameter.name] = wire
     if (parameter.type === 'Boolean_t') {

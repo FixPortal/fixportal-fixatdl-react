@@ -72,6 +72,7 @@ function equals(left: unknown, right: unknown, type?: string | null): boolean {
     return left.includes(right)
   }
   if (Array.isArray(right)) return right.includes(left)
+  if (!type && typeof left === 'string' && typeof right === 'boolean') return equals(right, left)
   if (!type && typeof left === 'boolean' && typeof right === 'string') {
     if (['Y', 'TRUE'].includes(right.toUpperCase())) return left
     if (['N', 'FALSE'].includes(right.toUpperCase())) return !left
