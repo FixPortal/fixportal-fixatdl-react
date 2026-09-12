@@ -1,13 +1,11 @@
 import type { StateRuleAstNode } from './stateRuleAst'
+import { MAX_STATE_RULE_DEPTH } from './stateRuleAst'
 
 export interface TreeLine {
   depth: number
   text: string
   isOperator: boolean
 }
-
-/** Guard against pathological AST nesting from malformed server payloads. */
-const MAX_DEPTH = 100
 
 function formatValue(value: unknown): string {
   return typeof value === 'number' ? String(value) : `"${String(value)}"`
@@ -27,7 +25,7 @@ function wrap(node: StateRuleAstNode, depth: number): string {
 }
 
 export function stateRuleToText(node: StateRuleAstNode, depth = 0): string {
-  if (depth > MAX_DEPTH) return '(nested too deep)'
+  if (depth > MAX_STATE_RULE_DEPTH) return '(nested too deep)'
   if (!node || (node.kind !== 'compare' && !Array.isArray(node.children))) return '(invalid rule)'
   switch (node.kind) {
     case 'compare':
@@ -45,7 +43,7 @@ export function stateRuleToText(node: StateRuleAstNode, depth = 0): string {
 }
 
 export function stateRuleToTree(node: StateRuleAstNode, depth = 0, into: TreeLine[] = []): TreeLine[] {
-  if (depth > MAX_DEPTH) {
+  if (depth > MAX_STATE_RULE_DEPTH) {
     into.push({ depth, text: '...', isOperator: false })
     return into
   }

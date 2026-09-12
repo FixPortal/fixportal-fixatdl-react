@@ -1,4 +1,5 @@
 import type { StateRuleAstNode } from './stateRuleAst'
+import { MAX_STATE_RULE_DEPTH } from './stateRuleAst'
 import { isUnfilledAtdlValue } from './atdlValue'
 import { compareDecimals } from './decimalValue'
 import { compareTemporal, compareTenor, compareMonthYear, compareTzTemporal } from './temporalValue'
@@ -21,7 +22,7 @@ export function tryEvaluateStateRule(node: StateRuleAstNode, state: Record<strin
 }
 
 function evalNode(node: StateRuleAstNode, state: Record<string, unknown>, depth: number): boolean {
-  if (!node || depth > 64) throw new InvalidRule()
+  if (!node || depth > MAX_STATE_RULE_DEPTH) throw new InvalidRule()
   if (node.kind === 'compare') return evalCompare(node, state)
   if (!Array.isArray(node.children)) throw new InvalidRule()
   // Evaluate every operand so malformed data cannot hide behind short circuiting.

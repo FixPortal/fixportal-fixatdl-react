@@ -38,11 +38,11 @@ describe('SliderControl', () => {
     expect(screen.getByRole('slider')).toHaveAttribute('min', bounds.expectedMin)
     expect(screen.getByRole('slider')).toHaveAttribute('max', bounds.expectedMax)
   })
-  it('maps discrete slider positions to enum IDs and labels', () => {
+  it.each([{ uiRep: 'Low', label: 'Low' }, { uiRep: undefined, label: 'low' }])('maps discrete slider positions to enum IDs and labels: %j', ({ uiRep, label }) => {
     const onChange = vi.fn()
-    const control = { ...BASE_CONTROL, listItems: [{ enumId: 'low', uiRep: 'Low' }, { enumId: 'high', uiRep: 'High' }] }
+    const control = { ...BASE_CONTROL, listItems: [{ enumId: 'low', uiRep }, { enumId: 'high', uiRep: 'High' }] } as AtdlControlDto
     render(<SliderControl control={control} value="low" onChange={onChange} state={ENABLED} />)
-    expect(screen.getByRole('slider')).toHaveAttribute('aria-valuetext', 'Low')
+    expect(screen.getByRole('slider')).toHaveAttribute('aria-valuetext', label)
     fireEvent.change(screen.getByRole('slider'), { target: { value: '1' } })
     expect(onChange).toHaveBeenCalledWith('high')
   })

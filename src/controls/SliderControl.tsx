@@ -23,7 +23,7 @@ export function SliderControl({ control, value, onChange, state }: ControlProps)
   const min = discrete ? 0 : declaredMin ?? (declaredMax != null && declaredMax < 0 ? declaredMax - 100 : 0)
   const max = discrete ? items.length - 1 : declaredMax ?? (declaredMin != null && declaredMin > 100 ? declaredMin + 100 : 100)
   const current = discrete ? Math.max(0, items.findIndex(item => item.enumId === value)) : Number(value ?? min)
-  const display = discrete ? items[current]?.uiRep : current
+  const display = discrete ? (items[current]?.uiRep ?? items[current]?.enumId ?? '') : current
 
   const borderClass = hasError ? 'border-bad-border' : 'border-border-base'
 

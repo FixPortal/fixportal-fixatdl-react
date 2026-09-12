@@ -1,5 +1,5 @@
 import type { AtdlControlDto, AtdlPanelDto, AtdlStrategyDto } from './types'
-import { controlParameterValue, isBinaryControl, normalizeControlValue } from './atdlValue'
+import { controlParameterValue, isBinaryControl, isUnfilledAtdlValue, normalizeControlValue } from './atdlValue'
 import { clockRuleValue, createClockValue, clockWireValue } from './atdlClock'
 import { formatDecimal } from './decimalValue'
 
@@ -94,7 +94,7 @@ export function assignControlValue(strategy: AtdlStrategyDto, values: Record<str
     else if (parameterName && parameterName === (sibling.parameterRef ?? sibling.parameter?.name)) {
       next = normalizeControlValue(sibling, parameterValue)
       if (isBinaryControl(sibling) && (sibling.checkedEnumRef || sibling.uncheckedEnumRef)) next = parameterValue == null ? null : parameterValue === sibling.checkedEnumRef
-      if (sibling.parameter?.type === 'Percentage_t' && !sibling.parameter.enumValues?.length) next = formatDecimal(parameterValue, null, -2)
+      if (sibling.parameter?.type === 'Percentage_t' && !sibling.parameter.enumValues?.length) next = isUnfilledAtdlValue(parameterValue) ? null : formatDecimal(parameterValue, null, -2) ?? parameterValue
       if (sibling.type === 'Clock_t') next = createClockValue(sibling, control.type === 'Clock_t' ? clockWireValue(value) : parameterValue, now, 'wire')
     } else if (control.type === 'RadioButton_t' && value === true && control.radioGroup && sibling.type === 'RadioButton_t' && sibling.radioGroup === control.radioGroup) next = false
     const equal = Object.is(values[sibling.id], next) || (Array.isArray(values[sibling.id]) && Array.isArray(next) && JSON.stringify(values[sibling.id]) === JSON.stringify(next))

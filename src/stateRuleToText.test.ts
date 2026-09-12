@@ -34,7 +34,7 @@ describe('stateRuleToText', () => {
 
 describe('stateRuleToText depth guard', () => {
   it('returns sentinel instead of recursing beyond MAX_DEPTH', () => {
-    // Build a chain of 110 nested NOT nodes - beyond the 100-deep limit.
+    // Build a chain of 110 nested NOT nodes - beyond the shared 64-deep limit.
     let node: StateRuleAstNode = cmp('==', 'X', '1')
     for (let i = 0; i < 110; i++) node = { kind: 'not', children: [node] }
     // Should not throw or overflow the stack.

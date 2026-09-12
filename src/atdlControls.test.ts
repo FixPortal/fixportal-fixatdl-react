@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { flattenControls, mapControlValuesToParameters } from './atdlControls'
-import type { AtdlPanelChildDto, AtdlPanelDto, AtdlStrategyDto } from './types'
+import { flattenControls, mapControlValuesToParameters, assignControlValue } from './atdlControls'
+import type { AtdlPanelChildDto, AtdlPanelDto, AtdlStrategyDto, AtdlParameterDto } from './types'
 
 function control(id: string, parameterRef: string | null) {
   return {
@@ -44,6 +44,14 @@ describe('flattenControls', () => {
 })
 
 describe('mapControlValuesToParameters', () => {
+  it.each([['bad', 'bad'], ['12.5', '12.5'], ['', null], [null, null]])('preserves invalid linked percentage input: %s', (value, expected) => {
+    const parameter: AtdlParameterDto = { name: 'P', type: 'Percentage_t', fixTag: 9001, enumValues: null, min: null, max: null, precision: null, mutableOnCxlRpl: true, useValue: 'optional', defaultValue: null }
+    const first = { ...control('first', 'P'), parameter }
+    const second = { ...control('second', 'P'), parameter }
+    const values: Record<string, unknown> = {}
+    assignControlValue(strategy(panel([first, second])), values, first, value, new Set())
+    expect(values.second).toBe(expected)
+  })
   it('rekeys control-id values to their parameter names', () => {
     const s = strategy(panel([control('c_StartTime', 'StartTime'), control('c_Part', 'Participation')]))
     const out = mapControlValuesToParameters(s, { c_StartTime: '09:30', c_Part: '25' })

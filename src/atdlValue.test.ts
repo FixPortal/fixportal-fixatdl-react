@@ -1,8 +1,15 @@
 import { expect, it } from 'vitest'
 import { parameterFromWire, parameterWireValue } from './atdlValue'
+import { compareDecimals, formatDecimal } from './decimalValue'
 import type { AtdlParameterDto } from './types'
 
 const parameter: AtdlParameterDto = { name: 'P', fixTag: 9001, type: 'String_t', enumValues: null, min: null, max: null, precision: null, mutableOnCxlRpl: true, useValue: 'optional', defaultValue: null }
+
+it('keeps core numeric Edit inference separate from ungrouped wire formatting', () => {
+  expect(compareDecimals('1,2', 12)).toBe(0)
+  expect(formatDecimal('1,2')).toBeNull()
+  expect(parameterWireValue({ ...parameter, type: 'Float_t' }, '1,2')).toBe('1,2')
+})
 
 it.each([true, false])('round-trips custom Boolean wire values: %s', value => {
   const definition = { ...parameter, type: 'Boolean_t', trueWireValue: 'T', falseWireValue: 'F' }
