@@ -80,3 +80,41 @@ function parseMonthYear(value: unknown): number[] | null {
   }
   return [year, month, day ?? (week ?? 0) * 7, day ?? -1, week ?? -1]
 }
+
+/** Normalizes a FIX timezone offset to a UTC wire value without reading now. */
+export function normalizeTzTemporal(value: unknown, type?: string): string | null {
+  if (typeof value !== 'string') return null
+  const match = /^(.*)(Z|[+-]\d{2}(?::\d{2})?)$/.exec(value)
+  if (!match && !/\d{2}:\d{2}:\d{2}/.test(value)) return null
+  const parsed = parseTemporal(match?.[1] ?? value)
+  if (!parsed) return null
+  if (type === 'TZTimestamp_t' && !parsed.date) return null
+  if (type === 'TZTimeOnly_t' && parsed.date) return null
+  const offset = tzOffsetMinutes(match?.[2] ?? 'Z')
+  if (offset === null) return null
+  const date = parsed.date ?? '20000102'
+  const probe = new Date(0)
+  probe.setUTCFullYear(Number(date.slice(0, 4)), Number(date.slice(4, 6)) - 1, Number(date.slice(6, 8)))
+  probe.setUTCHours(Number(parsed.time.slice(0, 2)), Number(parsed.time.slice(3, 5)) - offset, Number(parsed.time.slice(6, 8)), 0)
+  if (probe.getUTCFullYear() < 1 || probe.getUTCFullYear() > 9999) return null
+  const iso = probe.toISOString()
+  let fraction = parsed.time.slice(9)
+  while (fraction.endsWith('0')) fraction = fraction.slice(0, -1)
+  const time = iso.slice(11, 19) + (fraction ? `.${fraction}` : '')
+  const prefix = parsed.date ? `${iso.slice(0, 10).replaceAll('-', '')}-` : ''
+  return `${prefix}${time}Z`
+}
+
+function tzOffsetMinutes(value: string): number | null {
+  if (value === 'Z') return 0
+  const hour = Number(value.slice(1, 3))
+  const minute = Number(value.slice(4) || 0)
+  if (hour > 14 || minute > 59 || (hour === 14 && minute !== 0)) return null
+  return (hour * 60 + minute) * (value[0] === '-' ? -1 : 1)
+}
+
+export function compareTzTemporal(left: unknown, right: unknown): number | null {
+  const a = normalizeTzTemporal(left)
+  const b = normalizeTzTemporal(right)
+  return a && b ? compareTemporal(a.slice(0, -1), b.slice(0, -1)) : null
+}

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { compareMonthYear, compareTenor, normalizeMonthYear, normalizeTenor } from './temporalValue'
+import { compareMonthYear, compareTenor, normalizeMonthYear, normalizeTenor, normalizeTzTemporal } from './temporalValue'
 
 describe('core domain value parsing', () => {
   it.each(['D0', 'D-1', 'Q2', 'D2147483648', 'd2', '2D'])('rejects invalid tenor %s', value => {
@@ -19,5 +19,25 @@ describe('core domain value parsing', () => {
     expect(normalizeMonthYear('20240229')).toBe('20240229')
     expect(normalizeMonthYear('20230229')).toBeNull()
     expect(compareMonthYear('202609w1', '20260907')).toBeLessThan(0)
+  })
+})
+
+
+describe('FIX timezone values', () => {
+  it.each([
+    ['15:39+08', '07:39:00Z'],
+    ['10:00:00.123', '10:00:00.123Z'],
+    ['00:15+01', '23:15:00Z'],
+    ['20260101-00:15:00.1234567+01:00', '20251231-23:15:00.1234567Z'],
+    ['00990601-10:00Z', '00990601-10:00:00Z'],
+  ])('normalizes %s without a host clock', (raw, expected) => {
+    expect(normalizeTzTemporal(raw)).toBe(expected)
+  })
+  it.each(['10:00+14:01', '10:00+15', '25:00Z', '20260230-10:00Z', '00010101-00:00+01'])('rejects invalid %s', raw => {
+    expect(normalizeTzTemporal(raw)).toBeNull()
+  })
+  it('checks the parameter date/time shape', () => {
+    expect(normalizeTzTemporal('10:00Z', 'TZTimestamp_t')).toBeNull()
+    expect(normalizeTzTemporal('20260101-10:00Z', 'TZTimeOnly_t')).toBeNull()
   })
 })

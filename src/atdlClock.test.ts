@@ -62,6 +62,7 @@ describe('FIXatdl clock boundary', () => {
     const utc = { ...control, localMktTz: 'UTC' }
     expect(clockWireValue(createClockValue(utc, '2026-06-01T10:00:00+02:00', undefined, 'wire'))).toBe('20260601-08:00:00')
     expect(clockWireValue(createClockValue(utc, '20260601-10:00:00-05:30', undefined, 'wire'))).toBe('20260601-15:30:00')
+    expect(clockWireValue(createClockValue(utc, '20260601-15:39+08', undefined, 'wire'))).toBe('20260601-07:39:00')
     expect(clockWireValue(createClockValue(utc, '00990601-10:00:00', undefined, 'wire'))).toBe('00990601-10:00:00')
     expect(() => createClockValue(utc, '20260601-10:00:00+14:01')).toThrow('timezone offset')
     expect(() => createClockValue(utc, '20260601-10:00:00+02:00')).toThrow('local market wall time')

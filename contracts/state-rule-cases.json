@@ -400,5 +400,10 @@
   {"name": "monthyear_day_before_week", "ast": {"kind": "compare", "operator": "<", "field": "a", "value": "202609w1", "children": null, "comparisonType": "MonthYear_t"}, "formState": {"a": "20260906"}, "expected": true},
   {"name": "monthyear_unsuffixed_first", "ast": {"kind": "compare", "operator": "<", "field": "a", "value": "20260901", "children": null, "comparisonType": "MonthYear_t"}, "formState": {"a": "202609"}, "expected": true},
   {"name": "monthyear_month_boundary", "ast": {"kind": "compare", "operator": "<", "field": "a", "value": "20261001", "children": null, "comparisonType": "MonthYear_t"}, "formState": {"a": "202609w5"}, "expected": true},
-  {"name": "boolean_field2_native_states", "ast": {"kind": "compare", "operator": "==", "field": "a", "value": null, "children": null, "comparisonType": "Boolean_t", "field2": "b"}, "formState": {"a": true, "b": true}, "expected": true}
+  {"name": "boolean_field2_native_states", "ast": {"kind": "compare", "operator": "==", "field": "a", "value": null, "children": null, "comparisonType": "Boolean_t", "field2": "b"}, "formState": {"a": true, "b": true}, "expected": true},
+  {"name": "tz_time_offset_equivalence", "ast": {"kind": "compare", "operator": "==", "field": "a", "value": "07:39:00Z", "children": null, "comparisonType": "TZTimeOnly_t"}, "formState": {"a": "15:39+08"}, "expected": true},
+  {"name": "tz_time_wraps_midnight", "ast": {"kind": "compare", "operator": "==", "field": "a", "value": "23:15:00Z", "children": null, "comparisonType": "TZTimeOnly_t"}, "formState": {"a": "00:15+01"}, "expected": true},
+  {"name": "tz_timestamp_rollover", "ast": {"kind": "compare", "operator": "==", "field": "a", "value": "20251231-23:15:00Z", "children": null, "comparisonType": "TZTimestamp_t"}, "formState": {"a": "20260101-00:15+01"}, "expected": true},
+  {"name": "tz_timestamp_fraction_order", "ast": {"kind": "compare", "operator": ">", "field": "a", "value": "20260601-08:00:00.1234566Z", "children": null, "comparisonType": "TZTimestamp_t"}, "formState": {"a": "20260601-10:00:00.1234567+02:00"}, "expected": true},
+  {"name": "tz_missing_offset_defaults_utc", "ast": {"kind": "compare", "operator": "==", "field": "a", "value": "10:00:00.123Z", "children": null, "comparisonType": "TZTimeOnly_t"}, "formState": {"a": "10:00:00.123"}, "expected": true}
 ]
