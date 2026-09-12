@@ -16,7 +16,7 @@ function formatValue(value: unknown): string {
 function compareText(node: Extract<StateRuleAstNode, { kind: 'compare' }>): string {
   if (node.operator === 'exists') return `${node.field} exists`
   if (node.operator === 'not-exists') return `${node.field} not exists`
-  return `${node.field} ${node.operator} ${formatValue(node.value)}`
+  return `${node.field} ${node.operator} ${node.field2 ?? formatValue(node.value)}`
 }
 
 // WHY parenthesise: compound children (and/or/xor) need parens for unambiguous
@@ -28,6 +28,7 @@ function wrap(node: StateRuleAstNode, depth: number): string {
 
 export function stateRuleToText(node: StateRuleAstNode, depth = 0): string {
   if (depth > MAX_DEPTH) return '(nested too deep)'
+  if (!node || (node.kind !== 'compare' && !Array.isArray(node.children))) return '(invalid rule)'
   switch (node.kind) {
     case 'compare':
       return compareText(node)
@@ -39,12 +40,17 @@ export function stateRuleToText(node: StateRuleAstNode, depth = 0): string {
       return node.children.map(c => wrap(c, depth + 1)).join(' XOR ')
     case 'not':
       return `NOT (${stateRuleToText(node.children[0], depth + 1)})`
+    default: return '(invalid rule)'
   }
 }
 
 export function stateRuleToTree(node: StateRuleAstNode, depth = 0, into: TreeLine[] = []): TreeLine[] {
   if (depth > MAX_DEPTH) {
     into.push({ depth, text: '...', isOperator: false })
+    return into
+  }
+  if (!node || (node.kind !== 'compare' && !Array.isArray(node.children))) {
+    into.push({ depth, text: '(invalid rule)', isOperator: false })
     return into
   }
   if (node.kind === 'compare') {

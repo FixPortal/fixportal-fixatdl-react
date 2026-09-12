@@ -32,6 +32,20 @@ const BASE_CONTROL: AtdlControlDto = {
 const ENABLED: ControlFormState = { enabled: true, visible: true, required: false, errors: [] }
 
 describe('SliderControl', () => {
+  it.each([{ min: null, max: -1, expectedMin: '-101', expectedMax: '-1' }, { min: 150, max: null, expectedMin: '150', expectedMax: '250' }])('keeps a useful range with only one declared bound: %j', bounds => {
+    const control = { ...BASE_CONTROL, parameter: { ...BASE_CONTROL.parameter!, min: bounds.min, max: bounds.max } }
+    render(<SliderControl control={control} value={null} onChange={vi.fn()} state={ENABLED} />)
+    expect(screen.getByRole('slider')).toHaveAttribute('min', bounds.expectedMin)
+    expect(screen.getByRole('slider')).toHaveAttribute('max', bounds.expectedMax)
+  })
+  it('maps discrete slider positions to enum IDs and labels', () => {
+    const onChange = vi.fn()
+    const control = { ...BASE_CONTROL, listItems: [{ enumId: 'low', uiRep: 'Low' }, { enumId: 'high', uiRep: 'High' }] }
+    render(<SliderControl control={control} value="low" onChange={onChange} state={ENABLED} />)
+    expect(screen.getByRole('slider')).toHaveAttribute('aria-valuetext', 'Low')
+    fireEvent.change(screen.getByRole('slider'), { target: { value: '1' } })
+    expect(onChange).toHaveBeenCalledWith('high')
+  })
   it('uses the lower bound consistently when unset', () => {
     const control = { ...BASE_CONTROL, parameter: { ...BASE_CONTROL.parameter!, min: 10 } }
     render(<SliderControl control={control} value={undefined} onChange={vi.fn()} state={ENABLED} />)

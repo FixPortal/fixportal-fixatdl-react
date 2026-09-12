@@ -3,10 +3,8 @@ import type { ControlProps } from './controlRegistry'
 
 /**
  * Renders FIXatdl Slider_t as an <input type="range"> with a live value pip.
- * Range bounds come from parameter.min / parameter.max; AtdlParameterDto does
- * not carry an `increment` field (it was not included in the T7 DTO contract),
- * so the step attribute is omitted and defaults to 1. If increment support is
- * added to AtdlParameterDto in a future task, wire it via parameter.increment.
+ * Numeric bounds come from the parameter and step from control.increment.
+ * Enumerated sliders use list positions while retaining enum IDs in form state.
  */
 export function SliderControl({ control, value, onChange, state }: ControlProps) {
   const inputId = useId()
@@ -17,9 +15,15 @@ export function SliderControl({ control, value, onChange, state }: ControlProps)
 
   const hasError = state.errors.length > 0
 
-  const min = Number(control.parameter?.min ?? 0)
-  const max = Number(control.parameter?.max ?? 100)
-  const current = Number(value ?? min)
+  const items = control.listItems ?? []
+  const discrete = items.length > 0
+  const scale = control.parameter?.type === 'Percentage_t' ? 100 : 1
+  const declaredMin = control.parameter?.min == null ? null : Number(control.parameter.min) * scale
+  const declaredMax = control.parameter?.max == null ? null : Number(control.parameter.max) * scale
+  const min = discrete ? 0 : declaredMin ?? (declaredMax != null && declaredMax < 0 ? declaredMax - 100 : 0)
+  const max = discrete ? items.length - 1 : declaredMax ?? (declaredMin != null && declaredMin > 100 ? declaredMin + 100 : 100)
+  const current = discrete ? Math.max(0, items.findIndex(item => item.enumId === value)) : Number(value ?? min)
+  const display = discrete ? items[current]?.uiRep : current
 
   const borderClass = hasError ? 'border-bad-border' : 'border-border-base'
 
@@ -46,7 +50,8 @@ export function SliderControl({ control, value, onChange, state }: ControlProps)
           min={min}
           max={max}
           value={current}
-          onChange={(e) => onChange(Number(e.target.value))}
+          step={discrete ? 1 : control.increment ?? 'any'}
+          onChange={(e) => onChange(discrete ? items[Number(e.target.value)]?.enumId : Number(e.target.value))}
           disabled={!state.enabled}
           aria-disabled={!state.enabled}
           aria-label={control.label ?? control.id}
@@ -55,10 +60,11 @@ export function SliderControl({ control, value, onChange, state }: ControlProps)
           aria-valuemin={min}
           aria-valuemax={max}
           aria-valuenow={current}
+          aria-valuetext={discrete ? String(display) : undefined}
           title={control.tooltip ?? undefined}
           className="flex-1 accent-brand disabled:opacity-50 disabled:cursor-not-allowed"
         />
-        <span className="text-sm text-muted min-w-[3ch] text-right">{current}</span>
+        <span className="text-sm text-muted min-w-[3ch] text-right">{display}</span>
       </div>
       {hasError && (
         <ul id={errorId} className="space-y-0.5">

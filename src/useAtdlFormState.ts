@@ -1,13 +1,14 @@
 import { useMemo, useState, useCallback } from 'react'
-import type { AtdlStrategyDto, AtdlControlDto, AtdlStateRuleDto } from './types'
-import { evaluateStateRule } from './StateRuleEvaluator'
-import { flattenControls } from './atdlControls'
-import { isUnfilledAtdlValue } from './atdlValue'
+import type { AtdlStrategyDto, AtdlControlDto } from './types'
+import { tryEvaluateStateRule } from './StateRuleEvaluator'
+import { flattenControls, controlValuesForRules, mapControlValuesToParameters, assignControlValue, isLockedRadio, parameterValueSource } from './atdlControls'
+import { isUnfilledAtdlValue, isBinaryControl, normalizeControlValue, controlParameterValue, parameterWireValue, parameterFromWire } from './atdlValue'
 import type { StateRuleAstNode } from './stateRuleAst'
-
-// ---------------------------------------------------------------------------
-// Public API types
-// ---------------------------------------------------------------------------
+import { settleValueRules } from './stateTransitions'
+import { compareDecimals } from './decimalValue'
+import { createClockValue, editClockValue } from './atdlClock'
+import { compareTemporal, parseTemporal, compareTenor, compareMonthYear, normalizeTenor, normalizeMonthYear, normalizeTzTemporal, compareTzTemporal } from './temporalValue'
+import { controlRegistry } from './controls/controlRegistry'
 
 export interface ControlFormState {
   enabled: boolean
@@ -16,243 +17,258 @@ export interface ControlFormState {
   errors: string[]
 }
 
+export interface AtdlFormOptions {
+  /** Loaded control values. An explicit null suppresses the authored default. */
+  initialValues?: Record<string, unknown>
+  /** FIX tag values from the order being edited or initialization context. */
+  initialFixValues?: Record<number, unknown>
+  /** Named FIX fields referenced by edits, e.g. FIX_OrderQty. Explicit null means absent. */
+  externalValues?: Record<string, unknown>
+  isAmendment?: boolean
+  clock?: () => Date
+}
+
 export interface AtdlFormStateApi {
   values: Record<string, unknown>
   setValue(controlId: string, value: unknown): void
   controlState: Record<string, ControlFormState>
+  strategyErrors: string[]
+  hasErrors: boolean
 }
 
-// ---------------------------------------------------------------------------
-// Hook
-// ---------------------------------------------------------------------------
-
-/**
- * WHY: Central form-state manager for a single ATDL strategy. Owns the mutable
- * control-value map, derives per-control UI state (enabled / visible / required)
- * by evaluating each StateRule live, and runs per-type validation whenever values
- * change. Keeps all state in one place so renderers stay pure presentational.
- */
-export function useAtdlFormState(strategy: AtdlStrategyDto): AtdlFormStateApi {
-  const [values, setValues] = useState<Record<string, unknown>>(
-    () => applyValueRules(strategy, seedValues(strategy), null),
-  )
-
+/** One strategy's settled values and validation, including parameter StrategyEdits. */
+export function useAtdlFormState(strategy: AtdlStrategyDto, options: AtdlFormOptions = {}): AtdlFormStateApi {
+  const { clock, externalValues } = options
+  const documentKey = `${strategy.name}\u0000${strategy.sourceXml ?? ''}`
+  const contextKey = JSON.stringify(options.externalValues ?? {})
+  const readonlyIds = useMemo(() => new Set(flattenControls(strategy)
+    .filter(control => control.parameter?.constValue != null || (options.isAmendment && control.parameter?.mutableOnCxlRpl === false))
+    .map(control => control.id)), [strategy, options.isAmendment])
+  const initialize = () => {
+    const seeded = seedValues(strategy, options)
+    return { ...settleValueRules(strategy, seeded.values, undefined, readonlyIds, seeded.now, options.externalValues), inputErrors: seeded.errors, documentKey, contextKey }
+  }
+  const [runtime, setRuntime] = useState(initialize)
+  if (runtime.documentKey !== documentKey) setRuntime(initialize())
+  else if (runtime.contextKey !== contextKey) {
+    setRuntime(previous => ({ ...previous, ...settleValueRules(strategy, previous.values, previous, readonlyIds, options.clock?.(), options.externalValues), contextKey }))
+  }
+  const values = runtime.values
   const setValue = useCallback((controlId: string, value: unknown) => {
-    setValues(prev => applyValueRules(strategy, { ...prev, [controlId]: value }, prev))
-  }, [strategy])
-
-  // WHY useMemo: controlState is a pure function of strategy + values. Re-deriving
-  // only when those change avoids O(controls × rules) work on every render.
-  const controlState = useMemo(
-    () => deriveControlState(strategy, values),
-    [strategy, values],
-  )
-
-  return { values, setValue, controlState }
+    if (readonlyIds.has(controlId)) return
+    const controls = flattenControls(strategy)
+    const control = controls.find(item => item.id === controlId)
+    if (!control) return
+    setRuntime(previous => {
+      const inputErrors = { ...previous.inputErrors }
+      delete inputErrors[controlId]
+      const now = clock?.()
+      let normalized: unknown
+      try {
+        normalized = control.type === 'Clock_t'
+          ? editClockValue(control, previous.values[controlId], value == null ? '' : String(value), now)
+          : normalizeControlValue(control, value)
+      } catch (error) {
+        inputErrors[controlId] = error instanceof Error ? error.message : String(error)
+        return { ...previous, inputErrors }
+      }
+      const next = { ...previous.values }
+      try { assignControlValue(strategy, next, control, normalized, readonlyIds, now) }
+      catch (error) {
+        inputErrors[controlId] = error instanceof Error ? error.message : String(error)
+        return { ...previous, inputErrors }
+      }
+      return { ...previous, ...settleValueRules(strategy, next, previous, readonlyIds, now, externalValues), inputErrors }
+    })
+  }, [strategy, readonlyIds, clock, externalValues])
+  const controlState = useMemo(() => {
+    const state = deriveControlState(strategy, values, readonlyIds, options.externalValues)
+    for (const [id, error] of Object.entries(runtime.inputErrors)) state[id]?.errors.push(error)
+    return state
+  }, [strategy, values, readonlyIds, runtime.inputErrors, options.externalValues])
+  const strategyErrors = [...runtime.errors, ...validateStrategy(strategy, values, options.externalValues)]
+  return { values, setValue, controlState, strategyErrors,
+    hasErrors: strategyErrors.length > 0 || Object.values(controlState).some(state => state.errors.length > 0) }
 }
 
-// ---------------------------------------------------------------------------
-// Value seeding
-// ---------------------------------------------------------------------------
-
-function seedValues(strategy: AtdlStrategyDto): Record<string, unknown> {
+function seedValues(strategy: AtdlStrategyDto, options: AtdlFormOptions) {
   const seeded: Record<string, unknown> = {}
+  const errors: Record<string, string> = {}
+  const now = options.clock?.()
   for (const control of flattenControls(strategy)) {
-    const defaultValue = control.parameter?.defaultValue
-    if (control.initValue !== null && control.initValue !== undefined) {
-      seeded[control.id] = control.initValue
-    } else if (defaultValue !== null && defaultValue !== undefined) {
-      seeded[control.id] = defaultValue
-    } else {
-      // WHY: leaving the key absent means `exists` evaluates to false for
-      // uninitialised controls, matching FIXatdl semantics where absent = not set.
+    const parameter = control.parameter
+    const fixTag = options.isAmendment ? parameter?.fixTag : control.initPolicy === 'UseFixField' ? control.initFixField : null
+    let value: unknown
+    let fromWire = false
+    if (parameter?.constValue != null) {
+      fromWire = true
+      value = parameter.type === 'Boolean_t' ? parameter.constValue : parameterFromWire(parameter, parameterWireValue(parameter, parameter.constValue))
+    }
+    else if (options.initialValues && Object.hasOwn(options.initialValues, control.id)) value = options.initialValues[control.id]
+    else if (fixTag != null && options.initialFixValues && Object.hasOwn(options.initialFixValues, fixTag)) {
+      fromWire = true
+      try { value = parameter ? parameterFromWire(parameter, options.initialFixValues[fixTag]) : options.initialFixValues[fixTag] }
+      catch (error) {
+        if (options.isAmendment) {
+          value = options.initialFixValues[fixTag]
+          errors[control.id] = error instanceof Error ? error.message : String(error)
+        } else {
+          value = control.initValue ?? parameter?.defaultValue ?? (isBinaryControl(control) ? false : undefined)
+          fromWire = false
+        }
+      }
+      if (fromWire && isBinaryControl(control) && parameter?.enumValues?.length) {
+        if (value != null && value !== control.checkedEnumRef && value !== control.uncheckedEnumRef) {
+          if (!options.isAmendment) { value = control.initValue ?? false; fromWire = false }
+          else errors[control.id] = 'Unknown binary enumeration value.'
+        } else value = value == null ? null : value === control.checkedEnumRef
+      }
+    } else if (options.isAmendment && parameter?.fixTag != null && options.initialFixValues) value = null
+    else value = control.initValue ?? parameter?.defaultValue ?? (isBinaryControl(control) ? false : undefined)
+    if (value !== undefined) {
+      try {
+        seeded[control.id] = normalizeSeed(control, value, fromWire, now)
+      } catch (error) {
+        if (fromWire && !options.isAmendment && control.initPolicy === 'UseFixField') {
+          try { seeded[control.id] = normalizeSeed(control, control.initValue ?? parameter?.defaultValue ?? (isBinaryControl(control) ? false : null), false, now) }
+          catch (fallbackError) { errors[control.id] = fallbackError instanceof Error ? fallbackError.message : String(fallbackError) }
+        } else {
+          seeded[control.id] = value
+          errors[control.id] = error instanceof Error ? error.message : String(error)
+        }
+      }
     }
   }
-  return seeded
+  return { values: seeded, errors, now }
 }
 
-// ---------------------------------------------------------------------------
-// Value StateRules
-// ---------------------------------------------------------------------------
-
-/**
- * WHY: A FIXatdl `value` StateRule assigns a value to its control while its expression
- * holds. Unlike `enabled` and `visible`, which only derive a control's UI state, it writes
- * into the form's value map - so it cannot live in deriveControlState, which is a pure
- * derivation from values and would feed back into itself.
- *
- * The payload is `targetStringValue`; the mapper leaves `targetValue` a meaningless `false`
- * for this effect.
- *
- * Edge-triggered: a rule fires on the false -> true transition of its expression, not on
- * every evaluation while it stays true. Re-applying continuously would pin the control and
- * revert the user's own keystrokes for as long as the condition held. FIXatdl expects such
- * a control to be disabled by a companion rule, but a mis-authored file must not be able to
- * make the form untypeable. `prev === null` means the initial seed: there is no prior state
- * to transition from, so every rule that holds against the seeded values applies.
- *
- * ponytail: Single pass, evaluated against `next` and applied together, so the outcome does not depend
- * on rule order (two rules assigning the same control resolve last-wins, in document order,
- * matching applyStateRules). A value rule reading a control that another value rule has just
- * assigned therefore settles on the next edit rather than within this one; cascading value
- * rules are rare. Upgrade path if they appear: iterate to a fixed point with a pass cap - a
- * cap, because two rules can flip-flop forever.
- */
-function applyValueRules(
-  strategy: AtdlStrategyDto,
-  next: Record<string, unknown>,
-  prev: Record<string, unknown> | null,
-): Record<string, unknown> {
-  let result = next
-
-  for (const control of flattenControls(strategy)) {
-    for (const rule of control.stateRules) {
-      if (rule.effect !== 'value' || rule.targetStringValue === null) continue
-
-      const expression = rule.expression as unknown as StateRuleAstNode
-      if (!evaluateStateRule(expression, next)) continue
-
-      // Already firing before this edit - leave the control alone so the user can type over it.
-      if (prev !== null && evaluateStateRule(expression, prev)) continue
-
-      if (result === next) result = { ...next }
-      result[control.id] = rule.targetStringValue
-    }
+function normalizeSeed(control: AtdlControlDto, value: unknown, fromWire: boolean, now?: Date): unknown {
+  if (control.type === 'Clock_t') return createClockValue(control, value, now, fromWire ? 'wire' : 'init')
+  const normalized = normalizeControlValue(control, value)
+  if (fromWire && !isUnfilledAtdlValue(normalized)) {
+    const numeric = control.type === 'SingleSpinner_t' || control.type === 'DoubleSpinner_t' || (control.type === 'Slider_t' && !control.listItems?.length)
+    if (numeric && compareDecimals(normalized, normalized) === null) throw new Error('Invalid numeric FIX initialization value.')
+    if (isBinaryControl(control) && typeof normalized !== 'boolean') throw new Error('Invalid Boolean FIX initialization value.')
+    const list = ['DropDownList_t', 'SingleSelectList_t', 'RadioButtonList_t', 'Slider_t'].includes(control.type)
+    if (list && control.listItems?.length && !control.listItems.some(item => item.enumId === normalized)) throw new Error('Unknown list FIX initialization value.')
   }
-
-  return result
+  return structuredClone(normalized)
 }
 
-// ---------------------------------------------------------------------------
-// State derivation
-// ---------------------------------------------------------------------------
-
-function deriveControlState(
-  strategy: AtdlStrategyDto,
-  values: Record<string, unknown>,
-): Record<string, ControlFormState> {
+function deriveControlState(strategy: AtdlStrategyDto, values: Record<string, unknown>, readonlyIds: Set<string>, externalValues: Record<string, unknown> = {}): Record<string, ControlFormState> {
   const result: Record<string, ControlFormState> = {}
-
+  const ruleValues = { ...externalValues, ...controlValuesForRules(strategy, values) }
   for (const control of flattenControls(strategy)) {
-    // Start permissive: enabled, visible, not required. Rules override from here.
-    const base = { enabled: true, visible: true, required: control.parameter?.useValue === 'required' }
-
-    applyStateRules(control.stateRules, values, base)
-
-    const errors = validateControl(control, values[control.id], base.required)
-    result[control.id] = { ...base, errors }
+    const state = { enabled: true, visible: true, required: control.parameter?.useValue === 'required', errors: [] as string[] }
+    for (const rule of control.stateRules) {
+      // False conditions apply the inverse enabled/visible attribute, including at initialization.
+      const active = tryEvaluateStateRule(rule.expression as StateRuleAstNode, ruleValues)
+      if (active === null) { state.errors.push('Invalid or unsupported state rule.'); continue }
+      if (rule.effect === 'enabled') state.enabled = active ? rule.targetValue : !rule.targetValue
+      if (rule.effect === 'visible') state.visible = active ? rule.targetValue : !rule.targetValue
+    }
+    if (readonlyIds.has(control.id) || isLockedRadio(control, flattenControls(strategy), values, readonlyIds)) state.enabled = false
+    const source = parameterValueSource(strategy, values, control)
+    state.errors.push(...validateControl(source, values[source.id], state.required))
+    if (!Object.hasOwn(controlRegistry, control.type)) state.errors.push(`Unsupported control type: ${control.type}`)
+    result[control.id] = state
   }
-
   return result
 }
 
-// Panel traversal lives in ./atdlControls (shared with the FIX preview).
-
-function applyStateRules(
-  rules: AtdlStateRuleDto[],
-  values: Record<string, unknown>,
-  base: { enabled: boolean; visible: boolean; required: boolean },
-): void {
-  for (const rule of rules) {
-    // WHY: The mapper emits AtdlStateRuleDto(effect, targetValue, expression) where
-    // targetValue is the value the effect-field should take WHEN the expression is
-    // true. For example: effect="enabled", targetValue=false, expression=(x=="A")
-    // means "disable this control while x equals A". When expression is false the
-    // rule has no effect and base stays at its prior value.
-    //
-    // Multiple rules for the same effect: the last rule whose expression evaluates
-    // true wins. This matches FIXatdl, which evaluates all StateRules in document
-    // order and lets the final firing rule be authoritative.
-    const expressionTrue = evaluateStateRule(
-      rule.expression as unknown as StateRuleAstNode,
-      values,
-    )
-    if (!expressionTrue) continue
-
-    if (rule.effect === 'enabled') base.enabled = rule.targetValue
-    else if (rule.effect === 'visible') base.visible = rule.targetValue
-    else {
-      // `value` rules write into the form's value map, not a control's UI state -
-      // applyValueRules owns them. Any other effect is unknown and ignored (forward-compat).
-      //
-      // Note there is no `required` effect: FIXatdl StateRule carries only enabled, visible
-      // and value, and AtdlDtoMapper emits exactly those three. base.required comes from the
-      // parameter's useValue, set in deriveControlState.
+function validateStrategy(strategy: AtdlStrategyDto, values: Record<string, unknown>, externalValues: Record<string, unknown> = {}): string[] {
+  const parameters = mapControlValuesToParameters(strategy, values)
+  const wireValues: Record<string, unknown> = { ...externalValues }
+  const errors: string[] = []
+  for (const parameter of strategy.parameters) {
+    const logical = parameter.constValue ?? parameters[parameter.name]
+    const wire = parameterWireValue(parameter, logical)
+    wireValues[parameter.name] = wire
+    if (parameter.type === 'Boolean_t') {
+      if (typeof logical === 'boolean') wireValues[parameter.name] = logical
+      else if (wire === (parameter.trueWireValue ?? 'Y')) wireValues[parameter.name] = true
+      else if (wire === (parameter.falseWireValue ?? 'N')) wireValues[parameter.name] = false
     }
   }
+  for (const edit of strategy.strategyEdits ?? []) {
+    if (!tryEvaluateStateRule(edit.expression as StateRuleAstNode, wireValues)) errors.push(edit.errorMessage || 'Invalid or unsupported strategy rule.')
+  }
+  const missing = new Set<string>()
+  const collectMissing = (node: StateRuleAstNode, depth = 0) => {
+    if (!node || depth > 100) return
+    if (node.kind === 'compare') {
+      for (const field of [node.field, node.field2]) {
+        if (field?.startsWith('FIX_') && !Object.hasOwn(externalValues, field)) missing.add(field)
+      }
+    } else if (Array.isArray(node.children)) node.children.forEach(child => collectMissing(child, depth + 1))
+  }
+  for (const edit of strategy.strategyEdits ?? []) collectMissing(edit.expression as StateRuleAstNode)
+  for (const control of flattenControls(strategy)) for (const rule of control.stateRules) collectMissing(rule.expression as StateRuleAstNode)
+  for (const field of missing) errors.push(`The host must supply ${field} for rule evaluation.`)
+  return errors
 }
-
-// ---------------------------------------------------------------------------
-// Per-control validation
-// ---------------------------------------------------------------------------
 
 const INTEGER_TYPES = new Set(['Int_t', 'NumInGroup_t', 'Length_t', 'SeqNum_t', 'TagNum_t', 'NumInMsg_t'])
 const FLOAT_TYPES = new Set(['Float_t', 'Qty_t', 'Price_t', 'PriceOffset_t', 'Amt_t', 'Percentage_t'])
-// WHY: anchored integer pattern - no decimal allowed.
-const INTEGER_PATTERN = /^-?\d+$/
-// WHY: anchored decimal pattern - optional fractional part.
-const DECIMAL_PATTERN = /^-?\d+(\.\d+)?$/
+const INTEGER_PATTERN = /^[+-]?\d+$/
+const DECIMAL_PATTERN = /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/
 
-function validateStringType(t: string | null | undefined, value: string, errs: string[]): void {
-  if (INTEGER_TYPES.has(t ?? '')) {
-    if (!INTEGER_PATTERN.test(value)) errs.push('Must be a whole number.')
-  } else if (FLOAT_TYPES.has(t ?? '')) {
-    if (!DECIMAL_PATTERN.test(value)) errs.push('Must be a number.')
-  } else {
-    // Other types have no string-format constraint at the UI layer.
+function validateControl(control: AtdlControlDto, raw: unknown, required: boolean): string[] {
+  const errors: string[] = []
+  const parameter = control.parameter
+  const logical = controlParameterValue(control, raw)
+  const value = parameter ? parameterWireValue(parameter, logical, false) : logical
+  const requiredValue = parameter?.type === 'Boolean_t' ? logical : value
+  if (required && isUnfilledAtdlValue(requiredValue)) errors.push('This field is required.')
+  if (isUnfilledAtdlValue(value)) return errors
+  if (isBinaryControl(control) && typeof raw !== 'boolean') errors.push('Must be checked or unchecked.')
+  if (parameter?.enumValues?.length && control.type !== 'EditableDropDownList_t') {
+    const selections = Array.isArray(logical) ? logical : [logical]
+    if (selections.some(id => !parameter.enumValues?.some(item => item.enumId === id))) errors.push('Must be a declared enumeration value.')
   }
-}
-
-function validateRangeBounds(
-  control: AtdlControlDto,
-  value: number,
-  errs: string[],
-): void {
-  const min = control.parameter?.min
-  const max = control.parameter?.max
-  if (min !== null && min !== undefined && value < Number(min)) {
-    errs.push(`Must be ≥ ${min}.`)
+  const type = parameter?.type ?? ''
+  const text = String(value)
+  if (text.includes('\u0001')) errors.push('A value cannot contain the FIX field delimiter.')
+  if (type === 'Char_t' && text.length !== 1) errors.push('Must be exactly one character.')
+  if (parameter?.minLength != null && text.length < parameter.minLength) errors.push(`Must contain at least ${parameter.minLength} characters.`)
+  if (parameter?.maxLength != null && text.length > parameter.maxLength) errors.push(`Must contain at most ${parameter.maxLength} characters.`)
+  if (type === 'Boolean_t' && value !== (parameter?.trueWireValue ?? 'Y') && value !== (parameter?.falseWireValue ?? 'N')) errors.push('Must be a declared Boolean value.')
+  if (type === 'Tenor_t' || type === 'MonthYear_t') {
+    const normalized = type === 'Tenor_t' ? normalizeTenor(value) : normalizeMonthYear(value)
+    const compare = type === 'Tenor_t' ? compareTenor : compareMonthYear
+    if (normalized === null) errors.push(`Must be a valid ${type} value.`)
+    if (parameter?.min != null && (compare(value, parameter.min) ?? 0) < 0) errors.push(`Must be ≥ ${parameter.min}.`)
+    if (parameter?.max != null && (compare(value, parameter.max) ?? 0) > 0) errors.push(`Must be ≤ ${parameter.max}.`)
   }
-  if (max !== null && max !== undefined && value > Number(max)) {
-    errs.push(`Must be ≤ ${max}.`)
+  if (type === 'TZTimeOnly_t' || type === 'TZTimestamp_t') {
+    if (normalizeTzTemporal(value, type) === null) errors.push(`Must be a valid FIX ${type} value.`)
+    if (parameter?.min != null && compareTzTemporal(value, parameter.min) === -1) errors.push(`Must be ≥ ${parameter.min}.`)
+    if (parameter?.max != null && compareTzTemporal(value, parameter.max) === 1) errors.push(`Must be ≤ ${parameter.max}.`)
   }
-}
-
-function validateControl(
-  control: AtdlControlDto,
-  value: unknown,
-  required: boolean,
-): string[] {
-  const errs: string[] = []
-
-  if (required && isUnfilledAtdlValue(value)) {
-    errs.push('This field is required.')
+  if (INTEGER_TYPES.has(type) && !INTEGER_PATTERN.test(text)) errors.push('Must be a whole number.')
+  if (FLOAT_TYPES.has(type) && !(typeof raw === 'number' && Number.isFinite(raw)) && !DECIMAL_PATTERN.test(text)) errors.push('Must be a number.')
+  if (typeof raw === 'number' && !Number.isFinite(raw)) errors.push('Must be a finite number.')
+  if (INTEGER_TYPES.has(type) || FLOAT_TYPES.has(type)) {
+    const boundedValue = type === 'Percentage_t' ? logical : value
+    const defaultMin = ['Qty_t', 'Price_t', 'PriceOffset_t', 'Amt_t', 'Percentage_t'].includes(type) ? 0 : null
+    const min = parameter?.min ?? defaultMin
+    if (min != null && compareDecimals(boundedValue, min) === -1) errors.push(`Must be ≥ ${min}.`)
+    if (parameter?.max != null && compareDecimals(boundedValue, parameter.max) === 1) errors.push(`Must be ≤ ${parameter.max}.`)
+    const typeMin = INTEGER_TYPES.has(type) ? (type === 'Int_t' ? '-2147483648' : '1') : '-79228162514264337593543950335'
+    const typeMax = INTEGER_TYPES.has(type) ? (type === 'Int_t' ? '2147483647' : '4294967295') : '79228162514264337593543950335'
+    if (compareDecimals(boundedValue, typeMin) === -1 || compareDecimals(boundedValue, typeMax) === 1) errors.push(`Value is outside the ${type} range.`)
   }
-
-  // WHY: Type-specific validation is intentionally lightweight - just a
-  // format/range guard to surface obvious user mistakes early, not a full
-  // FIXatdl compliance check (that lives server-side). Only validate non-empty
-  // strings so blank optional fields are silent.
-  if (typeof value === 'string' && value !== '') {
-    validateStringType(control.parameter?.type, value, errs)
-    const isNumericType =
-      INTEGER_TYPES.has(control.parameter?.type ?? '') ||
-      FLOAT_TYPES.has(control.parameter?.type ?? '')
-    if (isNumericType && DECIMAL_PATTERN.test(value)) {
-      validateRangeBounds(control, Number(value), errs)
+  if (['UTCTimestamp_t', 'UTCTimeOnly_t', 'UTCDateOnly_t', 'LocalMktDate_t'].includes(type)) {
+    const temporal = parseTemporal(value)
+    const expectsDate = type !== 'UTCTimeOnly_t'
+    if (!temporal || (expectsDate && !temporal.date) || (!expectsDate && temporal.date)) errors.push(`Must be a valid FIX ${type} value.`)
+    let boundedValue = value
+    if (type === 'UTCTimestamp_t' && parameter?.localMktTz && temporal) {
+      try { boundedValue = createClockValue({ ...control, localMktTz: parameter.localMktTz }, value, undefined, 'wire')?.localDateTime }
+      catch (error) { errors.push(error instanceof Error ? error.message : String(error)) }
     }
+    if (parameter?.min != null && compareTemporal(parseTemporal(parameter.min)?.date ? value : boundedValue, parameter.min) === -1) errors.push(`Must be ≥ ${parameter.min}.`)
+    if (parameter?.max != null && compareTemporal(parseTemporal(parameter.max)?.date ? value : boundedValue, parameter.max) === 1) errors.push(`Must be ≤ ${parameter.max}.`)
   }
-
-  // Range checks apply when value is numeric (e.g. a spinner control yields a number).
-  if (typeof value === 'number') {
-    if (!Number.isFinite(value)) errs.push('Must be a finite number.')
-    else {
-      if (INTEGER_TYPES.has(control.parameter?.type ?? '') && !Number.isInteger(value)) {
-        errs.push('Must be a whole number.')
-      }
-      validateRangeBounds(control, value, errs)
-    }
-  }
-
-  return errs
+  return errors
 }

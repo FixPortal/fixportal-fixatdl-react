@@ -1,5 +1,5 @@
-import type { AtdlStrategyDto, AtdlEnumPairDto } from '../types'
-import { isUnfilledAtdlValue } from '../atdlValue'
+import type { AtdlStrategyDto } from '../types'
+import { parameterWireValue } from '../atdlValue'
 
 // ---------------------------------------------------------------------------
 // Public types
@@ -8,20 +8,16 @@ import { isUnfilledAtdlValue } from '../atdlValue'
 export interface FixTag { tag: number; value: string }
 
 // ---------------------------------------------------------------------------
-// Main emitter - mirrors C# AtdlFixPreviewEmitter.Emit exactly
+// StrategyParametersGrp preview
 // ---------------------------------------------------------------------------
 
 /**
  * Produces the FIX StrategyParametersGrp tag sequence (957–960) for the given
  * strategy and filled form values.
  *
- * WHY approximate preview: date/time and numeric formatting here is simplified
- * (String(value)) because this is a client-side *preview* only.  The server's
- * FixValueFormatter is the authoritative wire emitter - it applies round-trip
- * float formatting, locale-invariant decimal separators, and FIX canonical
- * date/time patterns (yyyyMMdd-HH:mm:ss.fff etc.).  For Phase-1 the preview
- * trade-off is deliberate: keep the TS twin simple and trust the server for
- * actual wire encoding.
+ * Applies parameter enum, Boolean, percentage, decimal and temporal formatting.
+ * This group preview does not encode direct parameter tags or a complete order;
+ * the host remains responsible for final validation and wire serialization.
  */
 export function emitStrategyParametersGrp(
   strategy: AtdlStrategyDto,
@@ -32,23 +28,22 @@ export function emitStrategyParametersGrp(
   // WHY triple guard: C# treats missing key, null, and empty-string as all
   // "unfilled" - absent parameters are omitted from the group entirely. Single
   // pass in declaration order so the 957 count is exact before emission.
-  const filled: { p: (typeof strategy.parameters)[number]; raw: unknown }[] = []
+  const filled: { p: (typeof strategy.parameters)[number]; wire: string }[] = []
   for (const p of strategy.parameters) {
-    const raw = filledValues[p.name]
-    // An emptied multi-select is `[]` - isUnfilledAtdlValue treats it as
-    // unfilled too, else the emitter writes a spurious empty 958/959/960
-    // triplet and bumps 957.
-    if (!isUnfilledAtdlValue(raw)) filled.push({ p, raw })
+    const raw = p.constValue ?? filledValues[p.name]
+    // Formatting handles NULL suppression and complements inverted selections.
+    const wire = parameterWireValue(p, raw)
+    if (wire !== null) filled.push({ p, wire })
   }
 
   // 957 always appears first even when count is zero - the counterparty uses
   // it to know the repeating group is present-but-empty vs completely absent.
   const tags: FixTag[] = [{ tag: 957, value: String(filled.length) }]
 
-  for (const { p, raw } of filled) {
+  for (const { p, wire } of filled) {
     tags.push({ tag: 958, value: p.name })
     tags.push({ tag: 959, value: String(typeToFixCode(p.type)) })
-    tags.push({ tag: 960, value: formatValue(raw, p.type, p.enumValues ?? null) })
+    tags.push({ tag: 960, value: wire })
   }
 
   return tags
@@ -118,42 +113,4 @@ const FIX_CODE_TO_TYPE: Record<number, string> = {
 /** FIX StrategyParameterType code → ATDL type name (e.g. 11 → "Percentage_t"). */
 export function fixTypeCodeName(code: number): string {
   return FIX_CODE_TO_TYPE[code] ?? 'String_t'
-}
-
-// ---------------------------------------------------------------------------
-// Value formatter - mirrors FixValueFormatter.Format logic at preview fidelity
-// ---------------------------------------------------------------------------
-
-function formatValue(raw: unknown, type: string, enums: AtdlEnumPairDto[] | null): string {
-  // Enum-bound parameters: map EnumId → WireValue exactly as the C# formatter
-  // does.  If the filled value does not match any EnumId fall through to the
-  // type-based path and emit the raw string (defensive fallback).
-  if (enums && enums.length > 0) {
-    if (Array.isArray(raw)) {
-      return raw
-        .map((item) => {
-          const str = String(item)
-          const match = enums.find((e) => e.enumId === str)
-          return match ? match.wireValue : str
-        })
-        .join(' ')
-    }
-    const strValue = String(raw)
-    const match = enums.find(e => e.enumId === strValue)
-    if (match) return match.wireValue
-    return strValue
-  }
-
-  // WHY Y/N: FIX Boolean wire format is Y/N, not true/false.  Accept the same
-  // three truthy inputs the C# path accepts (bool true, string "true", string "Y").
-  if (type === 'Boolean_t') {
-    return (raw === true || raw === 'true' || raw === 'Y') ? 'Y' : 'N'
-  }
-
-  // WHY String(raw): for all other types (numeric, date/time, string-like) the
-  // preview emits the JavaScript coerced string.  This is deliberately simpler
-  // than the C# formatter which applies round-trip float format, InvariantCulture
-  // decimal separators, and FIX canonical date/time patterns.  The server-side
-  // FixValueFormatter is the wire authority; this preview is approximate.
-  return String(raw)
 }
