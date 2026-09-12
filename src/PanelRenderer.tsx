@@ -196,10 +196,10 @@ function PanelChild({
       />
       {ruleDisabledOrHidden && (
         <button
+          {...whyT.attrs}
           type="button"
           onClick={() => onHighlightControl(control.id)}
           className="ml-2 text-xs text-bad-text border border-bad-border rounded px-1"
-          {...whyT.attrs}
         >
           {whyT.value}
         </button>

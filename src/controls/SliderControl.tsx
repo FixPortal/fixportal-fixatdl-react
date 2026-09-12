@@ -10,6 +10,7 @@ import type { ControlProps } from './controlRegistry'
  */
 export function SliderControl({ control, value, onChange, state }: ControlProps) {
   const inputId = useId()
+  const errorId = `${inputId}-error`
   // WHY: invisible controls consume no layout space - returning null avoids
   // residual aria tree clutter.
   if (!state.visible) return null
@@ -18,7 +19,7 @@ export function SliderControl({ control, value, onChange, state }: ControlProps)
 
   const min = Number(control.parameter?.min ?? 0)
   const max = Number(control.parameter?.max ?? 100)
-  const current = Number(value ?? 0)
+  const current = Number(value ?? min)
 
   const borderClass = hasError ? 'border-bad-border' : 'border-border-base'
 
@@ -50,6 +51,7 @@ export function SliderControl({ control, value, onChange, state }: ControlProps)
           aria-disabled={!state.enabled}
           aria-label={control.label ?? control.id}
           aria-invalid={hasError}
+          aria-describedby={hasError ? errorId : undefined}
           aria-valuemin={min}
           aria-valuemax={max}
           aria-valuenow={current}
@@ -59,7 +61,7 @@ export function SliderControl({ control, value, onChange, state }: ControlProps)
         <span className="text-sm text-muted min-w-[3ch] text-right">{current}</span>
       </div>
       {hasError && (
-        <ul className="space-y-0.5">
+        <ul id={errorId} className="space-y-0.5">
           {state.errors.map((err) => (
             <li key={err} className="text-xs text-bad-text">{err}</li>
           ))}

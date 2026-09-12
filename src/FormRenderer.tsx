@@ -46,7 +46,7 @@ function FormRendererInner({ strategy, forwardedRef }: FormRendererInnerProps) {
   // WHY [values] dependency: the closure must capture the latest values map
   // so getValues() always returns current state, not a stale snapshot from
   // the render that installed the handle.
-  useImperativeHandle(forwardedRef, () => ({ getValues: () => values }), [values])
+  useImperativeHandle(forwardedRef, () => ({ getValues: () => structuredClone(values) }), [values])
 
   return (
     <PanelRenderer

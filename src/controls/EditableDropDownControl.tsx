@@ -10,6 +10,7 @@ import type { AtdlListItemDto, AtdlEnumPairDto } from '../types'
  */
 export function EditableDropDownControl({ control, value, onChange, state }: ControlProps) {
   const inputId = useId()
+  const errorId = `${inputId}-error`
   // WHY: invisible controls consume no layout space - returning null avoids
   // residual aria tree clutter.
   if (!state.visible) return null
@@ -65,6 +66,7 @@ export function EditableDropDownControl({ control, value, onChange, state }: Con
         aria-label={control.label ?? control.id}
         aria-required={state.required}
         aria-invalid={hasError}
+        aria-describedby={hasError ? errorId : undefined}
         title={control.tooltip ?? undefined}
         className={`${baseInput} ${borderClass} disabled:opacity-50 disabled:cursor-not-allowed`}
       />
@@ -76,7 +78,7 @@ export function EditableDropDownControl({ control, value, onChange, state }: Con
         ))}
       </datalist>
       {hasError && (
-        <ul className="space-y-0.5">
+        <ul id={errorId} className="space-y-0.5">
           {state.errors.map((err) => (
             <li key={err} className="text-xs text-bad-text">{err}</li>
           ))}

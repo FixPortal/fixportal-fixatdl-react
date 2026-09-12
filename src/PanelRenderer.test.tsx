@@ -39,6 +39,14 @@ const enabled = { price: { enabled: true, visible: true, required: false, errors
 const disabled = { price: { enabled: false, visible: true, required: false, errors: [] } }
 
 describe('PanelRenderer why? chip', () => {
+  it('keeps explanation buttons from submitting a host form through text attributes', () => {
+    const submit = vi.fn((event: { preventDefault(): void }) => event.preventDefault())
+    render(<form onSubmit={submit}><PanelRenderer panel={panel} values={{}} setValue={() => {}}
+      state={disabled} highlightedControlId={null} onHighlightControl={() => {}}
+      text={{ whyRule: { value: 'Explain', attrs: { type: 'submit' } } }} /></form>)
+    fireEvent.click(screen.getByRole('button', { name: 'Explain' }))
+    expect(submit).not.toHaveBeenCalled()
+  })
   it('shows a why? chip on a rule-disabled control and reports it on click', () => {
     const onHighlight = vi.fn()
     render(

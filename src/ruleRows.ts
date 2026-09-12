@@ -8,7 +8,7 @@ export interface RuleRow {
   controlId: string
   controlLabel: string
   effect: string
-  targetValue: boolean
+  targetValue: boolean | string | null
   conditionText: string
   expression: StateRuleAstNode
   firing: boolean
@@ -35,7 +35,7 @@ export function collectRuleRows(
         controlId: control.id,
         controlLabel: control.label ?? control.id,
         effect: rule.effect,
-        targetValue: rule.targetValue,
+        targetValue: rule.effect === 'value' ? rule.targetStringValue : rule.targetValue,
         conditionText: stateRuleToText(expression),
         expression,
         firing: evaluateStateRule(expression, values),
