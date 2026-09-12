@@ -79,25 +79,25 @@ describe('emitStrategyParametersGrp', () => {
   it('omits parameters with null value', () => {
     const strategy = makeStrategy([makeParam({ name: 'P', type: 'String_t' })])
     const tags = emitStrategyParametersGrp(strategy, { P: null })
-    expect(tags).toEqual([{ tag: 957, value: '0' }])
+    expect(tags).toEqual([])
   })
 
   it('omits parameters with empty-string value', () => {
     const strategy = makeStrategy([makeParam({ name: 'P', type: 'String_t' })])
     const tags = emitStrategyParametersGrp(strategy, { P: '' })
-    expect(tags).toEqual([{ tag: 957, value: '0' }])
+    expect(tags).toEqual([])
   })
 
-  it('returns (957, "0") for strategy with no filled parameters', () => {
+  it('omits tag 957 entirely for strategy with no filled parameters', () => {
     const strategy = makeStrategy([makeParam({ name: 'P', type: 'String_t' })])
     const tags = emitStrategyParametersGrp(strategy, {})
-    expect(tags).toEqual([{ tag: 957, value: '0' }])
+    expect(tags).toEqual([])
   })
 
-  it('returns (957, "0") for strategy with empty parameters array', () => {
+  it('omits tag 957 entirely for strategy with empty parameters array', () => {
     const strategy = makeStrategy([])
     const tags = emitStrategyParametersGrp(strategy, {})
-    expect(tags).toEqual([{ tag: 957, value: '0' }])
+    expect(tags).toEqual([])
   })
 
   // ---------------------------------------------------------------------------
