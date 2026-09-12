@@ -37,12 +37,14 @@ export interface AtdlFormStateApi {
 }
 
 /** One strategy's settled values and validation, including parameter StrategyEdits. */
-export function useAtdlFormState(strategy: AtdlStrategyDto, options: AtdlFormOptions = {}): AtdlFormStateApi {
+export function useAtdlFormState(document: AtdlStrategyDto, options: AtdlFormOptions = {}): AtdlFormStateApi {
   const { clock } = options
   const { values: validatedExternalValues, errors: externalErrors } = validateExternalValues(options.externalValues)
   const contextKey = `${JSON.stringify(validatedExternalValues)}`
   const externalValues = useMemo(() => JSON.parse(contextKey) as Record<string, unknown>, [contextKey])
-  const documentKey = useMemo(() => JSON.stringify(strategy), [strategy])
+  const documentKey = JSON.stringify(document)
+  // Content identity refreshes every derived cache, even when the host reuses its DTO object.
+  const strategy = useMemo(() => JSON.parse(documentKey) as AtdlStrategyDto, [documentKey])
   const readonlyIds = useMemo(() => new Set(flattenControls(strategy)
     .filter(control => control.parameter?.constValue != null || (options.isAmendment && control.parameter?.mutableOnCxlRpl === false))
     .map(control => control.id)), [strategy, options.isAmendment])

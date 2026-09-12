@@ -214,17 +214,20 @@ describe('FormRenderer', () => {
     expect(values?.['ctrl_name']).toBe('handle-test')
   })
 
-  it('reseeds form state when the strategy identity changes', () => {
-    const { rerender } = render(<FormRenderer strategy={strategy} />)
+  it.each([false, true])('reseeds form state when the strategy identity changes (in-place: %s)', inPlace => {
+    const document = structuredClone(strategy)
+    const { rerender } = render(<FormRenderer strategy={document} />)
     const input = screen.getByLabelText('Strategy Name')
     const initialValue = (input as HTMLInputElement).value
 
     fireEvent.change(input, { target: { value: 'edited-name' } })
     expect(input).toHaveValue('edited-name')
 
-    rerender(<FormRenderer strategy={cloneStrategyWithSourceXml('<Strategy name="TWAP" version="2" />')} />)
+    const updated = cloneStrategyWithSourceXml('<Strategy name="TWAP" version="2" />')
+    rerender(<FormRenderer strategy={inPlace ? Object.assign(document, updated) : updated} />)
 
     expect(screen.getByLabelText('Strategy Name')).toHaveValue(initialValue)
+    expect(screen.getByLabelText('Strategy Name')).not.toBe(input)
   })
 })
 
