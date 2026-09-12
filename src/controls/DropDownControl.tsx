@@ -66,10 +66,8 @@ export function DropDownControl({ control, value, onChange, state }: ControlProp
         title={control.tooltip ?? undefined}
         className={`${baseSelect} ${borderClass} disabled:opacity-50 disabled:cursor-not-allowed`}
       >
-        {/* WHY: only emit the blank option when no initValue is present -
-            if the control already starts at a known value, a blank option
-            would let the user deselect to an invalid empty state. */}
-        {control.initValue == null && (
+        {/* Optional fields can be cleared; an empty required field must stay visibly empty. */}
+        {(!state.required || currentValue === '') && (
           <option value="">-</option>
         )}
         {options.map((opt) => (

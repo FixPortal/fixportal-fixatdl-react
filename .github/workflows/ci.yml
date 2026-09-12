@@ -89,6 +89,6 @@ jobs:
           cache: npm
           # No registry-url or NODE_AUTH_TOKEN: npm uses its trusted publisher.
       - name: Match tag to package version
-        run: node --input-type=module -e 'import p from "./package.json" with { type:"json" }; if (process.env.GITHUB_REF_NAME !== "v" + p.version) process.exit(1)'
+        run: node --input-type=module -e 'import p from "./package.json" with { type:"json" }; if (process.env.GITHUB_REF_NAME !== "v" + p.version) { console.error("Tag", process.env.GITHUB_REF_NAME, "does not match package version", p.version); process.exit(1) }'
       - run: npm ci
       - run: npm publish --access public --provenance

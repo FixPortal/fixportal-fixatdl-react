@@ -32,6 +32,13 @@ const BASE_CONTROL: AtdlControlDto = {
 const ENABLED: ControlFormState = { enabled: true, visible: true, required: false, errors: [] }
 
 describe('SliderControl', () => {
+  it('uses the lower bound consistently when unset', () => {
+    const control = { ...BASE_CONTROL, parameter: { ...BASE_CONTROL.parameter!, min: 10 } }
+    render(<SliderControl control={control} value={undefined} onChange={vi.fn()} state={ENABLED} />)
+    expect(screen.getByRole('slider')).toHaveValue('10')
+    expect(screen.getByRole('slider')).toHaveAttribute('aria-valuenow', '10')
+    expect(screen.getByText('10')).toBeInTheDocument()
+  })
   it('emits onChange with a numeric value when moved', () => {
     const onChange = vi.fn()
     render(

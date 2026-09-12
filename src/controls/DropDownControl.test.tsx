@@ -39,10 +39,13 @@ describe('DropDownControl', () => {
     expect(screen.getByRole('option', { name: '-' })).toBeInTheDocument()
   })
 
-  it('omits the blank placeholder when initValue is set', () => {
+  it('lets an optional selection be cleared even when initValue is set', () => {
     const ctrl = { ...BASE_CONTROL, initValue: 'TWAP' }
-    render(<DropDownControl control={ctrl} value="TWAP" onChange={vi.fn()} state={ENABLED} />)
-    expect(screen.queryByRole('option', { name: '-' })).not.toBeInTheDocument()
+    const onChange = vi.fn()
+    render(<DropDownControl control={ctrl} value="TWAP" onChange={onChange} state={ENABLED} />)
+    expect(screen.getByRole('option', { name: '-' })).toBeInTheDocument()
+    fireEvent.change(screen.getByRole('combobox'), { target: { value: '' } })
+    expect(onChange).toHaveBeenCalledWith('')
   })
 
   it('emits onChange with the selected enumId', () => {

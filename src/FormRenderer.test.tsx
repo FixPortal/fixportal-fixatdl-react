@@ -33,6 +33,20 @@ function cloneStrategyWithSourceXml(nextSourceXml: string): AtdlStrategyDto {
 // ---------------------------------------------------------------------------
 
 describe('FormRenderer', () => {
+  it('returns detached snapshots, including selected-value arrays', () => {
+    const ref = createRef<FormRendererHandle>()
+    renderForm(ref)
+    fireEvent.click(screen.getByRole('checkbox', { name: 'NYSE' }))
+    const expected = structuredClone(ref.current!.getValues())
+    const snapshot = ref.current!.getValues()
+    snapshot.ctrl_name = 'external mutation'
+    const selections = Object.values(snapshot).find(Array.isArray)
+    expect(selections).toBeDefined()
+    selections!.push('external venue')
+    fireEvent.change(screen.getByLabelText('Participation %'), { target: { value: '20' } })
+    expect(ref.current!.getValues().ctrl_name).toBe(expected.ctrl_name)
+    expect(Object.values(ref.current!.getValues()).find(Array.isArray)).toEqual(Object.values(expected).find(Array.isArray))
+  })
   it('renders every major control type from the fixture DTO', () => {
     renderForm()
 
