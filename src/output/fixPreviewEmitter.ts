@@ -36,9 +36,10 @@ export function emitStrategyParametersGrp(
     if (wire !== null) filled.push({ p, wire })
   }
 
-  // 957 always appears first even when count is zero - the counterparty uses
-  // it to know the repeating group is present-but-empty vs completely absent.
-  const tags: FixTag[] = [{ tag: 957, value: String(filled.length) }]
+  // Omit 957 entirely when no parameters are filled - an empty repeating
+  // group should not appear on the wire at all. Mirrors the backend's
+  // AtdlFixPreviewEmitter exactly.
+  const tags: FixTag[] = filled.length > 0 ? [{ tag: 957, value: String(filled.length) }] : []
 
   for (const { p, wire } of filled) {
     tags.push({ tag: 958, value: p.name })
