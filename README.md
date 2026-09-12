@@ -1,6 +1,6 @@
 # FixPortal.FixAtdl.React
 
-React 19 components and browser-side helpers for FIXatdl strategy forms, extracted from FixPortal Simulator. The npm package is `@fixportal/fixatdl-react`.
+React 19 components and browser-side helpers for FIXatdl strategy forms, extracted from FixPortal Simulator. The npm package is `@fix-portal/fixatdl-react`.
 
 ## Package boundary
 
@@ -10,10 +10,16 @@ Included: recursive panels, native controls, form state, control validation, sta
 
 ## Installation
 
-The package is prepared for the FixPortal GitHub Packages feed. A registry release is a separate action. To consume a locally built archive:
+The package targets public npm and needs no registry token to install after release:
 
 ```sh
-npm install ./fixportal-fixatdl-react-0.1.0.tgz
+npm install @fix-portal/fixatdl-react
+```
+
+Until the first release, consume a locally built archive:
+
+```sh
+npm install ./fix-portal-fixatdl-react-0.1.0.tgz
 ```
 
 React and React DOM 19.2+ are peer dependencies. Node 24.15+ is required for development.
@@ -21,7 +27,7 @@ React and React DOM 19.2+ are peer dependencies. Node 24.15+ is required for dev
 ## Render a strategy
 
 ```tsx
-import { FormRenderer, type AtdlStrategyDto } from '@fixportal/fixatdl-react'
+import { FormRenderer, type AtdlStrategyDto } from '@fix-portal/fixatdl-react'
 
 export function StrategyEditor({ strategy }: { strategy: AtdlStrategyDto }) {
   return <FormRenderer strategy={strategy} />
@@ -34,7 +40,7 @@ For a workbench with preview and rule inspection, use the state hook and control
 import {
   PanelRenderer, useAtdlFormState, mapControlValuesToParameters,
   emitStrategyParametersGrp, type AtdlStrategyDto,
-} from '@fixportal/fixatdl-react'
+} from '@fix-portal/fixatdl-react'
 
 export function Workbench({ strategy }: { strategy: AtdlStrategyDto }) {
   const { values, setValue, controlState } = useAtdlFormState(strategy)
@@ -60,7 +66,7 @@ The controls retain the simulator's Tailwind v4 utility classes and FixPortal de
 @import "tailwindcss";
 @import "@fixportal/design/tokens.css";
 @import "@fixportal/design/theme.css";
-@source "../node_modules/@fixportal/fixatdl-react/dist";
+@source "../node_modules/@fix-portal/fixatdl-react/dist";
 ```
 
 The package does not import global CSS or fetch a theme. Hosts own their stylesheet and branding. Native inputs remain functional without these styles.
@@ -86,6 +92,14 @@ npm pack
 ```
 
 The tests were extracted with the implementation. `contracts/state-rule-cases.json` is a verbatim snapshot of the backend-owned simulator corpus; the simulator integration checks it for drift. Built declarations and ESM are included in the archive, with README, LICENSE and NOTICE. Simulator application files and credentials are excluded.
+
+## Releases
+
+Merge the version change through a PR, then tag the merged commit `v<version>`.
+CI verifies that the tag is on `main` and matches `package.json`, runs the checks,
+then publishes to npm with provenance. Configure npm trusted publishing for owner
+`FixPortal`, repository `fixportal-fixatdl-react`, workflow `ci.yml`, with no
+environment. The initial package registration requires an npm maintainer login.
 
 ## Provenance
 

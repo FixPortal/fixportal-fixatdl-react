@@ -1,5 +1,5 @@
 {
-  "name": "@fixportal/fixatdl-react",
+  "name": "@fix-portal/fixatdl-react",
   "version": "0.1.0",
   "description": "React FIXatdl strategy forms extracted from FixPortal Simulator",
   "type": "module",
@@ -61,6 +61,7 @@
     "prepack": "npm run build"
   },
   "publishConfig": {
-    "registry": "https://npm.pkg.github.com"
+    "registry": "https://registry.npmjs.org",
+    "access": "public"
   }
 }
