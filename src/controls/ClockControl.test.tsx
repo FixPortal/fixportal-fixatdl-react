@@ -45,6 +45,15 @@ describe('ClockControl', () => {
     expect(input.value).toBe('09:30')
   })
 
+  it('renders the local time while retaining the loaded instant in form state', () => {
+    const value = { kind: 'atdl-clock', instant: '20261025-01:30:00.123', localDateTime: '20261025-01:30:00.123' }
+    render(<ClockControl control={BASE_CONTROL} value={value} onChange={vi.fn()} state={ENABLED} />)
+    const input = document.querySelector('input[type="time"]') as HTMLInputElement
+    expect(input.value).toBe('01:30:00.123')
+    expect(input.step).toBe('any')
+    expect(value.instant).toBe('20261025-01:30:00.123')
+  })
+
   it('renders disabled when state.enabled is false', () => {
     render(
       <ClockControl
