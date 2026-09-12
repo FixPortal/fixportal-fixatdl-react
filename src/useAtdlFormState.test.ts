@@ -67,6 +67,91 @@ function makeStrategy(controls: AtdlControlDto[]): AtdlStrategyDto {
 // ---------------------------------------------------------------------------
 
 describe('useAtdlFormState', () => {
+  it.each(['1', '2'])('loads either selected radio from an amended order: %s', wire => {
+    const parameter = makeParam({ enumValues: [{ enumId: 'buy', wireValue: '1' }, { enumId: 'sell', wireValue: '2' }] })
+    const strategy = makeStrategy(['buy', 'sell'].map(id => makeControl({ id, type: 'RadioButton_t', radioGroup: 'side', checkedEnumRef: id, parameter })))
+    const { result } = renderHook(() => useAtdlFormState(strategy, { isAmendment: true, initialFixValues: { 9001: wire } }))
+    expect(result.current.values).toEqual({ buy: wire === '1', sell: wire === '2' })
+    expect(result.current.hasErrors).toBe(false)
+  })
+
+  it('excludes a boolean radio sibling sharing the same parameter', () => {
+    const parameter = makeParam({ type: 'Boolean_t' })
+    const strategy = makeStrategy(['a', 'b'].map(id => makeControl({ id, type: 'RadioButton_t', radioGroup: 'group', parameter })))
+    const { result } = renderHook(() => useAtdlFormState(strategy))
+    act(() => result.current.setValue('a', true))
+    expect(result.current.values).toEqual({ a: true, b: false })
+    act(() => result.current.setValue('b', true))
+    expect(result.current.values).toEqual({ a: false, b: true })
+  })
+
+  it('allows partial typing beside a linked clock and synchronizes the completed timestamp', () => {
+    const parameter = makeParam({ type: 'UTCTimestamp_t' })
+    const strategy = makeStrategy([makeControl({ id: 'text', parameter }), makeControl({ id: 'clock', type: 'Clock_t', parameter, localMktTz: 'UTC' })])
+    const { result } = renderHook(() => useAtdlFormState(strategy))
+    act(() => result.current.setValue('text', '2'))
+    expect(result.current.values.text).toBe('2')
+    expect(result.current.hasErrors).toBe(true)
+    act(() => result.current.setValue('text', '20260912-13:00:00'))
+    expect(result.current.values.clock).toMatchObject({ instant: '20260912-13:00:00' })
+    expect(result.current.hasErrors).toBe(false)
+  })
+
+  it.each([undefined, 'original'])('restores NULL rule absence or original value, without discarding active edits: %s', initValue => {
+    const strategy = makeStrategy([
+      makeControl({ id: 'trigger', initValue: 'off' }),
+      makeControl({ id: 'target', initValue, stateRules: [{ effect: 'value', targetValue: false, targetStringValue: '{NULL}', expression: makeEqExpression('trigger', 'on') }] }),
+    ])
+    const { result } = renderHook(() => useAtdlFormState(strategy))
+    act(() => result.current.setValue('trigger', 'on'))
+    expect(result.current.values.target).toBeNull()
+    act(() => result.current.setValue('trigger', 'off'))
+    expect(Object.hasOwn(result.current.values, 'target')).toBe(initValue !== undefined)
+    expect(result.current.values.target).toBe(initValue)
+    act(() => result.current.setValue('trigger', 'on'))
+    act(() => result.current.setValue('target', 'edited'))
+    act(() => result.current.setValue('trigger', 'off'))
+    expect(result.current.values.target).toBe('edited')
+  })
+
+  it.each([false, true])('reports a malformed multi-value constant without throwing during initialization, inverted=%s', invertOnWire => {
+    const parameter = makeParam({ type: 'MultipleStringValue_t', constValue: 'unknown', enumValues: [{ enumId: 'a', wireValue: 'A' }], invertOnWire })
+    const strategy = makeStrategy([makeControl({ type: 'MultiSelectList_t', parameter })])
+    const { result } = renderHook(() => useAtdlFormState(strategy))
+    expect(result.current.hasErrors).toBe(true)
+    expect(result.current.controlState.ctrl1.errors.join(' ')).toContain('Unknown enumeration wire value')
+  })
+
+  it('loads an enum-ID multi-value constant into the control', () => {
+    const parameter = makeParam({ type: 'MultipleStringValue_t', constValue: 'a b', invertOnWire: true, enumValues: [{ enumId: 'a', wireValue: 'A' }, { enumId: 'b', wireValue: 'B' }, { enumId: 'c', wireValue: 'C' }] })
+    const { result } = renderHook(() => useAtdlFormState(makeStrategy([makeControl({ type: 'MultiSelectList_t', parameter })])))
+    expect(result.current.values.ctrl1).toEqual(['a', 'b'])
+    expect(result.current.hasErrors).toBe(false)
+  })
+
+  it.each(['constructor', '__proto__', 'toString'])('treats unsupplied prototype-named parameters as absent in strategy edits: %s', name => {
+    const strategy = makeStrategy([])
+    strategy.parameters = [makeParam({ name })]
+    strategy.strategyEdits = [{ errorMessage: 'Must be absent.', expression: { ...makeEqExpression(name, null), operator: 'not-exists' } }]
+    const { result } = renderHook(() => useAtdlFormState(strategy))
+    expect(result.current.hasErrors).toBe(false)
+  })
+
+  it('accepts custom Boolean wires with the backend-normalized Boolean AST literal', () => {
+    const parameter = makeParam({ type: 'Boolean_t', trueWireValue: 'T', falseWireValue: 'F' })
+    const strategy = makeStrategy([makeControl({ type: 'CheckBox_t', parameter, initValue: true })])
+    strategy.parameters = [parameter]
+    strategy.strategyEdits = [{ errorMessage: 'Must be true.', expression: { ...makeEqExpression('P1', true), comparisonType: 'Boolean_t' } }]
+    const { result } = renderHook(() => useAtdlFormState(strategy))
+    expect(result.current.hasErrors).toBe(false)
+  })
+
+  it('retains the backend no-selection radio fallback to unchecked mappings in document order', () => {
+    const parameter = makeParam({ enumValues: ['a', 'b', 'noneA', 'noneB'].map(enumId => ({ enumId, wireValue: enumId })) })
+    const strategy = makeStrategy(['a', 'b'].map(id => makeControl({ id, type: 'RadioButton_t', parameter, radioGroup: 'group', checkedEnumRef: id, uncheckedEnumRef: id === 'a' ? 'noneA' : 'noneB' })))
+    const { result } = renderHook(() => useAtdlFormState(strategy))
+    expect(mapControlValuesToParameters(strategy, result.current.values)).toEqual({ P1: 'noneB' })
+  })
   it('seeds values from each control initValue', () => {
     const ctrl = makeControl({ id: 'ctrl1', initValue: 'hello' })
     const strategy = makeStrategy([ctrl])
@@ -528,7 +613,7 @@ it('converts shared clock instants into each control timezone', () => {
 
 it('resets hook state when the strategy document changes', () => {
   const first = makeStrategy([makeControl({ initValue: 'first' })])
-  const second = { ...makeStrategy([makeControl({ initValue: 'second' })]), name: 'Other' }
+  const second = makeStrategy([makeControl({ initValue: 'second' })])
   const { result, rerender } = renderHook(({ strategy }) => useAtdlFormState(strategy), { initialProps: { strategy: first } })
   act(() => result.current.setValue('ctrl1', 'edited'))
   rerender({ strategy: second })

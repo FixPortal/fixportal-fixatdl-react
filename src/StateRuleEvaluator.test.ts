@@ -12,6 +12,11 @@ import corpus from '../contracts/state-rule-cases.json'
 import { evaluateStateRule, tryEvaluateStateRule } from './StateRuleEvaluator'
 import type { StateRuleAstNode } from './stateRuleAst'
 
+it.each([['Y', true], ['N', false], ['TRUE', true], ['false', false]] as const)('coerces %s symmetrically', (wire, logical) => {
+  expect(evaluateStateRule({ kind: 'compare', field: 'a', operator: '==', value: logical }, { a: wire })).toBe(true)
+  expect(evaluateStateRule({ kind: 'compare', field: 'a', operator: '==', value: wire }, { a: logical })).toBe(true)
+})
+
 it.each([['==', false], ['!=', true], ['exists', false], ['not-exists', true]] as const)('preserves core empty-text semantics for %s', (operator, expected) => {
   expect(evaluateStateRule({ kind: 'compare', field: 'text', operator, value: '{NULL}' }, { text: '' })).toBe(expected)
 })

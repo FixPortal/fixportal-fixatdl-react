@@ -37,12 +37,22 @@ const BASE_CONTROL: AtdlControlDto = {
 const ENABLED: ControlFormState = { enabled: true, visible: true, required: false, errors: [] }
 
 describe('NumericFieldControl', () => {
+  it.each([
+    { type: 'Percentage_t', min: '0.07', max: '0.29', value: 8, bound: 'min', expected: '7', direction: 'Decrease' },
+    { type: 'Float_t', min: null, max: '9007199254740993', value: '9007199254740992', bound: 'max', expected: '9007199254740993', direction: 'Increase' },
+  ])('clamps to the exact decimal bound: %j', ({ type, min, max, value, bound, expected, direction }) => {
+    const onChange = vi.fn()
+    render(<NumericFieldControl control={{ ...BASE_CONTROL, outerIncrement: 10, parameter: makeParam({ type, min, max }) }} value={value} onChange={onChange} state={ENABLED} />)
+    expect(screen.getByRole('spinbutton')).toHaveAttribute(bound, expected)
+    fireEvent.click(screen.getByRole('button', { name: `${direction} Order Qty by 10` }))
+    expect(String(onChange.mock.calls[0][0])).toBe(expected)
+  })
   it('applies the outer increment with exact decimal arithmetic and clamps to bounds', () => {
     const onChange = vi.fn()
-    const control = { ...BASE_CONTROL, outerIncrement: 0.2, parameter: makeParam({ max: 0.3 }) }
+    const control = { ...BASE_CONTROL, outerIncrement: 0.2, parameter: makeParam({ max: 0.25 }) }
     render(<NumericFieldControl control={control} value={0.1} onChange={onChange} state={ENABLED} />)
     fireEvent.click(screen.getByRole('button', { name: 'Increase Order Qty by 0.2' }))
-    expect(onChange).toHaveBeenCalledWith(0.3)
+    expect(onChange).toHaveBeenCalledWith(0.25)
   })
   it('preserves a decimal that cannot round-trip through a JavaScript number', () => {
     const onChange = vi.fn()

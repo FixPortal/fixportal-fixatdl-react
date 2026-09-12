@@ -6,6 +6,12 @@ const cmp = (operator: string, field: string, value: unknown): StateRuleAstNode 
   ({ kind: 'compare', operator: operator as never, field, value })
 
 describe('stateRuleToText', () => {
+  it.each([true, false, null])('distinguishes %s from a string literal', value => {
+    expect(stateRuleToText(cmp('==', 'a', value))).toBe(`a == ${String(value)}`)
+  })
+  it('renders malformed compound children without throwing', () => {
+    expect(stateRuleToText({ kind: 'and', children: [null] } as unknown as StateRuleAstNode)).toContain('(invalid rule)')
+  })
   it('renders a literal comparison with quoted string value', () => {
     expect(stateRuleToText(cmp('==', 'OrdType', '1'))).toBe('OrdType == "1"')
   })

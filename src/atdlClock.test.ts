@@ -8,6 +8,11 @@ const control: AtdlControlDto = {
 }
 
 describe('FIXatdl clock boundary', () => {
+  it('uses the market date for LocalMktDate and the UTC date for UTCDateOnly', () => {
+    const value = createClockValue({ ...control, localMktTz: 'Asia/Tokyo' }, '20260602-08:00:00')
+    expect(clockWireValue(value, 'LocalMktDate_t')).toBe('20260602')
+    expect(clockWireValue(value, 'UTCDateOnly_t')).toBe('20260601')
+  })
   it.each([
     ['20260329-01:30:00', '20260329-01:30:00', '20260329-02:30:00'],
     ['20261025-01:30:00', '20261025-00:30:00', '20261025-01:30:00'],
@@ -19,7 +24,7 @@ describe('FIXatdl clock boundary', () => {
 
   it('preserves the loaded later overlap instant and fraction until edited', () => {
     const value = createClockValue(control, '20261025-01:30:00.1234567', undefined, 'wire')
-    expect(clockDisplayValue(value)).toBe('01:30:00.1234567')
+    expect(clockDisplayValue(value)).toBe('01:30:00.123')
     expect(clockWireValue(value)).toBe('20261025-01:30:00.1234567')
     expect(clockWireValue(editClockValue(control, value, '01:45:00'))).toBe('20261025-00:45:00')
     expect(clockWireValue(value, 'UTCTimeOnly_t')).toBe('01:30:00.1234567')

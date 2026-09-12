@@ -1,10 +1,12 @@
 import { createRef } from 'react'
-import { describe, it, expect, afterEach } from 'vitest'
+import { describe, it, expect, afterEach, vi } from 'vitest'
 import { render, screen, fireEvent, cleanup } from '@testing-library/react'
 import { FormRenderer } from './FormRenderer'
 import type { FormRendererHandle } from './FormRenderer'
 import strategyJson from './__fixtures__/twap-strategy.json'
-import type { AtdlStrategyDto } from './types'
+import type { AtdlStrategyDto, AtdlControlDto } from './types'
+import { flattenControls } from './atdlControls'
+import { controlRegistry } from './controls/controlRegistry'
 
 afterEach(cleanup)
 
@@ -33,6 +35,57 @@ function cloneStrategyWithSourceXml(nextSourceXml: string): AtdlStrategyDto {
 // ---------------------------------------------------------------------------
 
 describe('FormRenderer', () => {
+  it.each(['TextField_t', 'DoubleSpinner_t', 'DropDownList_t', 'CheckBox_t', 'RadioButtonList_t', 'EditableDropDownList_t', 'Clock_t', 'Slider_t', 'MultiSelectList_t'])('renders duplicate errors without React key collisions: %s', type => {
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    try {
+      const Component = controlRegistry[type]
+      render(<Component control={{ ...control, type }} value={null} onChange={vi.fn()} state={{ visible: true, enabled: true, required: false, errors: ['Invalid rule.', 'Invalid rule.'] }} />)
+      expect(screen.getAllByText('Invalid rule.')).toHaveLength(2)
+      expect(spy).not.toHaveBeenCalled()
+    } finally { spy.mockRestore() }
+  })
+  it('keeps the shipped percentage slider in whole-percent display units', () => {
+    renderForm()
+    expect(screen.getByRole('slider')).toHaveAttribute('max', '100')
+  })
+  const control = flattenControls(strategy)[0]
+  function single(overrides: Partial<AtdlControlDto>): AtdlStrategyDto {
+    return { ...strategy, parameters: [], panel: { ...strategy.panel, children: [{ ...control, ...overrides, kind: 'control' }] } }
+  }
+  const hidden = { effect: 'visible', targetValue: false, targetStringValue: null, expression: { kind: 'and', children: [], field: null, operator: null, value: null } }
+
+  it.each(['TextField_t', 'HiddenField_t'])('surfaces a hidden required control error with its label: %s', type => {
+    const ref = createRef<FormRendererHandle>()
+    const document = single({ type, label: 'Hidden quantity', initValue: null, parameter: { ...strategy.parameters[0], useValue: 'required' }, stateRules: type === 'HiddenField_t' ? [] : [hidden] })
+    render(<FormRenderer ref={ref} strategy={document} />)
+    expect(screen.getByRole('alert')).toHaveTextContent('Hidden quantity: This field is required.')
+    expect(ref.current!.isValid()).toBe(false)
+  })
+  it('routes why clicks to the host inspector', () => {
+    const onHighlightControl = vi.fn()
+    render(<FormRenderer strategy={single({ stateRules: [hidden] })} onHighlightControl={onHighlightControl} />)
+    fireEvent.click(screen.getByRole('button', { name: 'why?' }))
+    expect(onHighlightControl).toHaveBeenCalledWith(control.id)
+  })
+  it('omits the why button when no inspector is connected', () => {
+    render(<FormRenderer strategy={single({ stateRules: [hidden] })} />)
+    expect(screen.queryByRole('button', { name: 'why?' })).not.toBeInTheDocument()
+  })
+  it.each(['constructor', '__proto__'])('renders an unsupported-control placeholder for %s', type => {
+    render(<FormRenderer strategy={single({ type })} />)
+    expect(screen.getByText(type)).toBeInTheDocument()
+  })
+  it('displays an unmatched required selection without selecting option zero', () => {
+    const ref = createRef<FormRendererHandle>()
+    render(<FormRenderer ref={ref} strategy={single({ type: 'DropDownList_t', initValue: 'missing', listItems: [{ enumId: 'a', uiRep: 'A' }], parameter: { ...strategy.parameters[0], useValue: 'required' } })} />)
+    expect(screen.getByRole('combobox')).toHaveValue('missing')
+    fireEvent.change(screen.getByRole('combobox'), { target: { value: 'a' } })
+    expect(ref.current!.getValues()[control.id]).toBe('a')
+  })
+  it('announces required checkbox groups', () => {
+    render(<FormRenderer strategy={single({ type: 'CheckBoxList_t', label: 'Venues', parameter: { ...strategy.parameters[0], useValue: 'required' }, listItems: [{ enumId: 'a', uiRep: 'A' }] })} />)
+    expect(screen.getByRole('group', { name: 'Venues (Required)' })).toBeInTheDocument()
+  })
   it('exposes strategy validation to both the user and the submit handle', () => {
     const ref = createRef<FormRendererHandle>()
     const invalid = { ...strategy, strategyEdits: [{ errorMessage: 'Choose a valid combination.', expression: { kind: 'compare', operator: '==', field: strategy.parameters[0].name, value: 'impossible', children: null } }] }

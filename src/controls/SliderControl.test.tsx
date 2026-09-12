@@ -32,6 +32,24 @@ const BASE_CONTROL: AtdlControlDto = {
 const ENABLED: ControlFormState = { enabled: true, visible: true, required: false, errors: [] }
 
 describe('SliderControl', () => {
+  it.each([null, 'unknown'])('lets an unset or unmatched enum choose the first position: %s', value => {
+    const onChange = vi.fn()
+    render(<SliderControl control={{ ...BASE_CONTROL, listItems: [{ enumId: 'a', uiRep: 'First' }] }} value={value} onChange={onChange} state={ENABLED} />)
+    expect(screen.getByText('Not selected')).toBeInTheDocument()
+    expect(screen.getByRole('slider')).not.toHaveAttribute('aria-valuetext')
+    fireEvent.click(screen.getByRole('button', { name: 'Use First' }))
+    expect(onChange).toHaveBeenCalledWith('a')
+  })
+  it.each([{ min: null, max: 0, expectedMin: '-100', expectedMax: '0' }, { min: 100, max: null, expectedMin: '100', expectedMax: '200' }])('keeps a nonzero range at default endpoints: %j', bounds => {
+    render(<SliderControl control={{ ...BASE_CONTROL, parameter: { ...BASE_CONTROL.parameter!, min: bounds.min, max: bounds.max } }} value={null} onChange={vi.fn()} state={ENABLED} />)
+    expect(screen.getByRole('slider')).toHaveAttribute('min', bounds.expectedMin)
+    expect(screen.getByRole('slider')).toHaveAttribute('max', bounds.expectedMax)
+  })
+  it('keeps percentage bounds exact', () => {
+    render(<SliderControl control={{ ...BASE_CONTROL, parameter: { ...BASE_CONTROL.parameter!, type: 'Percentage_t', min: '0.07', max: '0.29' } }} value={10} onChange={vi.fn()} state={ENABLED} />)
+    expect(screen.getByRole('slider')).toHaveAttribute('min', '7')
+    expect(screen.getByRole('slider')).toHaveAttribute('max', '29')
+  })
   it.each([{ min: null, max: -1, expectedMin: '-101', expectedMax: '-1' }, { min: 150, max: null, expectedMin: '150', expectedMax: '250' }])('keeps a useful range with only one declared bound: %j', bounds => {
     const control = { ...BASE_CONTROL, parameter: { ...BASE_CONTROL.parameter!, min: bounds.min, max: bounds.max } }
     render(<SliderControl control={control} value={null} onChange={vi.fn()} state={ENABLED} />)
@@ -46,12 +64,15 @@ describe('SliderControl', () => {
     fireEvent.change(screen.getByRole('slider'), { target: { value: '1' } })
     expect(onChange).toHaveBeenCalledWith('high')
   })
-  it('uses the lower bound consistently when unset', () => {
+  it('shows an unset value and lets the user select the current thumb position', () => {
     const control = { ...BASE_CONTROL, parameter: { ...BASE_CONTROL.parameter!, min: 10 } }
-    render(<SliderControl control={control} value={undefined} onChange={vi.fn()} state={ENABLED} />)
+    const onChange = vi.fn()
+    render(<SliderControl control={control} value={undefined} onChange={onChange} state={ENABLED} />)
     expect(screen.getByRole('slider')).toHaveValue('10')
-    expect(screen.getByRole('slider')).toHaveAttribute('aria-valuenow', '10')
-    expect(screen.getByText('10')).toBeInTheDocument()
+    expect(screen.getByText('Not selected')).toBeInTheDocument()
+    expect(screen.getByRole('slider')).not.toHaveAttribute('aria-valuetext')
+    fireEvent.click(screen.getByRole('button', { name: 'Use 10' }))
+    expect(onChange).toHaveBeenCalledWith(10)
   })
   it('emits onChange with a numeric value when moved', () => {
     const onChange = vi.fn()
@@ -146,5 +167,6 @@ describe('SliderControl', () => {
       />,
     )
     expect(screen.getByText('*')).toBeInTheDocument()
+    expect(screen.getByRole('slider')).toHaveAttribute('aria-required', 'true')
   })
 })

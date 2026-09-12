@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { emitStrategyParametersGrp } from './fixPreviewEmitter'
 import type { AtdlStrategyDto, AtdlParameterDto } from '../types'
+import strategyJson from '../__fixtures__/twap-strategy.json'
 
 // ---------------------------------------------------------------------------
 // Test helpers
@@ -35,6 +36,16 @@ function makeStrategy(params: AtdlParameterDto[]): AtdlStrategyDto {
 // ---------------------------------------------------------------------------
 
 describe('emitStrategyParametersGrp', () => {
+  it.each(['constructor', 'toString', '__proto__'])('omits inherited parameter values: %s', name => {
+    const strategy = makeStrategy([makeParam({ name, type: 'String_t' })])
+    expect(emitStrategyParametersGrp(strategy, {})).toEqual([])
+    expect(emitStrategyParametersGrp(strategy, { [name]: 'filled' })).toContainEqual({ tag: 960, value: 'filled' })
+  })
+  it('emits the shipped fixture char parameters as FIX Char', () => {
+    const strategy = strategyJson as unknown as AtdlStrategyDto
+    const tags = emitStrategyParametersGrp(strategy, { Side: '1', AlgoType: 'T', EditSide: '1' })
+    expect(tags.filter(item => item.tag === 959).map(item => item.value)).toEqual(['12', '12', '12'])
+  })
   it('preserves invalid decimal text for inspection instead of changing its numeric meaning', () => {
     const strategy = makeStrategy([makeParam({ name: 'Qty', type: 'Float_t' })])
     expect(emitStrategyParametersGrp(strategy, { Qty: '1,2' })).toContainEqual({ tag: 960, value: '1,2' })

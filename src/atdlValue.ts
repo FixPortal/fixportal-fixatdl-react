@@ -50,6 +50,13 @@ export function controlParameterValue(control: AtdlControlDto, value: unknown): 
 export function parameterWireValue(parameter: AtdlParameterDto, value: unknown, applyPrecision = true): string | null {
   if (value == null || value === '{NULL}') return null
   const enums = parameter.enumValues ?? []
+  if (typeof value === 'string' && value !== '' && ['MultipleStringValue_t', 'MultipleCharValue_t'].includes(parameter.type)) {
+    const selections = value.split(/\s+/).filter(Boolean).map(token =>
+      enums.find(item => item.enumId === token)?.enumId ?? enums.find(item => item.wireValue === token)?.enumId ?? token)
+    // Keep malformed tokens visible; complementing them would hide invalid constants.
+    if (enums.length && selections.some(id => !enums.some(item => item.enumId === id))) return value
+    value = selections
+  }
   if (Array.isArray(value)) {
     const selected = parameter.invertOnWire ? enums.filter(item => !value.includes(item.enumId)).map(item => item.enumId) : value
     const wire = selected.map(id => enums.find(item => item.enumId === id)?.wireValue ?? String(id)).filter(item => item !== '{NULL}' && item !== '').join(' ')

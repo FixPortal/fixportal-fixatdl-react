@@ -4,6 +4,7 @@ import type { AtdlStrategyDto } from './types'
 import { PanelRenderer } from './PanelRenderer'
 import { useAtdlFormState } from './useAtdlFormState'
 import type { AtdlFormOptions } from './useAtdlFormState'
+import { flattenControls } from './atdlControls'
 
 // ---------------------------------------------------------------------------
 // Imperative handle - lets parent pages pull current values without prop drilling
@@ -24,12 +25,12 @@ export interface FormRendererProps {
   strategy: AtdlStrategyDto
   ref?: Ref<FormRendererHandle>
   options?: AtdlFormOptions
+  highlightedControlId?: string | null
+  onHighlightControl?(id: string | null): void
 }
 
-interface FormRendererInnerProps {
-  strategy: AtdlStrategyDto
+interface FormRendererInnerProps extends Omit<FormRendererProps, 'ref'> {
   forwardedRef?: Ref<FormRendererHandle>
-  options?: AtdlFormOptions
 }
 
 /**
@@ -45,8 +46,11 @@ interface FormRendererInnerProps {
  * (resetting state) when the strategy changes. A component cannot key itself,
  * so the outer shell applies the key to its child.
  */
-function FormRendererInner({ strategy, forwardedRef, options }: FormRendererInnerProps) {
+function FormRendererInner({ strategy, forwardedRef, options, highlightedControlId, onHighlightControl }: FormRendererInnerProps) {
   const { values, setValue, controlState, hasErrors, strategyErrors } = useAtdlFormState(strategy, options)
+  const hiddenErrors = flattenControls(strategy).flatMap(control =>
+    control.type === 'HiddenField_t' || !controlState[control.id]?.visible ? controlState[control.id]?.errors.map(error => `${control.label ?? control.id}: ${error}`) ?? [] : [])
+  const summaryErrors = [...strategyErrors, ...hiddenErrors]
 
   // WHY [values] dependency: the closure must capture the latest values map
   // so getValues() always returns current state, not a stale snapshot from
@@ -59,26 +63,28 @@ function FormRendererInner({ strategy, forwardedRef, options }: FormRendererInne
 
   return (
     <>
-    {strategyErrors.length > 0 && <ul role="alert">{strategyErrors.map((error, index) => <li key={index}>{error}</li>)}</ul>}
+    {summaryErrors.length > 0 && <ul role="alert">{summaryErrors.map((error, index) => <li key={index}>{error}</li>)}</ul>}
     <PanelRenderer
       panel={strategy.panel}
       values={values}
       setValue={setValue}
       state={controlState}
-      highlightedControlId={null}
-      onHighlightControl={() => {}}
+      highlightedControlId={highlightedControlId ?? null}
+      onHighlightControl={onHighlightControl}
     />
     </>
   )
 }
 
-export function FormRenderer({ strategy, ref, options }: FormRendererProps) {
+export function FormRenderer({ strategy, ref, options, highlightedControlId, onHighlightControl }: FormRendererProps) {
   return (
     <FormRendererInner
-      key={`${strategy.name}::${strategy.sourceXml ?? ''}`}
+      key={JSON.stringify(strategy)}
       strategy={strategy}
       forwardedRef={ref}
       options={options}
+      highlightedControlId={highlightedControlId}
+      onHighlightControl={onHighlightControl}
     />
   )
 }

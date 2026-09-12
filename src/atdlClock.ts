@@ -126,9 +126,8 @@ export function editClockValue(control: AtdlControlDto, current: unknown, rawTim
 }
 
 export function clockDisplayValue(value: unknown): string {
-  if (isClockValue(value)) return value.localDateTime.slice(9)
-  const raw = typeof value === 'string' ? value : ''
-  return raw.replace(/^\d{8}-/, '')
+  const raw = isClockValue(value) ? value.localDateTime : typeof value === 'string' ? value : ''
+  return raw.replace(/^\d{8}-/, '').replace(/(\.\d{3})\d+$/, '$1')
 }
 
 export function clockRuleValue(value: unknown): unknown {
@@ -138,6 +137,8 @@ export function clockRuleValue(value: unknown): unknown {
 export function clockWireValue(value: unknown, parameterType = 'UTCTimestamp_t'): unknown {
   if (!isClockValue(value)) return value
   switch (parameterType) {
+    case 'LocalMktDate_t': return value.localDateTime.slice(0, 8)
+    case 'UTCDateOnly_t': return value.instant.slice(0, 8)
     case 'UTCTimeOnly_t': return value.instant.slice(9)
     case 'TZTimeOnly_t': return `${value.instant.slice(9)}Z`
     case 'TZTimestamp_t': return `${value.instant}Z`

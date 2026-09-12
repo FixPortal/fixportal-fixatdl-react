@@ -5,6 +5,12 @@ import type { AtdlParameterDto } from './types'
 
 const parameter: AtdlParameterDto = { name: 'P', fixTag: 9001, type: 'String_t', enumValues: null, min: null, max: null, precision: null, mutableOnCxlRpl: true, useValue: 'optional', defaultValue: null }
 
+it.each(['a b', 'A B'])('applies enum conversion and inversion to multi-value strings: %s', value => {
+  const definition = { ...parameter, type: 'MultipleStringValue_t', invertOnWire: true, enumValues: [{ enumId: 'a', wireValue: 'A' }, { enumId: 'b', wireValue: 'B' }, { enumId: 'c', wireValue: 'C' }] }
+  expect(parameterWireValue(definition, value)).toBe('C')
+  expect(parameterFromWire(definition, parameterWireValue(definition, value))).toEqual(['a', 'b'])
+})
+
 it('keeps core numeric Edit inference separate from ungrouped wire formatting', () => {
   expect(compareDecimals('1,2', 12)).toBe(0)
   expect(formatDecimal('1,2')).toBeNull()
