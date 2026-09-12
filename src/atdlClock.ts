@@ -40,7 +40,7 @@ function zoneEpoch(milliseconds: number, zone: string): number {
 }
 
 function parseClock(raw: string, date?: string): { epoch: number; fraction: string; offsetMinutes?: number } {
-  const suffix = /(Z|[+-]\d{2}:\d{2})$/.exec(raw)?.[1]
+  const suffix = /(Z|[+-]\d{2}(?::\d{2})?)$/.exec(raw)?.[1]
   let offsetMinutes: number | undefined
   let input = raw
   if (suffix && raw.slice(0, -suffix.length).includes(':')) {
@@ -48,7 +48,7 @@ function parseClock(raw: string, date?: string): { epoch: number; fraction: stri
     offsetMinutes = 0
     if (suffix !== 'Z') {
       const hours = Number(suffix.slice(1, 3))
-      const minutes = Number(suffix.slice(4, 6))
+      const minutes = Number(suffix.slice(4, 6) || 0)
       if (hours > 14 || minutes > 59 || (hours === 14 && minutes !== 0)) throw new Error(`Invalid clock timezone offset: ${suffix}`)
       offsetMinutes = (hours * 60 + minutes) * (suffix[0] === '-' ? -1 : 1)
     }

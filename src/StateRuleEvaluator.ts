@@ -1,7 +1,7 @@
 import type { StateRuleAstNode } from './stateRuleAst'
 import { isUnfilledAtdlValue } from './atdlValue'
 import { compareDecimals } from './decimalValue'
-import { compareTemporal, compareTenor, compareMonthYear } from './temporalValue'
+import { compareTemporal, compareTenor, compareMonthYear, compareTzTemporal } from './temporalValue'
 
 class InvalidRule extends Error {}
 
@@ -83,10 +83,16 @@ function readField(state: Record<string, unknown>, field: string): unknown {
   return Object.hasOwn(state, field) ? state[field] : undefined
 }
 
+const domainComparers: Record<string, (left: unknown, right: unknown) => number | null> = {
+  Tenor_t: compareTenor, MonthYear_t: compareMonthYear,
+  TZTimeOnly_t: compareTzTemporal, TZTimestamp_t: compareTzTemporal,
+}
+
 function compareValues(left: unknown, right: unknown, type?: string | null): number | null {
   if (isNull(left) || isNull(right) || Array.isArray(left) || Array.isArray(right)) return null
-  if (type === 'Tenor_t' || type === 'MonthYear_t') {
-    const result = type === 'Tenor_t' ? compareTenor(left, right) : compareMonthYear(left, right)
+  const domainComparer = type && Object.hasOwn(domainComparers, type) ? domainComparers[type] : undefined
+  if (domainComparer) {
+    const result = domainComparer(left, right)
     if (result === null) throw new InvalidRule()
     return result
   }

@@ -62,7 +62,7 @@ it.each([false, true])('fails closed for an unknown node kind, nested under NOT:
 })
 
 
-it.each(['Data_t', 'data_t', 'Tenor_t', 'MonthYear_t'])('reports invalid typed comparisons under NOT: %s', comparisonType => {
+it.each(['Data_t', 'data_t', 'Tenor_t', 'MonthYear_t', 'TZTimeOnly_t', 'TZTimestamp_t'])('reports invalid typed comparisons under NOT: %s', comparisonType => {
   const expression: StateRuleAstNode = { kind: 'not', children: [{ kind: 'compare', operator: '==', field: 'a', value: 'invalid', comparisonType }] }
   expect(tryEvaluateStateRule(expression, { a: 'invalid' })).toBeNull()
   expect(evaluateStateRule(expression, { a: 'invalid' })).toBe(false)
