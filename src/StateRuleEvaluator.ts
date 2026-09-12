@@ -24,7 +24,7 @@ import type { StateRuleAstNode } from './stateRuleAst'
 const MAX_DEPTH = 100
 
 /**
- * Thrown at the depth cut and caught at the root, so an over-deep rule fails
+ * Thrown for an invalid node or at the depth cut and caught at the root, so an over-deep rule fails
  * closed for the rule as a whole.
  *
  * WHY not `return false` at the cut: the cut point is buried under N combinators
@@ -35,7 +35,7 @@ const MAX_DEPTH = 100
  * rule's verdict.  Throwing also preserves the stack-safety property: the stack
  * unwinds at depth 101 rather than growing.
  */
-class DepthExceeded extends Error {}
+class InvalidRule extends Error {}
 
 export function evaluateStateRule(
   node: StateRuleAstNode,
@@ -45,8 +45,8 @@ export function evaluateStateRule(
   try {
     return evalNode(node, formState, depth)
   } catch (e) {
-    // Fail-safe: treat excessively nested rules as false so they don't apply.
-    if (e instanceof DepthExceeded) return false
+    // Fail-safe: treat unknown nodes and excessively nested rules as false so they don't apply.
+    if (e instanceof InvalidRule) return false
     throw e
   }
 }
@@ -56,7 +56,7 @@ function evalNode(
   formState: Record<string, unknown>,
   depth: number,
 ): boolean {
-  if (depth > MAX_DEPTH) throw new DepthExceeded()
+  if (depth > MAX_DEPTH) throw new InvalidRule()
 
   switch (node.kind) {
     case 'compare':
@@ -87,7 +87,7 @@ function evalNode(
       )
 
     default:
-      return undefined as never
+      throw new InvalidRule()
   }
 }
 
