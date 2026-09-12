@@ -68,7 +68,9 @@ export function parameterWireValue(parameter: AtdlParameterDto, value: unknown, 
   if (['UTCTimestamp_t', 'UTCTimeOnly_t', 'UTCDateOnly_t', 'LocalMktDate_t'].includes(parameter.type)) {
     const temporal = parseTemporal(value)
     if (temporal) {
-      const time = temporal.time.replace(/\.0+$/, '').replace(/(\.\d*?)0+$/, '$1')
+      let time = temporal.time
+      while (time.endsWith('0')) time = time.slice(0, -1)
+      if (time.endsWith('.')) time = time.slice(0, -1)
       if (parameter.type === 'UTCTimeOnly_t') return time
       if (temporal.date) return parameter.type === 'UTCTimestamp_t' ? `${temporal.date}-${time}` : temporal.date
     }
