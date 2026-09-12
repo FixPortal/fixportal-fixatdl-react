@@ -1,0 +1,46 @@
+import type { AtdlStrategyDto } from './types'
+import { flattenControls } from './atdlControls'
+import { evaluateStateRule } from './StateRuleEvaluator'
+import { stateRuleToText } from './stateRuleToText'
+import type { StateRuleAstNode } from './stateRuleAst'
+
+export interface RuleRow {
+  controlId: string
+  controlLabel: string
+  effect: string
+  targetValue: boolean
+  conditionText: string
+  expression: StateRuleAstNode
+  firing: boolean
+}
+
+/**
+ * WHY: One row per control state rule, with the readable condition text and its
+ * live truth against the current form values. In FIXatdl a StateRule governs the
+ * control it is defined on, so the row's target is that control - matching
+ * applyStateRules in useAtdlFormState. Reuses the shared evaluator; no second
+ * evaluation path.
+ */
+export function collectRuleRows(
+  strategy: AtdlStrategyDto,
+  values: Record<string, unknown>,
+): RuleRow[] {
+  const rows: RuleRow[] = []
+  for (const control of flattenControls(strategy)) {
+    for (const rule of control.stateRules) {
+      // expression is typed StateRuleAstNodeDto on the wire; cast to the evaluator's
+      // node type exactly as useAtdlFormState does.
+      const expression = rule.expression as unknown as StateRuleAstNode
+      rows.push({
+        controlId: control.id,
+        controlLabel: control.label ?? control.id,
+        effect: rule.effect,
+        targetValue: rule.targetValue,
+        conditionText: stateRuleToText(expression),
+        expression,
+        firing: evaluateStateRule(expression, values),
+      })
+    }
+  }
+  return rows
+}

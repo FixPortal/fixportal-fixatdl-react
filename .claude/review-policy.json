@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "high": [
+    ".claude/review-policy.json",
+    ".coderabbit.yaml",
+    ".github/workflows/ci.yml",
+    ".github/workflows/review-policy-guard.yml",
+    ".github/scripts/assert_gate_coverage.py",
+    ".github/scripts/assert_workflow_hygiene.py",
+    ".github/dependabot.yml",
+    ".npmrc",
+    "src/StateRuleEvaluator.ts",
+    "src/useAtdlFormState.ts",
+    "src/output/fixPreviewEmitter.ts",
+    "vite.config.ts",
+    "vitest.config.ts"
+  ],
+  "low": [
+    "docs/**",
+    ".gitattributes"
+  ]
+}

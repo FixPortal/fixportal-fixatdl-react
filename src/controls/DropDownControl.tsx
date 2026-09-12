@@ -1,0 +1,90 @@
+import { useId } from 'react'
+import type { ControlProps } from './controlRegistry'
+import type { AtdlListItemDto, AtdlEnumPairDto } from '../types'
+
+/**
+ * Renders FIXatdl DropDownList_t and SingleSelectList_t as a <select>.
+ * Options come from control.listItems (direct Control-level list) with a
+ * fallback to parameter.enumValues (Parameter-level enum). FIXatdl puts list
+ * items on the Control in most cases, but the Parameter fallback is needed
+ * when the control inherits enums from its bound Parameter without an
+ * explicit ListItem override.
+ */
+export function DropDownControl({ control, value, onChange, state }: ControlProps) {
+  const selectId = useId()
+  const errorId = `${selectId}-error`
+  if (!state.visible) return null
+
+  const hasError = state.errors.length > 0
+
+  // WHY: normalise both source shapes into a unified {enumId, label} list
+  // so the render loop is source-agnostic.
+  const options: { enumId: string; label: string }[] = (() => {
+    if (control.listItems && control.listItems.length > 0) {
+      return (control.listItems as AtdlListItemDto[]).map((item) => ({
+        enumId: item.enumId,
+        label: item.uiRep ?? item.enumId,
+      }))
+    }
+    if (control.parameter?.enumValues && control.parameter.enumValues.length > 0) {
+      return (control.parameter.enumValues as AtdlEnumPairDto[]).map((ev) => ({
+        enumId: ev.enumId,
+        label: ev.enumId,
+      }))
+    }
+    return []
+  })()
+
+  const baseSelect =
+    'w-full rounded border px-2 py-1 text-sm bg-card text-text focus:outline-none focus:ring-2'
+  const borderClass = hasError
+    ? 'border-bad-border focus:ring-bad-border'
+    : 'border-border-base focus:ring-brand-soft'
+
+  const currentValue = String(value ?? '')
+
+  return (
+    <div className="space-y-1">
+      {control.label != null && (
+        <label htmlFor={selectId} className="block text-xs text-muted font-medium">
+          {control.label}
+          {state.required && (
+            <span className="text-bad-text ml-1" aria-hidden="true">*</span>
+          )}
+        </label>
+      )}
+      <select
+        id={selectId}
+        value={currentValue}
+        onChange={(e) => onChange(e.target.value)}
+        disabled={!state.enabled}
+        aria-disabled={!state.enabled}
+        aria-label={control.label == null ? control.id : undefined}
+        aria-required={state.required}
+        aria-invalid={hasError}
+        aria-describedby={hasError ? errorId : undefined}
+        title={control.tooltip ?? undefined}
+        className={`${baseSelect} ${borderClass} disabled:opacity-50 disabled:cursor-not-allowed`}
+      >
+        {/* WHY: only emit the blank option when no initValue is present -
+            if the control already starts at a known value, a blank option
+            would let the user deselect to an invalid empty state. */}
+        {control.initValue == null && (
+          <option value="">-</option>
+        )}
+        {options.map((opt) => (
+          <option key={opt.enumId} value={opt.enumId}>
+            {opt.label}
+          </option>
+        ))}
+      </select>
+      {hasError && (
+        <ul id={errorId} className="space-y-0.5">
+          {state.errors.map((err) => (
+            <li key={err} className="text-xs text-bad-text">{err}</li>
+          ))}
+        </ul>
+      )}
+    </div>
+  )
+}
