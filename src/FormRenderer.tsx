@@ -1,4 +1,4 @@
-import { useImperativeHandle, useMemo } from 'react'
+import { useImperativeHandle } from 'react'
 import type { Ref } from 'react'
 import type { AtdlStrategyDto } from './types'
 import { PanelRenderer } from './PanelRenderer'
@@ -77,7 +77,7 @@ function FormRendererInner({ strategy, forwardedRef, options, highlightedControl
 }
 
 export function FormRenderer({ strategy, ref, options, highlightedControlId, onHighlightControl }: FormRendererProps) {
-  const strategyKey = useMemo(() => JSON.stringify(strategy), [strategy])
+  const strategyKey = JSON.stringify(strategy)
   return (
     <FormRendererInner
       key={strategyKey}

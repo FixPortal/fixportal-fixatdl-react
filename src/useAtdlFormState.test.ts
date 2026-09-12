@@ -620,6 +620,31 @@ it('resets hook state when the strategy document changes', () => {
   expect(result.current.values.ctrl1).toBe('second')
 })
 
+it('refreshes defaults, rules and amendment locks after in-place strategy edits', () => {
+  const parameter = makeParam()
+  const strategy = makeStrategy([makeControl({ parameter, initValue: 'first' })])
+  const { result, rerender } = renderHook(() => useAtdlFormState(strategy, { isAmendment: true }))
+  act(() => result.current.setValue('ctrl1', 'edited'))
+  rerender()
+  expect(result.current.values.ctrl1).toBe('edited')
+
+  const control = strategy.panel.children[0] as AtdlControlDto
+  control.initValue = 'second'
+  control.stateRules.push({ effect: 'visible', targetValue: false, targetStringValue: null, expression: makeEqExpression('ctrl1', 'second') })
+  parameter.mutableOnCxlRpl = false
+  rerender()
+  expect(result.current.values.ctrl1).toBe('second')
+  expect(result.current.controlState.ctrl1).toMatchObject({ enabled: false, visible: false })
+  act(() => result.current.setValue('ctrl1', 'blocked'))
+  expect(result.current.values.ctrl1).toBe('second')
+
+  parameter.mutableOnCxlRpl = true
+  rerender()
+  act(() => result.current.setValue('ctrl1', 'allowed'))
+  expect(result.current.values.ctrl1).toBe('allowed')
+  expect(result.current.controlState.ctrl1).toMatchObject({ enabled: true, visible: true })
+})
+
 it('keeps a failed value-rule conversion invalid across unrelated edits', () => {
   const strategy = makeStrategy([makeControl({ id: 'trigger', initValue: 'on' }), makeControl({ id: 'clock', type: 'Clock_t', localMktTz: 'UTC', stateRules: [{ effect: 'value', targetValue: false, targetStringValue: 'bad-time', expression: makeEqExpression('trigger', 'on') }] }), makeControl({ id: 'other' })])
   const { result } = renderHook(() => useAtdlFormState(strategy, { clock: () => new Date('2026-09-12T12:00:00Z') }))
