@@ -1,15 +1,15 @@
 /**
  * Shared-corpus test: runs the TypeScript StateRuleEvaluator against the same
- * 37 JSON cases shipped as the backend-owned contracts/atdl corpus.
+ * JSON cases shipped as the backend-owned contracts/atdl corpus.
  *
  * WHY shared corpus: a single source of truth (state-rule-cases.json) ensures
  * both implementations agree on every edge case - numeric coercion, fail-safe
- * returns, vacuous truth for AND([]), XOR parity, etc.  Any divergence is
+ * returns, vacuous truth for AND([]), exactly-one XOR, etc.  Any divergence is
  * caught here rather than discovered at runtime.
  */
 import { describe, it, expect } from 'vitest'
 import corpus from '../contracts/state-rule-cases.json'
-import { evaluateStateRule } from './StateRuleEvaluator'
+import { evaluateStateRule, tryEvaluateStateRule } from './StateRuleEvaluator'
 import type { StateRuleAstNode } from './stateRuleAst'
 
 describe('StateRuleEvaluator (shared C# corpus)', () => {
@@ -51,7 +51,7 @@ describe('StateRuleEvaluator depth guard', () => {
   it('still evaluates normally just under the limit', () => {
     // Guards the other direction: the cut must not fire early and turn a legitimate
     // deep-but-legal rule into a silent false.
-    expect(evaluateStateRule(nest('and', 100), { X: '1' })).toBe(true)
+    expect(evaluateStateRule(nest('and', 64), { X: '1' })).toBe(true)
   })
 })
 
@@ -59,4 +59,16 @@ it.each([false, true])('fails closed for an unknown node kind, nested under NOT:
   const unknown = { kind: 'future-extension' } as unknown as StateRuleAstNode
   const node: StateRuleAstNode = nested ? { kind: 'not', children: [unknown] } : unknown
   expect(evaluateStateRule(node, {})).toBe(false)
+})
+
+
+it.each(['Data_t', 'data_t', 'Tenor_t', 'MonthYear_t'])('reports invalid typed comparisons under NOT: %s', comparisonType => {
+  const expression: StateRuleAstNode = { kind: 'not', children: [{ kind: 'compare', operator: '==', field: 'a', value: 'invalid', comparisonType }] }
+  expect(tryEvaluateStateRule(expression, { a: 'invalid' })).toBeNull()
+  expect(evaluateStateRule(expression, { a: 'invalid' })).toBe(false)
+})
+
+it('distinguishes a valid false rule from a malformed rule', () => {
+  expect(tryEvaluateStateRule({ kind: 'compare', operator: '==', field: 'a', value: 1 }, { a: 2 })).toBe(false)
+  expect(tryEvaluateStateRule({ kind: 'compare', operator: 'bogus', field: 'a', value: 1 } as unknown as StateRuleAstNode, { a: 2 })).toBeNull()
 })

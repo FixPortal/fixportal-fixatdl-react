@@ -247,13 +247,13 @@
     "expected": true
   },
   {
-    "name": "numeric_coercion_string_field_number_ast: field=\"5\" (string), AST value=5 (number) - loose coerce both to double for ==",
+    "name": "numeric_coercion_string_field_number_ast: field=\"5\" (string), AST value=5 (number) — loose coerce both to double for ==",
     "ast": { "kind": "compare", "operator": "==", "field": "c_Qty", "value": 5, "children": null },
     "formState": { "c_Qty": "5" },
     "expected": true
   },
   {
-    "name": "numeric_coercion_number_field_string_ast: field=5 (number), AST value=\"5\" (string) - loose coerce both to double for ==",
+    "name": "numeric_coercion_number_field_string_ast: field=5 (number), AST value=\"5\" (string) — loose coerce both to double for ==",
     "ast": { "kind": "compare", "operator": "==", "field": "c_Qty", "value": "5", "children": null },
     "formState": { "c_Qty": 5 },
     "expected": true
@@ -337,7 +337,7 @@
     "expected": false
   },
   {
-    "name": "xor_nary_three_true: XOR of three true children = true (odd parity)",
+    "name": "xor_nary_three_true: XOR of three true children = false (exactly one required)",
     "ast": {
       "kind": "xor", "operator": null, "field": null, "value": null,
       "children": [
@@ -347,10 +347,10 @@
       ]
     },
     "formState": { "c_A": "1", "c_B": "1", "c_C": "1" },
-    "expected": true
+    "expected": false
   },
   {
-    "name": "xor_nary_two_true: XOR of three children with two true = false (even parity)",
+    "name": "xor_nary_two_true: XOR of three children with two true = false (exactly one required)",
     "ast": {
       "kind": "xor", "operator": null, "field": null, "value": null,
       "children": [
@@ -361,5 +361,44 @@
     },
     "formState": { "c_A": "1", "c_B": "1", "c_C": "2" },
     "expected": false
-  }
+  },
+  {"name": "field2_numeric_comparison", "ast": {"kind": "compare", "operator": ">", "field": "a", "value": null, "children": null, "field2": "b"}, "formState": {"a": "10", "b": 5}, "expected": true},
+  {"name": "field2_missing_rhs_does_not_become_zero", "ast": {"kind": "compare", "operator": ">", "field": "a", "value": null, "children": null, "field2": "b"}, "formState": {"a": 1}, "expected": false},
+  {"name": "missing_field_eq_null", "ast": {"kind": "compare", "operator": "==", "field": "a", "value": "{NULL}", "children": null}, "formState": {}, "expected": true},
+  {"name": "missing_field_neq_literal", "ast": {"kind": "compare", "operator": "!=", "field": "a", "value": "x", "children": null}, "formState": {}, "expected": true},
+  {"name": "null_literal_does_not_equal_zero", "ast": {"kind": "compare", "operator": "==", "field": "a", "value": null, "children": null}, "formState": {"a": 0}, "expected": false},
+  {"name": "empty_text_does_not_exist", "ast": {"kind": "compare", "operator": "exists", "field": "a", "value": null, "children": null}, "formState": {"a": ""}, "expected": false},
+  {"name": "false_value_exists", "ast": {"kind": "compare", "operator": "exists", "field": "a", "value": null, "children": null}, "formState": {"a": false}, "expected": true},
+  {"name": "empty_selection_does_not_exist", "ast": {"kind": "compare", "operator": "exists", "field": "a", "value": null, "children": null}, "formState": {"a": []}, "expected": false},
+  {"name": "empty_selection_eq_null", "ast": {"kind": "compare", "operator": "==", "field": "a", "value": "{NULL}", "children": null}, "formState": {"a": []}, "expected": true},
+  {"name": "list_enum_membership", "ast": {"kind": "compare", "operator": "==", "field": "a", "value": "high", "children": null}, "formState": {"a": ["low", "high"]}, "expected": true},
+  {"name": "list_enum_absent", "ast": {"kind": "compare", "operator": "!=", "field": "a", "value": "medium", "children": null}, "formState": {"a": ["low", "high"]}, "expected": true},
+  {"name": "field2_selection_set_equality", "ast": {"kind": "compare", "operator": "==", "field": "a", "value": null, "children": null, "field2": "b"}, "formState": {"a": ["low", "high"], "b": ["high", "low"]}, "expected": true},
+  {"name": "boolean_y_literal", "ast": {"kind": "compare", "operator": "==", "field": "a", "value": "Y", "children": null}, "formState": {"a": true}, "expected": true},
+  {"name": "decimal_precision_beyond_double", "ast": {"kind": "compare", "operator": "!=", "field": "a", "value": "9007199254740993", "children": null}, "formState": {"a": "9007199254740992"}, "expected": true},
+  {"name": "strategy_string_preserves_leading_zero", "ast": {"kind": "compare", "operator": "==", "field": "a", "value": "1", "children": null, "comparisonType": "String_t"}, "formState": {"a": "01"}, "expected": false},
+  {"name": "strategy_boolean_custom_wire_value", "ast": {"kind": "compare", "operator": "==", "field": "a", "value": "T", "children": null, "comparisonType": "Boolean_t"}, "formState": {"a": "T"}, "expected": true},
+  {"name": "clock_minutes_equal_seconds", "ast": {"kind": "compare", "operator": "==", "field": "a", "value": "09:30:00", "children": null, "comparisonType": "Clock_t"}, "formState": {"a": "09:30"}, "expected": true},
+  {"name": "clock_field2_ordering", "ast": {"kind": "compare", "operator": "<", "field": "a", "value": null, "children": null, "comparisonType": "Clock_t", "field2": "b"}, "formState": {"a": "09:30", "b": "10:00:00"}, "expected": true},
+  {"name": "clock_date_rhs_time_same_day", "ast": {"kind": "compare", "operator": ">", "field": "a", "value": "09:30:00", "children": null, "comparisonType": "Clock_t"}, "formState": {"a": "20260912-10:00:00"}, "expected": true},
+  {"name": "enum_ids_preserve_leading_zero", "ast": {"kind": "compare", "operator": "==", "field": "a", "value": "1", "children": null, "comparisonType": "EnumState"}, "formState": {"a": "01"}, "expected": false},
+  {"name": "utc_timestamp_ordering", "ast": {"kind": "compare", "operator": "<", "field": "a", "value": "20260912-10:00:00", "children": null, "comparisonType": "UTCTimestamp_t"}, "formState": {"a": "20260912-09:30:00"}, "expected": true},
+  {"name": "text_lexical_order", "ast": {"kind": "compare", "operator": ">=", "field": "a", "value": "A", "children": null}, "formState": {"a": "B"}, "expected": true},
+  {"name": "clock_date_less_than_later_time", "ast": {"kind": "compare", "operator": "<", "field": "a", "value": "11:00:00", "children": null, "comparisonType": "Clock_t"}, "formState": {"a": "20260912-10:00:00"}, "expected": true},
+  {"name": "clock_date_not_less_than_earlier_time", "ast": {"kind": "compare", "operator": "<", "field": "a", "value": "09:00:00", "children": null, "comparisonType": "Clock_t"}, "formState": {"a": "20260912-10:00:00"}, "expected": false},
+  {"name": "clock_invalid_time", "ast": {"kind": "compare", "operator": "<", "field": "a", "value": "10:00:00", "children": null, "comparisonType": "Clock_t"}, "formState": {"a": "99:00:00"}, "expected": false},
+  {"name": "boolean_uppercase_literal", "ast": {"kind": "compare", "operator": "==", "field": "a", "value": "TRUE", "children": null}, "formState": {"a": true}, "expected": true},
+  {"name": "boolean_lowercase_literal", "ast": {"kind": "compare", "operator": "==", "field": "a", "value": "false", "children": null}, "formState": {"a": false}, "expected": true},
+  {"name": "boolean_is_not_numeric_one", "ast": {"kind": "compare", "operator": "==", "field": "a", "value": 1, "children": null}, "formState": {"a": true}, "expected": false},
+  {"name": "boolean_is_not_ordered_as_one", "ast": {"kind": "compare", "operator": ">", "field": "a", "value": 0, "children": null}, "formState": {"a": true}, "expected": false},
+  {"name": "tenor_numeric_offset", "ast": {"kind": "compare", "operator": "<", "field": "a", "value": null, "children": null, "comparisonType": "Tenor_t", "field2": "b"}, "formState": {"a": "D2", "b": "D10"}, "expected": true},
+  {"name": "tenor_cross_unit_edit_equality", "ast": {"kind": "compare", "operator": "==", "field": "a", "value": "D7", "children": null, "comparisonType": "Tenor_t"}, "formState": {"a": "W1"}, "expected": true},
+  {"name": "tenor_month_nominal_days", "ast": {"kind": "compare", "operator": ">", "field": "a", "value": "W4", "children": null, "comparisonType": "Tenor_t"}, "formState": {"a": "M1"}, "expected": true},
+  {"name": "tenor_leading_zeroes", "ast": {"kind": "compare", "operator": "==", "field": "a", "value": "D2", "children": null, "comparisonType": "Tenor_t"}, "formState": {"a": "D0002"}, "expected": true},
+  {"name": "monthyear_week_day_tiebreak", "ast": {"kind": "compare", "operator": "<", "field": "a", "value": "20260907", "children": null, "comparisonType": "MonthYear_t"}, "formState": {"a": "202609w1"}, "expected": true},
+  {"name": "monthyear_week_day_not_equal", "ast": {"kind": "compare", "operator": "!=", "field": "a", "value": "20260907", "children": null, "comparisonType": "MonthYear_t"}, "formState": {"a": "202609w1"}, "expected": true},
+  {"name": "monthyear_day_before_week", "ast": {"kind": "compare", "operator": "<", "field": "a", "value": "202609w1", "children": null, "comparisonType": "MonthYear_t"}, "formState": {"a": "20260906"}, "expected": true},
+  {"name": "monthyear_unsuffixed_first", "ast": {"kind": "compare", "operator": "<", "field": "a", "value": "20260901", "children": null, "comparisonType": "MonthYear_t"}, "formState": {"a": "202609"}, "expected": true},
+  {"name": "monthyear_month_boundary", "ast": {"kind": "compare", "operator": "<", "field": "a", "value": "20261001", "children": null, "comparisonType": "MonthYear_t"}, "formState": {"a": "202609w5"}, "expected": true},
+  {"name": "boolean_field2_native_states", "ast": {"kind": "compare", "operator": "==", "field": "a", "value": null, "children": null, "comparisonType": "Boolean_t", "field2": "b"}, "formState": {"a": true, "b": true}, "expected": true}
 ]
