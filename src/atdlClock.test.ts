@@ -23,6 +23,7 @@ describe('FIXatdl clock boundary', () => {
     expect(clockWireValue(value)).toBe('20261025-01:30:00.1234567')
     expect(clockWireValue(editClockValue(control, value, '01:45:00'))).toBe('20261025-00:45:00')
     expect(clockWireValue(value, 'UTCTimeOnly_t')).toBe('01:30:00.1234567')
+    expect(clockWireValue(editClockValue(control, value, '20261026-10:00:00'))).toBe('20261026-10:00:00')
   })
 
   it('anchors a time-only value on the market date and applies mode 1 using the host clock', () => {

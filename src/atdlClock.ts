@@ -120,7 +120,8 @@ export function createClockValue(
 
 export function editClockValue(control: AtdlControlDto, current: unknown, rawTime: string, now?: Date): ClockValue | null {
   if (rawTime === '' || rawTime === '{NULL}') return null
-  const raw = isClockValue(current) ? `${current.localDateTime.slice(0, 8)}-${rawTime}` : rawTime
+  const hasDate = /^\d{4}(?:\d{4}-|-\d{2}-\d{2}T)/.test(rawTime)
+  const raw = isClockValue(current) && !hasDate ? `${current.localDateTime.slice(0, 8)}-${rawTime}` : rawTime
   return createClockValue({ ...control, initValueMode: 0, localMktTz: control.localMktTz ?? control.parameter?.localMktTz ?? 'UTC' }, raw, now)
 }
 
