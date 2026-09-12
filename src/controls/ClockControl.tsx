@@ -1,13 +1,8 @@
 import { useId } from 'react'
 import type { ControlProps } from './controlRegistry'
+import { clockDisplayValue } from '../atdlClock'
 
-/**
- * Renders FIXatdl Clock_t as an HTML5 <input type="time">.
- * Value is passed through as a string; the parent mapper (T8 AtdlDtoMapper)
- * supplies time-of-day strings in HH:mm or HH:mm:ss format. The renderer
- * coerces any non-string to string at the edge so the input never receives
- * undefined or null.
- */
+/** Renders market-local clock time; the form preserves its UTC instant through the clock boundary. */
 export function ClockControl({ control, value, onChange, state }: ControlProps) {
   const inputId = useId()
   const errorId = `${inputId}-error`
@@ -38,10 +33,9 @@ export function ClockControl({ control, value, onChange, state }: ControlProps) 
       <input
         id={inputId}
         type="time"
-        // step=1 (seconds) so an HH:mm:ss Clock_t value round-trips with its
-        // seconds intact - the default minute precision silently drops them.
-        step={1}
-        value={String(value ?? '')}
+        // Fractional seconds remain intact when the control is left unchanged.
+        step="any"
+        value={clockDisplayValue(value)}
         onChange={(e) => onChange(e.target.value)}
         disabled={!state.enabled}
         aria-disabled={!state.enabled}
