@@ -1,4 +1,5 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
+import { StrictMode } from 'react'
 import { renderHook, act } from '@testing-library/react'
 import { useAtdlFormState } from './useAtdlFormState'
 import type { AtdlStrategyDto, AtdlControlDto, AtdlParameterDto, AtdlStateRuleDto } from './types'
@@ -420,7 +421,7 @@ it('surfaces invalid clock configuration without crashing the form', () => {
 
 it.each([
   ['Int_t', '2147483648'], ['Length_t', '0'], ['Qty_t', '-1'],
-  ['Float_t', '79228162514264337593543950336'], ['Char_t', 'AB'],
+  ['Float_t', '79228162514264337593543950336'], ['Float_t', '1,2'], ['Percentage_t', '1,2'], ['Char_t', 'AB'],
   ['UTCDateOnly_t', '20260230'], ['UTCTimeOnly_t', '25:00:00'],
   ['TZTimeOnly_t', '10:00:00+15'], ['TZTimestamp_t', '10:00:00Z'],
   ['String_t', 'bad\u0001value'], ['Boolean_t', 'maybe'],
@@ -459,6 +460,54 @@ it('requires named FIX context and settles value rules when it changes', () => {
   rerender({ externalValues: { FIX_OrdType: '1' } })
   expect(result.current.hasErrors).toBe(false)
   expect(result.current.values.ctrl1).toBe('market')
+})
+
+const circularExternalValue: Record<string, unknown> = {}
+circularExternalValue.self = circularExternalValue
+
+it.each([
+  ['BigInt', 1n], ['circular object', circularExternalValue], ['NaN', Number.NaN],
+  ['infinity', Number.POSITIVE_INFINITY], ['undefined', undefined], ['array', ['1']],
+  ['symbol', Symbol('value')], ['function', () => '1'],
+])('reports unsupported external FIX %s values without crashing and recovers when corrected', (_label, value) => {
+  const strategy = makeStrategy([makeControl({ initValue: 'initial' })])
+  const externalValues: Record<string, unknown> = { FIX_OrderQty: value }
+  const { result, rerender } = renderHook(({ externalValues }: { externalValues: Record<string, unknown> }) => useAtdlFormState(strategy, { externalValues }), { initialProps: { externalValues } })
+  expect(result.current.strategyErrors).toContain('FIX_OrderQty: external FIX values must be strings, finite numbers, booleans, or null.')
+  expect(result.current.hasErrors).toBe(true)
+  act(() => result.current.setValue('ctrl1', 'edited'))
+  expect(result.current.values.ctrl1).toBe('edited')
+  rerender({ externalValues: { FIX_OrderQty: '12' } })
+  expect(result.current.hasErrors).toBe(false)
+  expect(result.current.values.ctrl1).toBe('edited')
+})
+
+it.each(['01', 12, true, false, null])('accepts supported external FIX scalar %s', value => {
+  const strategy = makeStrategy([])
+  const { result } = renderHook(() => useAtdlFormState(strategy, { externalValues: { FIX_Value: value } }))
+  expect(result.current.hasErrors).toBe(false)
+})
+
+it.each([
+  ['==', 'Business rule failed.'], ['unsupported', 'Invalid or unsupported strategy rule.'],
+])('distinguishes a failed business condition from invalid strategy operator %s', (operator, expected) => {
+  const parameter = makeParam()
+  const strategy = makeStrategy([makeControl({ parameter, initValue: 'actual' })])
+  strategy.parameters = [parameter]
+  strategy.strategyEdits = [{ errorMessage: 'Business rule failed.', expression: { ...makeEqExpression('P1', 'expected'), operator } }]
+  const { result } = renderHook(() => useAtdlFormState(strategy))
+  expect(result.current.strategyErrors).toEqual([expected])
+  expect(result.current.hasErrors).toBe(true)
+})
+
+it('reads the clock once for an edit when StrictMode replays state updaters', () => {
+  const clock = vi.fn(() => new Date('2026-09-12T12:00:00Z'))
+  const strategy = makeStrategy([makeControl({ type: 'Clock_t', localMktTz: 'UTC' })])
+  const { result } = renderHook(() => useAtdlFormState(strategy, { clock }), { wrapper: StrictMode })
+  clock.mockClear()
+  act(() => result.current.setValue('ctrl1', '10:00:00'))
+  expect(clock).toHaveBeenCalledTimes(1)
+  expect(result.current.values.ctrl1).toMatchObject({ instant: '20260912-10:00:00' })
 })
 
 it('keeps linked percentage controls in whole-percent units', () => {

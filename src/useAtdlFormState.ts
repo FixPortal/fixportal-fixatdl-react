@@ -3,7 +3,7 @@ import type { AtdlStrategyDto, AtdlControlDto } from './types'
 import { tryEvaluateStateRule } from './StateRuleEvaluator'
 import { flattenControls, controlValuesForRules, mapControlValuesToParameters, assignControlValue, isLockedRadio, parameterValueSource } from './atdlControls'
 import { isUnfilledAtdlValue, isBinaryControl, normalizeControlValue, controlParameterValue, parameterWireValue, parameterFromWire } from './atdlValue'
-import type { StateRuleAstNode } from './stateRuleAst'
+import { MAX_STATE_RULE_DEPTH, type StateRuleAstNode } from './stateRuleAst'
 import { settleValueRules } from './stateTransitions'
 import { compareDecimals } from './decimalValue'
 import { createClockValue, editClockValue } from './atdlClock'
@@ -22,7 +22,7 @@ export interface AtdlFormOptions {
   initialValues?: Record<string, unknown>
   /** FIX tag values from the order being edited or initialization context. */
   initialFixValues?: Record<number, unknown>
-  /** Named FIX fields referenced by edits, e.g. FIX_OrderQty. Explicit null means absent. */
+  /** Named FIX fields as strings, finite numbers, booleans, or null (known absent). */
   externalValues?: Record<string, unknown>
   isAmendment?: boolean
   clock?: () => Date
@@ -38,20 +38,23 @@ export interface AtdlFormStateApi {
 
 /** One strategy's settled values and validation, including parameter StrategyEdits. */
 export function useAtdlFormState(strategy: AtdlStrategyDto, options: AtdlFormOptions = {}): AtdlFormStateApi {
-  const { clock, externalValues } = options
+  const { clock } = options
+  const { values: validatedExternalValues, errors: externalErrors } = validateExternalValues(options.externalValues)
+  const contextKey = `${JSON.stringify(validatedExternalValues)}`
+  const externalValues = useMemo(() => JSON.parse(contextKey) as Record<string, unknown>, [contextKey])
   const documentKey = `${strategy.name}\u0000${strategy.sourceXml ?? ''}`
-  const contextKey = JSON.stringify(options.externalValues ?? {})
   const readonlyIds = useMemo(() => new Set(flattenControls(strategy)
     .filter(control => control.parameter?.constValue != null || (options.isAmendment && control.parameter?.mutableOnCxlRpl === false))
     .map(control => control.id)), [strategy, options.isAmendment])
   const initialize = () => {
     const seeded = seedValues(strategy, options)
-    return { ...settleValueRules(strategy, seeded.values, undefined, readonlyIds, seeded.now, options.externalValues), inputErrors: seeded.errors, documentKey, contextKey }
+    return { ...settleValueRules(strategy, seeded.values, undefined, readonlyIds, seeded.now, externalValues), inputErrors: seeded.errors, documentKey, contextKey }
   }
   const [runtime, setRuntime] = useState(initialize)
   if (runtime.documentKey !== documentKey) setRuntime(initialize())
   else if (runtime.contextKey !== contextKey) {
-    setRuntime(previous => ({ ...previous, ...settleValueRules(strategy, previous.values, previous, readonlyIds, options.clock?.(), options.externalValues), contextKey }))
+    const now = clock?.()
+    setRuntime(previous => ({ ...previous, ...settleValueRules(strategy, previous.values, previous, readonlyIds, now, externalValues), contextKey }))
   }
   const values = runtime.values
   const setValue = useCallback((controlId: string, value: unknown) => {
@@ -59,10 +62,10 @@ export function useAtdlFormState(strategy: AtdlStrategyDto, options: AtdlFormOpt
     const controls = flattenControls(strategy)
     const control = controls.find(item => item.id === controlId)
     if (!control) return
+    const now = clock?.()
     setRuntime(previous => {
       const inputErrors = { ...previous.inputErrors }
       delete inputErrors[controlId]
-      const now = clock?.()
       let normalized: unknown
       try {
         normalized = control.type === 'Clock_t'
@@ -82,13 +85,24 @@ export function useAtdlFormState(strategy: AtdlStrategyDto, options: AtdlFormOpt
     })
   }, [strategy, readonlyIds, clock, externalValues])
   const controlState = useMemo(() => {
-    const state = deriveControlState(strategy, values, readonlyIds, options.externalValues)
+    const state = deriveControlState(strategy, values, readonlyIds, externalValues)
     for (const [id, error] of Object.entries(runtime.inputErrors)) state[id]?.errors.push(error)
     return state
-  }, [strategy, values, readonlyIds, runtime.inputErrors, options.externalValues])
-  const strategyErrors = [...runtime.errors, ...validateStrategy(strategy, values, options.externalValues)]
+  }, [strategy, values, readonlyIds, runtime.inputErrors, externalValues])
+  const strategyErrors = [...externalErrors, ...runtime.errors, ...validateStrategy(strategy, values, externalValues)]
   return { values, setValue, controlState, strategyErrors,
     hasErrors: strategyErrors.length > 0 || Object.values(controlState).some(state => state.errors.length > 0) }
+}
+
+function validateExternalValues(input: Record<string, unknown> = {}) {
+  const errors: string[] = []
+  const entries = Object.entries(input).filter(([field, value]) => {
+    const supported = value === null || typeof value === 'string' || typeof value === 'boolean' ||
+      (typeof value === 'number' && Number.isFinite(value))
+    if (!supported) errors.push(`${field}: external FIX values must be strings, finite numbers, booleans, or null.`)
+    return supported
+  })
+  return { values: Object.fromEntries(entries), errors }
 }
 
 function seedValues(strategy: AtdlStrategyDto, options: AtdlFormOptions) {
@@ -191,11 +205,13 @@ function validateStrategy(strategy: AtdlStrategyDto, values: Record<string, unkn
     }
   }
   for (const edit of strategy.strategyEdits ?? []) {
-    if (!tryEvaluateStateRule(edit.expression as StateRuleAstNode, wireValues)) errors.push(edit.errorMessage || 'Invalid or unsupported strategy rule.')
+    const satisfied = tryEvaluateStateRule(edit.expression as StateRuleAstNode, wireValues)
+    if (satisfied === null) errors.push('Invalid or unsupported strategy rule.')
+    else if (!satisfied) errors.push(edit.errorMessage || 'Invalid or unsupported strategy rule.')
   }
   const missing = new Set<string>()
   const collectMissing = (node: StateRuleAstNode, depth = 0) => {
-    if (!node || depth > 100) return
+    if (!node || depth > MAX_STATE_RULE_DEPTH) return
     if (node.kind === 'compare') {
       for (const field of [node.field, node.field2]) {
         if (field?.startsWith('FIX_') && !Object.hasOwn(externalValues, field)) missing.add(field)
