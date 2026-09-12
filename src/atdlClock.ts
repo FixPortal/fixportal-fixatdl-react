@@ -137,5 +137,10 @@ export function clockRuleValue(value: unknown): unknown {
 
 export function clockWireValue(value: unknown, parameterType = 'UTCTimestamp_t'): unknown {
   if (!isClockValue(value)) return value
-  return parameterType === 'UTCTimeOnly_t' ? value.instant.slice(9) : value.instant
+  switch (parameterType) {
+    case 'UTCTimeOnly_t': return value.instant.slice(9)
+    case 'TZTimeOnly_t': return `${value.instant.slice(9)}Z`
+    case 'TZTimestamp_t': return `${value.instant}Z`
+    default: return value.instant
+  }
 }

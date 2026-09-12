@@ -26,6 +26,14 @@ describe('FIXatdl clock boundary', () => {
     expect(clockWireValue(editClockValue(control, value, '20261026-10:00:00'))).toBe('20261026-10:00:00')
   })
 
+  it.each([
+    ['TZTimeOnly_t', '08:00:00.1234567Z'],
+    ['TZTimestamp_t', '20260601-08:00:00.1234567Z'],
+  ])('emits UTC designators for %s', (type, expected) => {
+    const value = createClockValue(control, '20260601-10:00:00.1234567+02:00', undefined, 'wire')
+    expect(clockWireValue(value, type)).toBe(expected)
+  })
+
   it('anchors a time-only value on the market date and applies mode 1 using the host clock', () => {
     const now = new Date('2026-06-01T23:30:00Z')
     const value = createClockValue({ ...control, initValueMode: 1 }, '00:15', now)
