@@ -60,6 +60,12 @@ describe('FIXatdl clock boundary', () => {
     expect(() => createClockValue(utc, '20260601-10:00:00Z')).toThrow('local market wall time')
   })
 
+  it('keeps the control display zone separate from the parameter bound zone', () => {
+    const configured = { ...control, localMktTz: null, parameter: { name: 'Time', fixTag: 126, type: 'UTCTimestamp_t', enumValues: null, min: null, max: null, precision: null, mutableOnCxlRpl: true, useValue: null, defaultValue: null, localMktTz: 'Asia/Tokyo' } }
+    expect(() => createClockValue(configured, '20260601-10:00:00')).toThrow('localMktTz')
+    expect(clockDisplayValue(createClockValue(configured, '20260601-10:00:00', undefined, 'wire'))).toBe('10:00:00')
+  })
+
   it('requires an injected clock only for date-dependent operations', () => {
     expect(() => createClockValue(control, '10:00')).toThrow('host clock')
     expect(() => createClockValue({ ...control, initValueMode: 1 }, '20260601-10:00:00')).toThrow('host clock')

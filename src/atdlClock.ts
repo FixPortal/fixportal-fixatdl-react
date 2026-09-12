@@ -67,7 +67,7 @@ function parseClock(raw: string, date?: string): { epoch: number; fraction: stri
 }
 
 function marketZone(control: AtdlControlDto, source: 'init' | 'wire'): string {
-  const zone = control.localMktTz ?? control.parameter?.localMktTz
+  const zone = control.localMktTz
   if (!zone && source === 'init') throw new Error('Clock initValue requires localMktTz.')
   return zone ?? 'UTC'
 }
@@ -122,7 +122,7 @@ export function editClockValue(control: AtdlControlDto, current: unknown, rawTim
   if (rawTime === '' || rawTime === '{NULL}') return null
   const hasDate = /^\d{4}(?:\d{4}-|-\d{2}-\d{2}T)/.test(rawTime)
   const raw = isClockValue(current) && !hasDate ? `${current.localDateTime.slice(0, 8)}-${rawTime}` : rawTime
-  return createClockValue({ ...control, initValueMode: 0, localMktTz: control.localMktTz ?? control.parameter?.localMktTz ?? 'UTC' }, raw, now)
+  return createClockValue({ ...control, initValueMode: 0, localMktTz: control.localMktTz ?? 'UTC' }, raw, now)
 }
 
 export function clockDisplayValue(value: unknown): string {
