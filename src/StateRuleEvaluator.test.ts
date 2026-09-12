@@ -54,3 +54,9 @@ describe('StateRuleEvaluator depth guard', () => {
     expect(evaluateStateRule(nest('and', 100), { X: '1' })).toBe(true)
   })
 })
+
+it.each([false, true])('fails closed for an unknown node kind, nested under NOT: %s', nested => {
+  const unknown = { kind: 'future-extension' } as unknown as StateRuleAstNode
+  const node: StateRuleAstNode = nested ? { kind: 'not', children: [unknown] } : unknown
+  expect(evaluateStateRule(node, {})).toBe(false)
+})
