@@ -1,7 +1,8 @@
 /** Compare decimal text without rounding through JavaScript's binary number type. */
 export function compareDecimals(left: unknown, right: unknown): number | null {
-  const a = decimal(left)
-  const b = decimal(right)
+  // Core Edit numeric inference accepts invariant grouping; UI/wire formatting does not.
+  const a = decimal(left, true)
+  const b = decimal(right, true)
   if (!a || !b) return null
   const scale = Math.max(a.scale, b.scale)
   const x = a.coefficient * 10n ** BigInt(scale - a.scale)
@@ -42,11 +43,12 @@ export function formatDecimal(value: unknown, precision?: number | null, shift =
   return sign + (scale ? `${digits.slice(0, -scale)}.${digits.slice(-scale)}` : digits)
 }
 
-function decimal(value: unknown): { coefficient: bigint; scale: number } | null {
+function decimal(value: unknown, allowGrouping = false): { coefficient: bigint; scale: number } | null {
   if (typeof value !== 'string' && typeof value !== 'number') return null
   const text = String(value).trim()
   // Bound work at the payload boundary; .NET decimal has at most 29 significant digits.
   if (text.length > 128) return null
+  if (!allowGrouping && text.includes(',')) return null
   const match = /^([+-]?)(\d+(?:,\d+)*|)(?:\.(\d*))?(?:[eE]([+-]?\d+))?$/.exec(text)
   if (!match) return null
   const fraction = match[3] ?? ''

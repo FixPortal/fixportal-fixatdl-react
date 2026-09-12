@@ -23,3 +23,5 @@ export type StateRuleOperator =
   | '<='
   | 'exists'
   | 'not-exists'
+/** Matches the simulator backend's AST evaluation limit. */
+export const MAX_STATE_RULE_DEPTH = 64

@@ -12,6 +12,14 @@ import corpus from '../contracts/state-rule-cases.json'
 import { evaluateStateRule, tryEvaluateStateRule } from './StateRuleEvaluator'
 import type { StateRuleAstNode } from './stateRuleAst'
 
+it.each([['==', false], ['!=', true], ['exists', false], ['not-exists', true]] as const)('preserves core empty-text semantics for %s', (operator, expected) => {
+  expect(evaluateStateRule({ kind: 'compare', field: 'text', operator, value: '{NULL}' }, { text: '' })).toBe(expected)
+})
+
+it('retains core numeric grouping inference in edits', () => {
+  expect(evaluateStateRule({ kind: 'compare', field: 'text', operator: '==', value: 12 }, { text: '1,2' })).toBe(true)
+})
+
 describe('StateRuleEvaluator (shared C# corpus)', () => {
   for (const c of corpus) {
     it(c.name, () => {

@@ -35,6 +35,10 @@ function makeStrategy(params: AtdlParameterDto[]): AtdlStrategyDto {
 // ---------------------------------------------------------------------------
 
 describe('emitStrategyParametersGrp', () => {
+  it('preserves invalid decimal text for inspection instead of changing its numeric meaning', () => {
+    const strategy = makeStrategy([makeParam({ name: 'Qty', type: 'Float_t' })])
+    expect(emitStrategyParametersGrp(strategy, { Qty: '1,2' })).toContainEqual({ tag: 960, value: '1,2' })
+  })
   it('emits (957, count) then (958, name)(959, code)(960, value) for each filled parameter', () => {
     const strategy = makeStrategy([
       makeParam({ name: 'Qty', type: 'Int_t' }),
