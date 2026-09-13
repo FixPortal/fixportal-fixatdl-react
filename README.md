@@ -1,3 +1,5 @@
+![FixAtdl React: editable strategy forms from parsed FIXatdl definitions](https://raw.githubusercontent.com/FixPortal/fixportal-fixatdl-react/main/docs/images/fixatdl-react-hero.png)
+
 # FixPortal.FixAtdl.React
 
 React 19 components and browser-side helpers for FIXatdl strategy forms, extracted from FixPortal Simulator. The public npm package is [`@fix-portal/fixatdl-react`](https://www.npmjs.com/package/@fix-portal/fixatdl-react).
