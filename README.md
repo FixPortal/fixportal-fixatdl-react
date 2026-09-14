@@ -14,7 +14,7 @@ Included: recursive panels, native controls, form state, parameter/strategy vali
 
 ![FIXatdl React rendering a strategy in FixPortal Simulator](https://raw.githubusercontent.com/FixPortal/fixportal-fixatdl-react/main/docs/images/atdl-workbench-live.png)
 
-@fix-portal/fixatdl-react rendering a FIXatdl strategy in FixPortal Simulator.
+`@fix-portal/fixatdl-react` rendering a FIXatdl strategy in FixPortal Simulator.
 
 ## Installation
 
