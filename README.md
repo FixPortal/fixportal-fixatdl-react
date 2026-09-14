@@ -10,6 +10,12 @@ The host supplies a parsed `AtdlStrategyDto`. FixPortal Simulator obtains it fro
 
 Included: recursive panels, native controls, form state, parameter/strategy validation, state-rule evaluation/explanation and a StrategyParametersGrp FIX preview. Uploading XML, schema validation, persistence, order submission and authoritative FIX serialization belong to the host/backend.
 
+## In action
+
+![FIXatdl React rendering a strategy in FixPortal Simulator](https://raw.githubusercontent.com/FixPortal/fixportal-fixatdl-react/main/docs/images/atdl-workbench-live.png)
+
+@fix-portal/fixatdl-react rendering a FIXatdl strategy in FixPortal Simulator.
+
 ## Installation
 
 The package is public and needs no registry token to install:
