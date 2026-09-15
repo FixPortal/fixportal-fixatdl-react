@@ -8,8 +8,8 @@ export default defineConfig({
     setupFiles: ['./src/test/setup.ts'],
     include: ['src/**/*.{test,spec}.{ts,tsx}'],
     // NOTE: `globals: true` is deliberately NOT set. Tests import { describe, it,
-    // expect } from 'vitest' explicitly. This matters for ArchUnitTS -- see
-    // architecture.archunit.ts for why the no-globals choice drives the wrapper.
+    // expect } from 'vitest' explicitly, so the suite never depends on ambient
+    // test globals leaking into type-checking or other tooling.
     coverage: {
       provider: 'v8',
       // Scope coverage to source. Without an explicit include, v8 counts only
