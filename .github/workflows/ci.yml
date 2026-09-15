@@ -33,6 +33,7 @@ jobs:
       - run: npm run lint
       - run: npm run test:coverage
       - run: npm run build
+      - run: node scripts/assert-react-external.mjs
       - run: npm pack --ignore-scripts
       - uses: actions/upload-artifact@v7
         with:
