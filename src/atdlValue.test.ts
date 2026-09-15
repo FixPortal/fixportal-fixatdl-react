@@ -50,3 +50,15 @@ it.each([
 it('omits NULL enumeration tokens from a multi-value parameter', () => {
   expect(parameterWireValue({ ...parameter, type: 'MultipleStringValue_t', enumValues: [{ enumId: 'buy', wireValue: '1' }, { enumId: 'none', wireValue: '{NULL}' }] }, ['buy', 'none'])).toBe('1')
 })
+
+it('rejects an unknown multi-value wire token, naming the parameter and value', () => {
+  // Previously reached only indirectly through the single-select seeding
+  // fallback; the throw is what lets a host reject a foreign order's tokens.
+  const definition = { ...parameter, type: 'MultipleStringValue_t', enumValues: [{ enumId: 'a', wireValue: 'A' }, { enumId: 'b', wireValue: 'B' }] }
+  expect(() => parameterFromWire(definition, 'A UNKNOWN')).toThrow('Unknown enumeration wire value for P: A UNKNOWN')
+})
+
+it('decodes a non-inverted multi-value wire string to its enum ids', () => {
+  const definition = { ...parameter, type: 'MultipleStringValue_t', enumValues: [{ enumId: 'a', wireValue: 'A' }, { enumId: 'b', wireValue: 'B' }, { enumId: 'c', wireValue: 'C' }] }
+  expect(parameterFromWire(definition, 'A C')).toEqual(['a', 'c'])
+})
