@@ -35,6 +35,7 @@ jobs:
       - run: npm run build
       - run: node scripts/assert-react-external.mjs
       - run: node scripts/assert-public-dts.mjs
+      - run: node scripts/assert-no-side-effects.mjs
       - run: npm pack --ignore-scripts
       - name: Install and import the packed tarball
         run: |
