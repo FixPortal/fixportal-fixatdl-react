@@ -179,13 +179,16 @@ describe('useAtdlFormState', () => {
 
     expect(result.current.values['ctrl1']).toBeUndefined()
 
+    // controlState is re-derived - the object reference changes on each set.
+    // A stale object is also "defined", so capture and compare the reference.
+    const stateBefore = result.current.controlState['ctrl1']
+
     act(() => {
       result.current.setValue('ctrl1', 'newVal')
     })
 
     expect(result.current.values['ctrl1']).toBe('newVal')
-    // controlState is re-derived - the object reference changes on each set
-    expect(result.current.controlState['ctrl1']).toBeDefined()
+    expect(result.current.controlState['ctrl1']).not.toBe(stateBefore)
   })
 
   it('disables a control when its StateRule effect=enabled evaluates with targetValue=false', () => {
