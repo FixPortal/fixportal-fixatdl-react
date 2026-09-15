@@ -111,9 +111,9 @@ describe('ClockControl', () => {
     )
     // jsdom validates time inputs - the component passes String(value) which
     // is well-formed ('0' is not a valid HH:mm so the DOM sanitises it to '').
-    // The important thing is that onChange receives a string, not a number.
+    // The typed string must reach onChange intact, not just as any string.
     const input = document.querySelector('input[type="time"]') as HTMLInputElement
     fireEvent.change(input, { target: { value: '10:00' } })
-    expect(typeof onChange.mock.calls[0][0]).toBe('string')
+    expect(onChange.mock.calls[0][0]).toBe('10:00')
   })
 })
