@@ -46,8 +46,10 @@ describe('optional DTO fields against a realistic backend document', () => {
   })
 
   it('emits the inverted selection complement for an invertOnWire parameter', () => {
-    const tags = emitStrategyParametersGrp(strategy, { Exchanges: ['xnys', 'xnas'] })
-    expect(tags).toContainEqual({ tag: 960, value: 'B' })
+    // One selected enum leaves a TWO-token complement, so the assertion also
+    // pins the space-join of multiple wire values, not just the single-token case.
+    const tags = emitStrategyParametersGrp(strategy, { Exchanges: ['xnys'] })
+    expect(tags).toContainEqual({ tag: 960, value: 'Q B' })
   })
 
   it('emits a multiplyBy100 percentage in multiplied wire units', () => {

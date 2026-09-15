@@ -670,8 +670,14 @@ it('throws a TypeError when a control DTO is missing stateRules (characterisatio
   const strategy = makeStrategy([malformed])
   const spy = vi.spyOn(console, 'error').mockImplementation(() => {})
   try {
-    expect(() => renderHook(() => useAtdlFormState(strategy))).toThrow(TypeError)
-    expect(() => renderHook(() => useAtdlFormState(strategy))).toThrow("reading 'filter'")
+    let thrown: unknown
+    try {
+      renderHook(() => useAtdlFormState(strategy))
+    } catch (error) {
+      thrown = error
+    }
+    expect(thrown).toBeInstanceOf(TypeError)
+    expect((thrown as Error).message).toContain("reading 'filter'")
   } finally { spy.mockRestore() }
 })
 
