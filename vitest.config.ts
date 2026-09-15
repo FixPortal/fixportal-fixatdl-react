@@ -6,7 +6,10 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
-    include: ['src/**/*.{test,spec}.{ts,tsx}'],
+    // scripts/ holds the CI gate scripts. Their tests run in the normal suite so a
+    // broken gate fails the same way a broken source file does; coverage `include`
+    // below stays scoped to src/** so they do not move the library's thresholds.
+    include: ['src/**/*.{test,spec}.{ts,tsx}', 'scripts/**/*.test.mjs'],
     // NOTE: `globals: true` is deliberately NOT set. Tests import { describe, it,
     // expect } from 'vitest' explicitly, so the suite never depends on ambient
     // test globals leaking into type-checking or other tooling.
