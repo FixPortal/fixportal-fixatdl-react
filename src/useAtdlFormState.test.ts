@@ -677,8 +677,23 @@ it('throws a TypeError when a control DTO is missing stateRules (characterisatio
       thrown = error
     }
     expect(thrown).toBeInstanceOf(TypeError)
-    expect((thrown as Error).message).toContain("reading 'filter'")
   } finally { spy.mockRestore() }
+})
+
+it('renders the same control normally once stateRules is present, isolating the cause', () => {
+  // The contrast case is what makes the characterisation above attributable. On its
+  // own, "a TypeError was thrown" could be caused by anything else in the fixture;
+  // an identical control that differs ONLY by carrying an empty stateRules array
+  // pins the missing field as the cause.
+  //
+  // WHY NOT assert the thrown message: it reads "Cannot read properties of undefined
+  // (reading 'filter')", which is V8's exact phrasing AND names whichever of the five
+  // unguarded sites happens to run first (currently stateTransitions.ts:25). Both are
+  // refactor-fragile and neither is the behaviour under test. The message carries no
+  // control id or field name, so there is nothing more specific to assert on it.
+  const { result } = renderHook(() => useAtdlFormState(makeStrategy([makeControl({ id: 'broken', stateRules: [] })])))
+  expect(result.current.controlState.broken).toMatchObject({ enabled: true, visible: true })
+  expect(result.current.hasErrors).toBe(false)
 })
 
 it('keeps a failed value-rule conversion invalid across unrelated edits', () => {
