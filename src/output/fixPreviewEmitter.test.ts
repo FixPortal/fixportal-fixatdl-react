@@ -112,6 +112,21 @@ describe('emitStrategyParametersGrp', () => {
   })
 
   // ---------------------------------------------------------------------------
+  // Delimiter contract: pass-through
+  // ---------------------------------------------------------------------------
+
+  it('passes a raw FIX SOH delimiter through to tag 960 unchanged', () => {
+    // Pass-through is the decided contract: the emitter has no delimiter defence
+    // of its own. The FIX field delimiter (SOH, U+0001) is rejected solely by
+    // validateControl (src/useAtdlFormState.ts) at the form-validation boundary,
+    // and this test pins that division of responsibility so it cannot silently
+    // change in either direction (emitter growing a check, or validation losing it).
+    const strategy = makeStrategy([makeParam({ name: 'P', type: 'String_t' })])
+    const tags = emitStrategyParametersGrp(strategy, { P: 'a\u0001b' })
+    expect(tags).toContainEqual({ tag: 960, value: 'a\u0001b' })
+  })
+
+  // ---------------------------------------------------------------------------
   // Type-code table
   // ---------------------------------------------------------------------------
 
