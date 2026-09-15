@@ -127,6 +127,19 @@ describe('emitStrategyParametersGrp', () => {
   })
 
   // ---------------------------------------------------------------------------
+  // constValue precedence
+  // ---------------------------------------------------------------------------
+
+  it('prefers an authored constValue over a differing filled form value', () => {
+    // The differing filledValues entry is the load-bearing part: with no entry,
+    // both ?? orderings resolve to constValue and the test cannot catch a
+    // reversed precedence. The venue-mandated constant must win on the wire.
+    const strategy = makeStrategy([makeParam({ name: 'P', type: 'String_t', constValue: 'venue-constant' })])
+    const tags = emitStrategyParametersGrp(strategy, { P: 'user-typed' })
+    expect(tags).toContainEqual({ tag: 960, value: 'venue-constant' })
+  })
+
+  // ---------------------------------------------------------------------------
   // Type-code table
   // ---------------------------------------------------------------------------
 
