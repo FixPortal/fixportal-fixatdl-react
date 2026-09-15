@@ -35,6 +35,15 @@ if (!existsSync(entry)) {
   for (const name of expected) {
     if (!exported.has(name)) problems.push(`dist/index.d.ts does not export ${name}`)
   }
+  // The reverse direction matters as much as the forward one. A subset check only
+  // catches a REMOVED export; an ADDED one is how something internal becomes
+  // permanent public API by accident. src/index.test.ts pins the runtime side with
+  // a key-set equality, but a type-only leak - `export type { InternalOptions }` -
+  // has no runtime key and is invisible there, so this is its only gate.
+  const intended = new Set(expected)
+  for (const name of exported) {
+    if (!intended.has(name)) problems.push(`dist/index.d.ts exports ${name}, which is not in the intended public surface - add it to \`expected\` here and to src/index.test.ts if it is deliberate`)
+  }
   if (!/export\s+type\s+\*\s+from\s*['"]\.\/types['"]/.test(declaration)) {
     problems.push("dist/index.d.ts lost the `export type * from './types'` re-export")
   }
@@ -51,7 +60,10 @@ function* walk(dir) {
 }
 const leakMarkers = [/\.(test|spec)\.d\.ts$/, /(^|\/)test\//, /__fixtures__/]
 const contentMarkers = ['twap-strategy', 'optional-fields-strategy', 'from \'vitest\'', '@testing-library']
-for (const path of walk(fileURLToPath(dist))) {
+// Guard the walk: without it, a missing dist/ throws ENOENT out of readdirSync
+// before the "run npm run build first" problem above is ever printed, so the
+// developer gets a raw stack instead of the diagnostic written for them.
+for (const path of existsSync(dist) ? walk(fileURLToPath(dist)) : []) {
   if (!path.endsWith('.d.ts')) continue
   for (const marker of leakMarkers) {
     if (marker.test(path)) problems.push(`test or fixture declaration leaked into the build: ${path}`)
