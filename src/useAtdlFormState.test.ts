@@ -508,15 +508,26 @@ it('surfaces invalid clock configuration without crashing the form', () => {
 })
 
 it.each([
-  ['Int_t', '2147483648'], ['Length_t', '0'], ['Qty_t', '-1'],
-  ['Float_t', '79228162514264337593543950336'], ['Float_t', '1,2'], ['Percentage_t', '1,2'], ['Char_t', 'AB'],
-  ['UTCDateOnly_t', '20260230'], ['UTCTimeOnly_t', '25:00:00'],
-  ['TZTimeOnly_t', '10:00:00+15'], ['TZTimestamp_t', '10:00:00Z'],
-  ['String_t', 'bad\u0001value'], ['Boolean_t', 'maybe'],
-])('rejects an invalid %s parameter value: %s', (type, initValue) => {
+  ['Int_t', '2147483648', 'Value is outside the Int_t range.'],
+  ['Length_t', '0', 'Value is outside the Length_t range.'],
+  ['Qty_t', '-1', 'Must be ≥ 0.'],
+  ['Float_t', '79228162514264337593543950336', 'Value is outside the Float_t range.'],
+  ['Float_t', '1,2', 'Must be a number.'],
+  ['Percentage_t', '1,2', 'Must be a number.'],
+  ['Char_t', 'AB', 'Must be exactly one character.'],
+  ['UTCDateOnly_t', '20260230', 'Must be a valid FIX UTCDateOnly_t value.'],
+  ['UTCTimeOnly_t', '25:00:00', 'Must be a valid FIX UTCTimeOnly_t value.'],
+  ['TZTimeOnly_t', '10:00:00+15', 'Must be a valid FIX TZTimeOnly_t value.'],
+  ['TZTimestamp_t', '10:00:00Z', 'Must be a valid FIX TZTimestamp_t value.'],
+  ['String_t', 'bad\u0001value', 'A value cannot contain the FIX field delimiter.'],
+  ['Boolean_t', 'maybe', 'Must be a declared Boolean value.'],
+])('rejects an invalid %s parameter value: %s', (type, initValue, expectedError) => {
   const strategy = makeStrategy([makeControl({ parameter: makeParam({ type }), initValue })])
   const { result } = renderHook(() => useAtdlFormState(strategy))
   expect(result.current.hasErrors).toBe(true)
+  // Every row must name its own validator: a bare hasErrors pass cannot tell
+  // "the right validator fired" from "some unrelated path also set hasErrors".
+  expect(result.current.controlState.ctrl1.errors).toContain(expectedError)
 })
 
 it.each([false, true])('round-trips whole-percent UI values and checks fractional bounds (multiplyBy100=%s)', multiplyBy100 => {
