@@ -75,6 +75,15 @@ describe('FormRenderer', () => {
     render(<FormRenderer strategy={single({ type })} />)
     expect(screen.getByText(type)).toBeInTheDocument()
   })
+  it('fails validation for an unregistered control type, naming the type', () => {
+    // The renderer placeholder is only half the contract: a host gating
+    // submission on the imperative handle must see the form as invalid, or the
+    // order goes through with that control's parameter silently unset.
+    const ref = createRef<FormRendererHandle>()
+    render(<FormRenderer ref={ref} strategy={single({ type: 'unregisteredType' })} />)
+    expect(ref.current!.isValid()).toBe(false)
+    expect(ref.current!.getErrors()).toContain('Unsupported control type: unregisteredType')
+  })
   it('displays an unmatched required selection without selecting option zero', () => {
     const ref = createRef<FormRendererHandle>()
     render(<FormRenderer ref={ref} strategy={single({ type: 'DropDownList_t', initValue: 'missing', listItems: [{ enumId: 'a', uiRep: 'A' }], parameter: { ...strategy.parameters[0], useValue: 'required' } })} />)
