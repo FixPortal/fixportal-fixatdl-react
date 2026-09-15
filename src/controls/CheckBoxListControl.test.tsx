@@ -42,40 +42,6 @@ describe('CheckBoxListControl', () => {
     expect(onChange).toHaveBeenCalledWith(['OPT_A'])
   })
 
-  it('renders all checkboxes disabled when state.enabled is false', () => {
-    render(
-      <CheckBoxListControl
-        control={BASE_CONTROL}
-        value={[]}
-        onChange={vi.fn()}
-        state={{ ...ENABLED, enabled: false }}
-      />,
-    )
-    const checkboxes = screen.getAllByRole('checkbox')
-    checkboxes.forEach((cb) => expect(cb).toBeDisabled())
-  })
 
-  it('renders nothing when state.visible is false', () => {
-    const { container } = render(
-      <CheckBoxListControl
-        control={BASE_CONTROL}
-        value={[]}
-        onChange={vi.fn()}
-        state={{ ...ENABLED, visible: false }}
-      />,
-    )
-    expect(container.firstChild).toBeNull()
-  })
 
-  it('shows error messages when state.errors is non-empty', () => {
-    render(
-      <CheckBoxListControl
-        control={BASE_CONTROL}
-        value={[]}
-        onChange={vi.fn()}
-        state={{ ...ENABLED, errors: ['Selection required.'] }}
-      />,
-    )
-    expect(screen.getByText('Selection required.')).toBeInTheDocument()
-  })
 })

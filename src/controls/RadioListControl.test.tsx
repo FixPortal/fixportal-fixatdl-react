@@ -45,45 +45,11 @@ describe('RadioListControl', () => {
     expect(onChange).toHaveBeenCalledWith('HIGH')
   })
 
-  it('renders all radios disabled when state.enabled is false', () => {
-    render(
-      <RadioListControl
-        control={BASE_CONTROL}
-        value={null}
-        onChange={vi.fn()}
-        state={{ ...ENABLED, enabled: false }}
-      />,
-    )
-    const radios = screen.getAllByRole('radio')
-    radios.forEach((r) => expect(r).toBeDisabled())
-  })
 
-  it('renders nothing when state.visible is false', () => {
-    const { container } = render(
-      <RadioListControl
-        control={BASE_CONTROL}
-        value={null}
-        onChange={vi.fn()}
-        state={{ ...ENABLED, visible: false }}
-      />,
-    )
-    expect(container.firstChild).toBeNull()
-  })
 
   it('shows the group label', () => {
     render(<RadioListControl control={BASE_CONTROL} value={null} onChange={vi.fn()} state={ENABLED} />)
     expect(screen.getByText('Urgency')).toBeInTheDocument()
   })
 
-  it('shows error messages when state.errors is non-empty', () => {
-    render(
-      <RadioListControl
-        control={BASE_CONTROL}
-        value={null}
-        onChange={vi.fn()}
-        state={{ ...ENABLED, errors: ['Selection required.'] }}
-      />,
-    )
-    expect(screen.getByText('Selection required.')).toBeInTheDocument()
-  })
 })

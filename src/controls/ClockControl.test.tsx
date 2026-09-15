@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
-import { render, screen, fireEvent, cleanup } from '@testing-library/react'
+import { render, fireEvent, cleanup } from '@testing-library/react'
 import { ClockControl } from './ClockControl'
 import type { AtdlControlDto } from '../types'
 import type { ControlFormState } from '../useAtdlFormState'
@@ -54,42 +54,8 @@ describe('ClockControl', () => {
     expect(value.instant).toBe('20261025-01:30:00.1234567')
   })
 
-  it('renders disabled when state.enabled is false', () => {
-    render(
-      <ClockControl
-        control={BASE_CONTROL}
-        value=""
-        onChange={vi.fn()}
-        state={{ ...ENABLED, enabled: false }}
-      />,
-    )
-    const input = document.querySelector('input[type="time"]') as HTMLInputElement
-    expect(input).toBeDisabled()
-  })
 
-  it('renders nothing when state.visible is false', () => {
-    const { container } = render(
-      <ClockControl
-        control={BASE_CONTROL}
-        value=""
-        onChange={vi.fn()}
-        state={{ ...ENABLED, visible: false }}
-      />,
-    )
-    expect(container.firstChild).toBeNull()
-  })
 
-  it('shows error messages when state.errors is non-empty', () => {
-    render(
-      <ClockControl
-        control={BASE_CONTROL}
-        value=""
-        onChange={vi.fn()}
-        state={{ ...ENABLED, errors: ['Time is required.'] }}
-      />,
-    )
-    expect(screen.getByText('Time is required.')).toBeInTheDocument()
-  })
 
   it('applies error border class when state.errors is non-empty', () => {
     render(

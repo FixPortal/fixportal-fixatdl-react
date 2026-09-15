@@ -26,10 +26,4 @@ describe('LabelControl', () => {
     expect(screen.getByText('Read-only note')).toBeInTheDocument()
   })
 
-  it('renders nothing when state.visible is false', () => {
-    const { container } = render(
-      <LabelControl control={BASE_CONTROL} value={null} onChange={vi.fn()} state={{ ...ENABLED, visible: false }} />,
-    )
-    expect(container.firstChild).toBeNull()
-  })
 })

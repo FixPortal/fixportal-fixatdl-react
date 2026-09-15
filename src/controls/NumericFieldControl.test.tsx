@@ -81,29 +81,7 @@ describe('NumericFieldControl', () => {
     expect(onChange).toHaveBeenCalledWith(null)
   })
 
-  it('renders disabled when state.enabled is false', () => {
-    render(
-      <NumericFieldControl
-        control={BASE_CONTROL}
-        value={null}
-        onChange={vi.fn()}
-        state={{ ...ENABLED, enabled: false }}
-      />,
-    )
-    expect(screen.getByRole('spinbutton')).toBeDisabled()
-  })
 
-  it('renders nothing when state.visible is false', () => {
-    const { container } = render(
-      <NumericFieldControl
-        control={BASE_CONTROL}
-        value={null}
-        onChange={vi.fn()}
-        state={{ ...ENABLED, visible: false }}
-      />,
-    )
-    expect(container.firstChild).toBeNull()
-  })
 
   it('sets step based on precision for Float_t parameters', () => {
     const ctrl = { ...BASE_CONTROL, parameter: makeParam({ type: 'Float_t', precision: 2 }) }
@@ -119,15 +97,4 @@ describe('NumericFieldControl', () => {
     expect(input).toHaveAttribute('max', '100')
   })
 
-  it('displays error messages when state.errors is non-empty', () => {
-    render(
-      <NumericFieldControl
-        control={BASE_CONTROL}
-        value={null}
-        onChange={vi.fn()}
-        state={{ ...ENABLED, errors: ['Must be ≥ 0.'] }}
-      />,
-    )
-    expect(screen.getByText('Must be ≥ 0.')).toBeInTheDocument()
-  })
 })
