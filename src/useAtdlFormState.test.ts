@@ -645,6 +645,22 @@ it('refreshes defaults, rules and amendment locks after in-place strategy edits'
   expect(result.current.controlState.ctrl1).toMatchObject({ enabled: true, visible: true })
 })
 
+it('throws a TypeError when a control DTO is missing stateRules (characterisation)', () => {
+  // WHY: types.ts declares stateRules non-optional and five sites iterate it
+  // unguarded, so a DTO missing it fails fast from inside the hook rather than
+  // silently dropping every rule the strategy carries. This pins the current
+  // behaviour as a characterisation; whether to grow a guard instead is a
+  // production decision, deliberately not taken here.
+  const malformed = makeControl({ id: 'broken' })
+  delete (malformed as Partial<AtdlControlDto>).stateRules
+  const strategy = makeStrategy([malformed])
+  const spy = vi.spyOn(console, 'error').mockImplementation(() => {})
+  try {
+    expect(() => renderHook(() => useAtdlFormState(strategy))).toThrow(TypeError)
+    expect(() => renderHook(() => useAtdlFormState(strategy))).toThrow("reading 'filter'")
+  } finally { spy.mockRestore() }
+})
+
 it('keeps a failed value-rule conversion invalid across unrelated edits', () => {
   const strategy = makeStrategy([makeControl({ id: 'trigger', initValue: 'on' }), makeControl({ id: 'clock', type: 'Clock_t', localMktTz: 'UTC', stateRules: [{ effect: 'value', targetValue: false, targetStringValue: 'bad-time', expression: makeEqExpression('trigger', 'on') }] }), makeControl({ id: 'other' })])
   const { result } = renderHook(() => useAtdlFormState(strategy, { clock: () => new Date('2026-09-12T12:00:00Z') }))
