@@ -2,10 +2,10 @@
 import '@testing-library/jest-dom/vitest'
 
 // This project runs Vitest WITHOUT `globals: true` (a deliberate choice -- tests
-// import { describe, it, expect } from 'vitest', and it keeps ArchUnitTS's root
-// import from throwing; see architecture.archunit.ts). RTL's auto-cleanup needs
-// globals, so register it explicitly here. A double-cleanup is a no-op, so tests
-// with their own afterEach(cleanup) are unaffected.
+// import { describe, it, expect } from 'vitest' explicitly, so the suite never
+// depends on ambient test globals). RTL's auto-cleanup needs globals, so
+// register it explicitly here. A double-cleanup is a no-op, so tests with their
+// own afterEach(cleanup) are unaffected.
 import { afterEach } from 'vitest'
 import { cleanup } from '@testing-library/react'
 afterEach(() => { cleanup() })
