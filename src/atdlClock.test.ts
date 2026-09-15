@@ -85,7 +85,7 @@ describe('FIXatdl clock boundary', () => {
     expect(() => createClockValue({ ...control, initValueMode: 1 }, '20260601-10:00:00')).toThrow('host clock')
     expect(() => createClockValue({ ...control, initValueMode: 2 }, '20260601-10:00:00')).toThrow('initValueMode')
     expect(() => createClockValue({ ...control, localMktTz: null }, '20260601-10:00:00')).toThrow('localMktTz')
-    expect(() => createClockValue({ ...control, localMktTz: 'Invalid/Zone' }, '20260601-10:00:00')).toThrow()
+    expect(() => createClockValue({ ...control, localMktTz: 'Invalid/Zone' }, '20260601-10:00:00')).toThrow('Invalid/Zone')
     expect(createClockValue(control, null)).toBeNull()
     expect(editClockValue(control, null, '')).toBeNull()
   })
