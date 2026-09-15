@@ -58,6 +58,22 @@ export default defineConfig([
     rules: { 'sonarjs/variable-name': 'off' },
   },
   {
+    // The CI gate scripts are .mjs, and NOTHING above reaches them: the main block
+    // is scoped to **/*.{ts,tsx} and the block above to scripts/**/*.ts, while
+    // tsconfig.json includes only `src` and *.config.ts. So these files were
+    // neither linted nor typechecked -- a probe with an unused variable, an empty
+    // block and a call to an undefined function passed `eslint .` at rc=0. CI
+    // depends on these scripts to gate the published package, so they get the
+    // recommended rule set like anything else that can fail a build.
+    files: ['scripts/**/*.{mjs,js}'],
+    extends: [js.configs.recommended],
+    languageOptions: {
+      globals: globals.node,
+      ecmaVersion: 2023,
+      sourceType: 'module',
+    },
+  },
+  {
     // Test files have different conventions from app code. Repeated literals are
     // readable fixtures; passing `undefined` exercises missing-prop paths;
     // `import * as X` is idiomatic for vi.spyOn module mocks; render-helper
