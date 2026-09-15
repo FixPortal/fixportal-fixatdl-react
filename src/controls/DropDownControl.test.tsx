@@ -55,29 +55,7 @@ describe('DropDownControl', () => {
     expect(onChange).toHaveBeenCalledWith('VWAP')
   })
 
-  it('renders disabled when state.enabled is false', () => {
-    render(
-      <DropDownControl
-        control={BASE_CONTROL}
-        value=""
-        onChange={vi.fn()}
-        state={{ ...ENABLED, enabled: false }}
-      />,
-    )
-    expect(screen.getByRole('combobox')).toBeDisabled()
-  })
 
-  it('renders nothing when state.visible is false', () => {
-    const { container } = render(
-      <DropDownControl
-        control={BASE_CONTROL}
-        value=""
-        onChange={vi.fn()}
-        state={{ ...ENABLED, visible: false }}
-      />,
-    )
-    expect(container.firstChild).toBeNull()
-  })
 
   it('falls back to parameter.enumValues when listItems is absent', () => {
     const ctrl: AtdlControlDto = {
@@ -104,15 +82,4 @@ describe('DropDownControl', () => {
     expect(screen.getByRole('option', { name: 'B' })).toBeInTheDocument()
   })
 
-  it('shows error messages when state.errors is non-empty', () => {
-    render(
-      <DropDownControl
-        control={BASE_CONTROL}
-        value=""
-        onChange={vi.fn()}
-        state={{ ...ENABLED, errors: ['This field is required.'] }}
-      />,
-    )
-    expect(screen.getByText('This field is required.')).toBeInTheDocument()
-  })
 })

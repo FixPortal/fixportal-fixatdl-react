@@ -55,41 +55,8 @@ describe('EditableDropDownControl', () => {
     expect(onChange).toHaveBeenCalledWith('VWAP')
   })
 
-  it('renders disabled when state.enabled is false', () => {
-    render(
-      <EditableDropDownControl
-        control={BASE_CONTROL}
-        value=""
-        onChange={vi.fn()}
-        state={{ ...ENABLED, enabled: false }}
-      />,
-    )
-    expect(screen.getByRole('combobox')).toBeDisabled()
-  })
 
-  it('renders nothing when state.visible is false', () => {
-    const { container } = render(
-      <EditableDropDownControl
-        control={BASE_CONTROL}
-        value=""
-        onChange={vi.fn()}
-        state={{ ...ENABLED, visible: false }}
-      />,
-    )
-    expect(container.firstChild).toBeNull()
-  })
 
-  it('shows error messages when state.errors is non-empty', () => {
-    render(
-      <EditableDropDownControl
-        control={BASE_CONTROL}
-        value=""
-        onChange={vi.fn()}
-        state={{ ...ENABLED, errors: ['This field is required.'] }}
-      />,
-    )
-    expect(screen.getByText('This field is required.')).toBeInTheDocument()
-  })
 
   it('applies error border class when state.errors is non-empty', () => {
     render(

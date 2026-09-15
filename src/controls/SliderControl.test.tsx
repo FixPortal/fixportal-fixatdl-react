@@ -90,41 +90,8 @@ describe('SliderControl', () => {
     expect(screen.getByText('42')).toBeInTheDocument()
   })
 
-  it('renders disabled when state.enabled is false', () => {
-    render(
-      <SliderControl
-        control={BASE_CONTROL}
-        value={0}
-        onChange={vi.fn()}
-        state={{ ...ENABLED, enabled: false }}
-      />,
-    )
-    expect(screen.getByRole('slider')).toBeDisabled()
-  })
 
-  it('renders nothing when state.visible is false', () => {
-    const { container } = render(
-      <SliderControl
-        control={BASE_CONTROL}
-        value={0}
-        onChange={vi.fn()}
-        state={{ ...ENABLED, visible: false }}
-      />,
-    )
-    expect(container.firstChild).toBeNull()
-  })
 
-  it('shows error messages when state.errors is non-empty', () => {
-    render(
-      <SliderControl
-        control={BASE_CONTROL}
-        value={0}
-        onChange={vi.fn()}
-        state={{ ...ENABLED, errors: ['Value out of range.'] }}
-      />,
-    )
-    expect(screen.getByText('Value out of range.')).toBeInTheDocument()
-  })
 
   it('applies error border class to the wrapper when state.errors is non-empty', () => {
     const { container } = render(

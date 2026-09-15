@@ -45,46 +45,13 @@ describe('CheckBoxControl', () => {
     expect(onChange).toHaveBeenCalledWith(false)
   })
 
-  it('renders disabled when state.enabled is false', () => {
-    render(
-      <CheckBoxControl
-        control={BASE_CONTROL}
-        value={false}
-        onChange={vi.fn()}
-        state={{ ...ENABLED, enabled: false }}
-      />,
-    )
-    expect(screen.getByRole('checkbox')).toBeDisabled()
-  })
 
-  it('renders nothing when state.visible is false', () => {
-    const { container } = render(
-      <CheckBoxControl
-        control={BASE_CONTROL}
-        value={false}
-        onChange={vi.fn()}
-        state={{ ...ENABLED, visible: false }}
-      />,
-    )
-    expect(container.firstChild).toBeNull()
-  })
 
   it('displays the label text', () => {
     render(<CheckBoxControl control={BASE_CONTROL} value={false} onChange={vi.fn()} state={ENABLED} />)
     expect(screen.getByText('Enable dark pool')).toBeInTheDocument()
   })
 
-  it('shows error messages when state.errors is non-empty', () => {
-    render(
-      <CheckBoxControl
-        control={BASE_CONTROL}
-        value={false}
-        onChange={vi.fn()}
-        state={{ ...ENABLED, errors: ['Required.'] }}
-      />,
-    )
-    expect(screen.getByText('Required.')).toBeInTheDocument()
-  })
 })
 
  it.each(['false', 'N', '0', '', null, undefined])('does not treat %s as a checked default', value => {

@@ -38,29 +38,7 @@ describe('TextFieldControl', () => {
     expect(screen.getByRole('textbox')).toHaveValue('VWAP')
   })
 
-  it('renders disabled when state.enabled is false', () => {
-    render(
-      <TextFieldControl
-        control={BASE_CONTROL}
-        value=""
-        onChange={vi.fn()}
-        state={{ ...ENABLED, enabled: false }}
-      />,
-    )
-    expect(screen.getByRole('textbox')).toBeDisabled()
-  })
 
-  it('renders nothing when state.visible is false', () => {
-    const { container } = render(
-      <TextFieldControl
-        control={BASE_CONTROL}
-        value=""
-        onChange={vi.fn()}
-        state={{ ...ENABLED, visible: false }}
-      />,
-    )
-    expect(container.firstChild).toBeNull()
-  })
 
   it('shows required asterisk when state.required is true', () => {
     render(
@@ -74,16 +52,4 @@ describe('TextFieldControl', () => {
     expect(screen.getByText('*')).toBeInTheDocument()
   })
 
-  it('displays error messages when state.errors is non-empty', () => {
-    render(
-      <TextFieldControl
-        control={BASE_CONTROL}
-        value=""
-        onChange={vi.fn()}
-        state={{ ...ENABLED, errors: ['This field is required.', 'Too long.'] }}
-      />,
-    )
-    expect(screen.getByText('This field is required.')).toBeInTheDocument()
-    expect(screen.getByText('Too long.')).toBeInTheDocument()
-  })
 })

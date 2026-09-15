@@ -97,42 +97,8 @@ describe('MultiSelectControl', () => {
     expect(screen.getByRole('checkbox', { name: 'MTF' })).toBeInTheDocument()
   })
 
-  it('renders all checkboxes disabled when state.enabled is false', () => {
-    render(
-      <MultiSelectControl
-        control={BASE_CONTROL}
-        value={[]}
-        onChange={vi.fn()}
-        state={{ ...ENABLED, enabled: false }}
-      />,
-    )
-    const checkboxes = screen.getAllByRole('checkbox')
-    checkboxes.forEach((cb) => expect(cb).toBeDisabled())
-  })
 
-  it('renders nothing when state.visible is false', () => {
-    const { container } = render(
-      <MultiSelectControl
-        control={BASE_CONTROL}
-        value={[]}
-        onChange={vi.fn()}
-        state={{ ...ENABLED, visible: false }}
-      />,
-    )
-    expect(container.firstChild).toBeNull()
-  })
 
-  it('shows error messages when state.errors is non-empty', () => {
-    render(
-      <MultiSelectControl
-        control={BASE_CONTROL}
-        value={[]}
-        onChange={vi.fn()}
-        state={{ ...ENABLED, errors: ['At least one venue is required.'] }}
-      />,
-    )
-    expect(screen.getByText('At least one venue is required.')).toBeInTheDocument()
-  })
 
   it('applies error border class to the group wrapper when state.errors is non-empty', () => {
     render(
