@@ -35,6 +35,40 @@ jobs:
       - run: npm run build
       - run: node scripts/assert-react-external.mjs
       - run: npm pack --ignore-scripts
+      - name: Install and import the packed tarball
+        run: |
+          set -euo pipefail
+          smoke="$(mktemp -d)"
+          cd "$smoke"
+          npm init -y >/dev/null
+          npm install "$GITHUB_WORKSPACE"/*.tgz
+          cat > smoke.mjs <<'SMOKE'
+          import * as api from '@fix-portal/fixatdl-react'
+          import { existsSync, readFileSync } from 'node:fs'
+          import { fileURLToPath } from 'node:url'
+
+          // Node's resolver is the subject: a wrong exports condition, a types
+          // path typo, or a missing files entry passes npm pack and only fails here.
+          const entryUrl = import.meta.resolve('@fix-portal/fixatdl-react')
+          const pkgRoot = new URL('../', entryUrl)
+          if (!entryUrl.endsWith('/dist/index.js')) {
+            throw new Error(`exports map resolved to an unexpected entry: ${entryUrl}`)
+          }
+          const manifest = JSON.parse(readFileSync(new URL('package.json', pkgRoot), 'utf8'))
+          const typesPath = manifest.exports?.['.']?.types ?? manifest.types
+          if (!typesPath || !existsSync(new URL(typesPath, pkgRoot))) {
+            throw new Error(`types entry ${typesPath} does not exist in the installed package`)
+          }
+          if (typeof api.emitStrategyParametersGrp !== 'function') {
+            throw new Error('emitStrategyParametersGrp did not resolve to a function')
+          }
+          const tags = api.emitStrategyParametersGrp({ parameters: [] }, {})
+          if (!Array.isArray(tags) || tags.length !== 0) {
+            throw new Error('emitStrategyParametersGrp({ parameters: [] }, {}) should return an empty tag list')
+          }
+          console.log(`tarball smoke OK: ${fileURLToPath(entryUrl)}`)
+          SMOKE
+          node smoke.mjs
       - uses: actions/upload-artifact@v7
         with:
           name: fixatdl-react-package
