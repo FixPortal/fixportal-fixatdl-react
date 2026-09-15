@@ -1,9 +1,12 @@
+import { createRef } from 'react'
 import { describe, it, expect, afterEach } from 'vitest'
 import { render, screen, cleanup } from '@testing-library/react'
 import { renderHook, act } from '@testing-library/react'
 import { FormRenderer } from './FormRenderer'
+import type { FormRendererHandle } from './FormRenderer'
 import { useAtdlFormState } from './useAtdlFormState'
 import { emitStrategyParametersGrp } from './output/fixPreviewEmitter'
+import { mapControlValuesToParameters } from './atdlControls'
 import strategyJson from './__fixtures__/optional-fields-strategy.json'
 import type { AtdlStrategyDto } from './types'
 
@@ -17,9 +20,16 @@ const strategy = strategyJson as unknown as AtdlStrategyDto
 
 describe('optional DTO fields against a realistic backend document', () => {
   it('renders the full document through the FormRenderer stack with no errors', () => {
-    render(<FormRenderer strategy={strategy} />)
+    // WHY the ref rather than queryByRole('alert'): FormRenderer gives role="alert"
+    // only to summaryErrors - strategy-level errors plus errors on hidden or
+    // invisible controls. Every control in this fixture is visible, so their
+    // validation errors render in each control's own unlabelled <ul>, and an
+    // alert-only assertion would pass with all five controls in an error state.
+    const ref = createRef<FormRendererHandle>()
+    render(<FormRenderer ref={ref} strategy={strategy} />)
     expect(screen.getByLabelText('Account')).toBeInTheDocument()
-    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+    expect(ref.current!.getErrors()).toEqual([])
+    expect(ref.current!.isValid()).toBe(true)
   })
 
   it('enforces parameter minLength and maxLength through validation', () => {
@@ -53,10 +63,20 @@ describe('optional DTO fields against a realistic backend document', () => {
   })
 
   it('emits a multiplyBy100 percentage in multiplied wire units', () => {
-    // multiplyBy100 puts percent-times-100 (basis points) on the wire:
-    // formatDecimal shift is negative, so a logical '12' becomes '1200'.
-    const tags = emitStrategyParametersGrp(strategy, { Participation: '12' })
-    expect(tags).toContainEqual({ tag: 960, value: '1200' })
+    // Parameter space for Percentage_t is a FRACTION, not a percent:
+    // controlParameterValue applies formatDecimal(value, null, 2), so a user
+    // entering 12 (twelve percent) reaches the emitter as '0.12'. multiplyBy100
+    // then shifts by -2 on the way to the wire, making the real wire value '12'.
+    //
+    // WHY this drives the whole path instead of handing the emitter a parameter
+    // value directly: a test that starts at the emitter cannot see a regression in
+    // controlParameterValue. Drop the shift there and every percentage on the wire
+    // moves by 100x while a direct-emit assertion stays green.
+    const { result } = renderHook(() => useAtdlFormState(strategy))
+    act(() => result.current.setValue('participation', 12))
+    const parameters = mapControlValuesToParameters(strategy, result.current.values)
+    expect(parameters.Participation).toBe('0.12')
+    expect(emitStrategyParametersGrp(strategy, parameters)).toContainEqual({ tag: 960, value: '12' })
   })
 
   it('seeds a localMktTz clock to the matching instant and market wall time', () => {
