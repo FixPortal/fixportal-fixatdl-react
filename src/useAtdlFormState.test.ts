@@ -653,6 +653,33 @@ it('keeps a failed value-rule conversion invalid across unrelated edits', () => 
   expect(result.current.hasErrors).toBe(true)
 })
 
+it('discards the whole working copy when a sibling assignment throws mid-update', () => {
+  // WHY: assignControlValue writes shared-parameter siblings into a working copy
+  // one by one; a throw part-way through must not commit the earlier writes.
+  // normalizeControlValue itself has no throw path, so the throw is driven by a
+  // circular value reaching the loop's JSON.stringify array-equality check - the
+  // only mid-loop throw constructible through the public surface today.
+  const parameter = makeParam()
+  const strategy = makeStrategy([
+    makeControl({ id: 'sibling1', parameter, initValue: 'bee' }),
+    makeControl({ id: 'sibling2', parameter, initValue: 'see' }),
+    makeControl({ id: 'edited', parameter }),
+  ])
+  const { result } = renderHook(() => useAtdlFormState(strategy, { initialValues: { edited: ['old'] } }))
+  const circular: unknown[] = []
+  circular.push(circular)
+
+  act(() => result.current.setValue('edited', circular))
+
+  // The siblings were written into the copy BEFORE the edited control's own
+  // equality check threw; committed state must show none of it.
+  expect(result.current.values['sibling1']).toBe('bee')
+  expect(result.current.values['sibling2']).toBe('see')
+  expect(result.current.values['edited']).toEqual(['old'])
+  expect(result.current.controlState['edited'].errors.join(' ')).toContain('circular')
+  expect(result.current.hasErrors).toBe(true)
+})
+
 it.each([false, true])('rejects unknown loaded list tokens, with initValue fallback only on new orders: %s', isAmendment => {
   const parameter = makeParam({ type: 'MultipleStringValue_t', enumValues: [{ enumId: 'buy', wireValue: '1' }] })
   const strategy = makeStrategy([makeControl({ type: 'MultiSelectList_t', parameter, initValue: 'buy', initPolicy: 'UseFixField', initFixField: 9001 })])
