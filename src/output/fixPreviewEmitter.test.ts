@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { emitStrategyParametersGrp } from './fixPreviewEmitter'
+import { emitStrategyParametersGrp, fixTypeCodeName } from './fixPreviewEmitter'
 import type { AtdlStrategyDto, AtdlParameterDto } from '../types'
 import strategyJson from '../__fixtures__/twap-strategy.json'
 
@@ -185,6 +185,52 @@ describe('emitStrategyParametersGrp', () => {
     const strategy = makeStrategy([makeParam({ name: 'P', type: 'Unknown_t' })])
     const tags = emitStrategyParametersGrp(strategy, { P: 'x' })
     expect(tags.find(t => t.tag === 959)?.value).toBe('14')
+  })
+
+  // ---------------------------------------------------------------------------
+  // Reverse type-code table (fixTypeCodeName) - hand-maintained mirror of the
+  // forward switch; the file's own comment flags 8/Price_t vs 9/PriceOffset_t
+  // as the easy-to-miscopy pair. Hardcoded pairs, not a round-trip through the
+  // forward direction, so a swap in either table fails here directly.
+  // ---------------------------------------------------------------------------
+
+  it.each([
+    [1,  'Int_t'],
+    [2,  'Length_t'],
+    [3,  'NumInGroup_t'],
+    [4,  'SeqNum_t'],
+    [5,  'TagNum_t'],
+    [6,  'Float_t'],
+    [7,  'Qty_t'],
+    [8,  'Price_t'],
+    [9,  'PriceOffset_t'],
+    [10, 'Amt_t'],
+    [11, 'Percentage_t'],
+    [12, 'Char_t'],
+    [13, 'Boolean_t'],
+    [14, 'String_t'],
+    [15, 'MultipleCharValue_t'],
+    [16, 'Currency_t'],
+    [17, 'Exchange_t'],
+    [18, 'MonthYear_t'],
+    [19, 'UTCTimestamp_t'],
+    [20, 'UTCTimeOnly_t'],
+    [21, 'LocalMktDate_t'],
+    [22, 'UTCDateOnly_t'],
+    [23, 'Data_t'],
+    [24, 'MultipleStringValue_t'],
+    [25, 'Country_t'],
+    [26, 'NumInMsg_t'],
+    [27, 'TZTimeOnly_t'],
+    [28, 'TZTimestamp_t'],
+    [29, 'XMLData_t'],
+    [30, 'Language_t'],
+  ])('maps FIX type code %i → %s', (code, expectedType) => {
+    expect(fixTypeCodeName(code)).toBe(expectedType)
+  })
+
+  it('falls back to String_t for an unmapped type code', () => {
+    expect(fixTypeCodeName(999)).toBe('String_t')
   })
 
   // ---------------------------------------------------------------------------
