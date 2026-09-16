@@ -24,7 +24,16 @@ The package is public and needs no registry token to install:
 npm install @fix-portal/fixatdl-react
 ```
 
-React and React DOM 19.2+ are peer dependencies. Node 24.15+ is required for development.
+React and React DOM 19.2+ are peer dependencies. Consumers need Node 22+.
+Maintainers and CI use Node 24 / npm 11.
+
+![From broker XML to a rendered form: the core .NET library parses the XML on the server, a mapper you write turns Strategy_t into the AtdlStrategyDto JSON contract, and the browser package renders it and previews the 957-960 tags](https://raw.githubusercontent.com/FixPortal/fixportal-fixatdl-react/main/docs/images/strategy-dataflow.png)
+
+## Read these first
+
+- [Getting a strategy](https://github.com/FixPortal/fixportal-fixatdl-react/blob/main/docs/getting-a-strategy.md) — XML is parsed by the core library; this package takes a mapped JSON DTO.
+- [API reference](https://github.com/FixPortal/fixportal-fixatdl-react/blob/main/docs/api.md) — every public export.
+- [Conformance corpora](https://github.com/FixPortal/fixportal-fixatdl-react/blob/main/docs/conformance.md) — the JSON files shared with core and WPF.
 
 ## Related packages
 
@@ -79,11 +88,11 @@ Connect `onHighlightControl` and `highlightedControlId` to your rules inspector 
 
 Supply `clock` at the host boundary when resolving time-only values or current-time initialization. Clock values retain both the UTC instant and the displayed local date/time in a `ClockValue` object, preserving loaded instants across DST overlaps. Use `clockDisplayValue`, `clockWireValue` or `mapControlValuesToParameters` instead of stringifying this object. Numeric inputs retain decimal strings when JavaScript numbers would lose precision. These value-shape changes are part of the 0.2.0 migration.
 
-`PanelRenderer.text` accepts optional `unsupportedControlType` and `whyRule` objects with `value` and optional HTML text attributes, allowing hosts to retain localization and text-edit tooling. All broker text is rendered as React text, never HTML or XAML.
+`PanelRenderer.text` accepts optional `unsupportedControlType` and `whyRule` objects with `value` and optional HTML text attributes, allowing hosts to retain localization and text-edit tooling. `FormRenderer` does not take `text`; its "why?" copy is English-only. All broker text is rendered as React text, never HTML or XAML.
 
 ## Styling
 
-The controls retain the simulator's Tailwind v4 utility classes and its design token names. The package ships no CSS of its own, so a host supplies those ten tokens and explicitly scans the installed package. For a stylesheet at `src/index.css`:
+The controls retain the simulator's Tailwind **v4** utility classes and its design token names (`@theme` / `@source` are v4 syntax; Tailwind v3 will not pick them up). The package ships no CSS of its own, so a host supplies those ten tokens and explicitly scans the installed package. `tailwindcss` is not a peer — native inputs remain functional without it. For a stylesheet at `src/index.css`:
 
 ```css
 @import "tailwindcss";
@@ -116,8 +125,16 @@ The package does not import global CSS or fetch a theme. Hosts own their stylesh
 - Browser validation covers required values, declared enums, Boolean mappings, character lengths, numeric ranges, temporal values and mapped StrategyEdits. Typed comparisons preserve string identity, decimal precision, enum IDs, field-to-field comparisons, and exactly-one XOR semantics. Invalid expressions and missing external context make the form invalid.
 - Value rules settle cascades within one edit. NULL activation snapshots and clears a value, then restores it on deactivation. False enabled/visible conditions apply the inverse attribute, including on initialization. A bounded iteration guard reports cycles as form errors.
 - Clock display uses the control's market timezone; parameter timezones apply to daily bounds. DST overlaps choose the earlier instant for newly entered times, while loaded instants remain intact. Gaps shift forward by the skipped interval. TZ wire values normalize offsets to UTC. Year zero, leap seconds and timezone suffixes on authored Clock initialization are unsupported and rejected.
-- `emitStrategyParametersGrp` previews tags 957–960 with enum/Boolean/NULL mappings, inverted lists, percentage scaling, decimal rounding and temporal formatting. Direct parameter tags, arbitrary repeating groups and complete order construction remain host responsibilities. The host must also perform schema validation, ISO code-list checks and final order validation. Binary Data comparisons are unsupported; presence checks are supported.
+- `emitStrategyParametersGrp` previews tags 957–960 with enum/Boolean/NULL mappings, inverted lists, percentage scaling, decimal rounding and temporal formatting. Feed it the **parameter-name** map from `mapControlValuesToParameters`; a control-id map emits an empty group. It **throws** if a parameter name or wire value contains the FIX field delimiter (SOH) — catch it at the preview pane. Direct parameter tags, arbitrary repeating groups and complete order construction remain host responsibilities. The host must also perform schema validation, ISO code-list checks and final order validation. Binary Data comparisons are unsupported; presence checks are supported.
 - Conformance evidence targets FIXatdl 1.1 with December 2010 errata. The shared rule corpus and six shared state-transition scenarios prove agreement on those cases; they are not full FIXatdl certification. The [core conformance record](https://github.com/FixPortal/fixportal-fixatdl/blob/main/docs/conformance.md) records the assessed scope and remaining limits.
+
+## API reference
+
+Every public export is listed in the
+[API reference](https://github.com/FixPortal/fixportal-fixatdl-react/blob/main/docs/api.md).
+That page is GitHub-only - the npm tarball ships `dist`, `LICENSE`,
+`NOTICE` and this README, and nothing under `docs/` - so the README on
+npmjs.org links it by absolute URL.
 
 ## Development
 
