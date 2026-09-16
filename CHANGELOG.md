@@ -10,6 +10,21 @@ sees.
 
 ## [0.2.1] - unreleased
 
+### Added
+
+- Diagrams. `docs/getting-a-strategy.md` replaces its ASCII pipeline with a
+  server/browser data-flow diagram that makes the "you write the mapper" boundary
+  explicit; the README leads with the same image by absolute URL so it renders on
+  npmjs.org. Source is self-contained HTML in `docs/diagrams/`.
+- `docs/api.md` — exhaustive reference for every public export: renderers,
+  the form-state hook, the control registry, clock and rule-explanation
+  helpers, the FIX preview emitter, and the `AtdlStrategyDto` contract.
+- `docs/getting-a-strategy.md` — how a host maps `Strategy_t` into the JSON
+  DTO this package consumes (the C# DTO lives in the simulator, not in the
+  core NuGet package).
+- `docs/conformance.md` — names the two JSON corpora as the shared
+  cross-language contract with core and WPF.
+
 ### Changed
 
 - **`emitStrategyParametersGrp` now rejects the FIX field delimiter** in a
@@ -27,11 +42,16 @@ sees.
   and `XMLData_t` fall back to the String default because neither names a type in
   the FIXatdl model.
 - The `engines` floor relaxes from `>=24.15.0` to `>=22`. The old floor produced
-  `EBADENGINE` on install for every Node 22 LTS consumer.
+  `EBADENGINE` on install for every Node 22 LTS consumer. CONTRIBUTING and
+  AGENTS now say the same: consumers Node 22+, maintainers/CI Node 24.
 - The README's styling section listed `@import "@fixportal/design/tokens.css"`
   and `theme.css`. That package is not on npmjs.org, so a consumer following the
   README got an unresolvable import and unstyled controls with no error. The
   section now lists the ten design tokens by name with a neutral starting palette.
+  API/getting-a-strategy/conformance links in the README are absolute GitHub
+  URLs so they resolve on npmjs.org (those pages are not in the tarball).
+- `package.json` `files` now includes `LICENSE` so the Apache-2.0 text ships
+  in the npm tarball.
 
 ### Fixed
 

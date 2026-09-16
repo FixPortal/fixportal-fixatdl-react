@@ -1,6 +1,7 @@
 # Contributing
 
-Use Node 24.15+ and npm 11. All development dependencies are public.
+Consumers need Node 22+. Development and CI use Node 24 and npm 11.
+All development dependencies are public.
 Run `npm ci`, `npm run typecheck`, `npm run lint`, `npm run test:coverage`
 and `npm run build` before opening a pull request against `main`.
 
