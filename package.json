@@ -1,6 +1,6 @@
 {
   "name": "@fix-portal/fixatdl-react",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "React FIXatdl strategy forms extracted from FixPortal Simulator",
   "type": "module",
   "license": "Apache-2.0",
@@ -9,7 +9,7 @@
     "url": "https://github.com/FixPortal/fixportal-fixatdl-react.git"
   },
   "engines": {
-    "node": ">=24.15.0"
+    "node": ">=22"
   },
   "files": [
     "dist",

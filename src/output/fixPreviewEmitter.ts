@@ -7,6 +7,9 @@ import { parameterWireValue } from '../atdlValue'
 
 export interface FixTag { tag: number; value: string }
 
+/** The FIX field delimiter. A tag value containing it would frame as two fields on the wire. */
+const SOH = ''
+
 // ---------------------------------------------------------------------------
 // StrategyParametersGrp preview
 // ---------------------------------------------------------------------------
@@ -42,6 +45,14 @@ export function emitStrategyParametersGrp(
   const tags: FixTag[] = filled.length > 0 ? [{ tag: 957, value: String(filled.length) }] : []
 
   for (const { p, wire } of filled) {
+    // WHY the emitter guards rather than relying on validateControl: this function is a public
+    // export (src/index.ts), so a direct caller never passes through form validation at all. A name
+    // or wire value carrying SOH splits one field into two and injects arbitrary FIX fields once
+    // the host joins these tags onto the wire. Parameter names in particular come from
+    // broker-supplied ATDL and validateControl never inspects them. Mirrors the C# emitter, which
+    // rejects both at the same single emission chokepoint.
+    if (p.name.includes(SOH)) throw new Error(`StrategyParameterName (tag 958) cannot contain the FIX field delimiter: ${p.name}`)
+    if (wire.includes(SOH)) throw new Error(`StrategyParameterValue (tag 960) for '${p.name}' cannot contain the FIX field delimiter.`)
     tags.push({ tag: 958, value: p.name })
     tags.push({ tag: 959, value: String(typeToFixCode(p.type)) })
     tags.push({ tag: 960, value: wire })
@@ -51,10 +62,17 @@ export function emitStrategyParametersGrp(
 }
 
 // ---------------------------------------------------------------------------
-// Type-code table - mirrors FixStrategyParameterTypeCodes.cs exactly
-// (including SeqNum_t=4, TagNum_t=5, PriceOffset_t=9, NumInMsg_t=26,
-// XMLData_t=29 which are present in the C# table but absent from the task
-// spec scaffolding - the server is the source of truth).
+// Type-code table - mirrors FixStrategyParameterTypeCodes.cs exactly. The core
+// library is the source of truth and its codes 25-29 are read off the FIX 5.0
+// SP2 enumeration for tag 959 (QuickFIX/n FIX50SP2.xml field 959); FIX 5.0/SP1
+// stop at 24 and FIX 4.4 has no tag 959 at all.
+//
+// This table had drifted: it carried Language_t=30, NumInMsg_t=26 and
+// XMLData_t=29 and no Tenor_t, so the same strategy emitted a different tag 959
+// from this adapter than from the WPF one. Core corrected Language_t and Tenor_t
+// and this copy was never updated. NumInMsg_t and XMLData_t name no type in the
+// FIXatdl model, so their arms were dead and collided with the SP2 codes for
+// LANGUAGE and TENOR; they now fall through to the String default as in core.
 // ---------------------------------------------------------------------------
 
 function typeToFixCode(t: string): number {
@@ -84,11 +102,10 @@ function typeToFixCode(t: string): number {
     case 'Data_t':                return 23
     case 'MultipleStringValue_t': return 24
     case 'Country_t':             return 25
-    case 'NumInMsg_t':            return 26
+    case 'Language_t':            return 26
     case 'TZTimeOnly_t':          return 27
     case 'TZTimestamp_t':         return 28
-    case 'XMLData_t':             return 29
-    case 'Language_t':            return 30
+    case 'Tenor_t':               return 29
     // WHY default=14: unknown types fall back to String per FIX permissive rule
     // - string carries any value and lets the counterparty interpret the content
     // without a parse error (identical to the C# Resolve() fallback).
@@ -107,8 +124,8 @@ const FIX_CODE_TO_TYPE: Record<number, string> = {
   11: 'Percentage_t', 12: 'Char_t', 13: 'Boolean_t', 14: 'String_t',
   15: 'MultipleCharValue_t', 16: 'Currency_t', 17: 'Exchange_t', 18: 'MonthYear_t',
   19: 'UTCTimestamp_t', 20: 'UTCTimeOnly_t', 21: 'LocalMktDate_t', 22: 'UTCDateOnly_t',
-  23: 'Data_t', 24: 'MultipleStringValue_t', 25: 'Country_t', 26: 'NumInMsg_t',
-  27: 'TZTimeOnly_t', 28: 'TZTimestamp_t', 29: 'XMLData_t', 30: 'Language_t',
+  23: 'Data_t', 24: 'MultipleStringValue_t', 25: 'Country_t', 26: 'Language_t',
+  27: 'TZTimeOnly_t', 28: 'TZTimestamp_t', 29: 'Tenor_t',
 }
 
 /** FIX StrategyParameterType code → ATDL type name (e.g. 11 → "Percentage_t"). */

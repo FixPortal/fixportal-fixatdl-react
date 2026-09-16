@@ -112,18 +112,26 @@ describe('emitStrategyParametersGrp', () => {
   })
 
   // ---------------------------------------------------------------------------
-  // Delimiter contract: pass-through
+  // Delimiter contract: rejection at the emitter
   // ---------------------------------------------------------------------------
+  //
+  // This used to pin PASS-THROUGH, on the reasoning that validateControl
+  // (src/useAtdlFormState.ts) owns the delimiter at the form-validation boundary.
+  // That division does not hold: emitStrategyParametersGrp is a public export in
+  // src/index.ts, so a direct caller never reaches validateControl at all, and a
+  // value carrying SOH then injects arbitrary FIX fields once the host joins these
+  // tags onto the wire. Parameter names are worse again - they come from
+  // broker-supplied ATDL and validateControl never inspects them. The C# emitter
+  // rejects both at the same point, so this restores cross-stack parity.
 
-  it('passes a raw FIX SOH delimiter through to tag 960 unchanged', () => {
-    // Pass-through is the decided contract: the emitter has no delimiter defence
-    // of its own. The FIX field delimiter (SOH, U+0001) is rejected solely by
-    // validateControl (src/useAtdlFormState.ts) at the form-validation boundary,
-    // and this test pins that division of responsibility so it cannot silently
-    // change in either direction (emitter growing a check, or validation losing it).
+  it('rejects a FIX SOH delimiter in a parameter wire value', () => {
     const strategy = makeStrategy([makeParam({ name: 'P', type: 'String_t' })])
-    const tags = emitStrategyParametersGrp(strategy, { P: 'a\u0001b' })
-    expect(tags).toContainEqual({ tag: 960, value: 'a\u0001b' })
+    expect(() => emitStrategyParametersGrp(strategy, { P: 'a\u0001b' })).toThrow(/tag 960/)
+  })
+
+  it('rejects a FIX SOH delimiter in a parameter name', () => {
+    const strategy = makeStrategy([makeParam({ name: 'P\u0001100', type: 'String_t' })])
+    expect(() => emitStrategyParametersGrp(strategy, { 'P\u0001100': 'x' })).toThrow(/tag 958/)
   })
 
   // ---------------------------------------------------------------------------
@@ -169,11 +177,10 @@ describe('emitStrategyParametersGrp', () => {
     ['Data_t',               23],
     ['MultipleStringValue_t',24],
     ['Country_t',            25],
-    ['NumInMsg_t',           26],
+    ['Language_t',           26],
     ['TZTimeOnly_t',         27],
     ['TZTimestamp_t',        28],
-    ['XMLData_t',            29],
-    ['Language_t',           30],
+    ['Tenor_t',              29],
   ])('maps %s → type code %i', (type, expectedCode) => {
     const strategy = makeStrategy([makeParam({ name: 'P', type })])
     const tags = emitStrategyParametersGrp(strategy, { P: 'x' })
@@ -220,11 +227,10 @@ describe('emitStrategyParametersGrp', () => {
     [23, 'Data_t'],
     [24, 'MultipleStringValue_t'],
     [25, 'Country_t'],
-    [26, 'NumInMsg_t'],
+    [26, 'Language_t'],
     [27, 'TZTimeOnly_t'],
     [28, 'TZTimestamp_t'],
-    [29, 'XMLData_t'],
-    [30, 'Language_t'],
+    [29, 'Tenor_t'],
   ])('maps FIX type code %i → %s', (code, expectedType) => {
     expect(fixTypeCodeName(code)).toBe(expectedType)
   })

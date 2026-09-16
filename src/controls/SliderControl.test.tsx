@@ -36,7 +36,10 @@ describe('SliderControl', () => {
     const onChange = vi.fn()
     render(<SliderControl control={{ ...BASE_CONTROL, listItems: [{ enumId: 'a', uiRep: 'First' }] }} value={value} onChange={onChange} state={ENABLED} />)
     expect(screen.getByText('Not selected')).toBeInTheDocument()
-    expect(screen.getByRole('slider')).not.toHaveAttribute('aria-valuetext')
+    // An unset thumb parks at the minimum because a range input has no "no position". Without
+    // aria-valuetext a screen reader announced that raw position, which reads as a selection the
+    // order does not carry, so it now announces the same text the visible pip shows.
+    expect(screen.getByRole('slider')).toHaveAttribute('aria-valuetext', 'Not selected')
     fireEvent.click(screen.getByRole('button', { name: 'Use First' }))
     expect(onChange).toHaveBeenCalledWith('a')
   })
@@ -70,7 +73,7 @@ describe('SliderControl', () => {
     render(<SliderControl control={control} value={undefined} onChange={onChange} state={ENABLED} />)
     expect(screen.getByRole('slider')).toHaveValue('10')
     expect(screen.getByText('Not selected')).toBeInTheDocument()
-    expect(screen.getByRole('slider')).not.toHaveAttribute('aria-valuetext')
+    expect(screen.getByRole('slider')).toHaveAttribute('aria-valuetext', 'Not selected')
     fireEvent.click(screen.getByRole('button', { name: 'Use 10' }))
     expect(onChange).toHaveBeenCalledWith(10)
   })

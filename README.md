@@ -83,14 +83,30 @@ Supply `clock` at the host boundary when resolving time-only values or current-t
 
 ## Styling
 
-The controls retain the simulator's Tailwind v4 utility classes and FixPortal design token names. Supply the same tokens (or compatible aliases), and explicitly scan the installed package. For a stylesheet at `src/index.css`:
+The controls retain the simulator's Tailwind v4 utility classes and its design token names. The package ships no CSS of its own, so a host supplies those ten tokens and explicitly scans the installed package. For a stylesheet at `src/index.css`:
 
 ```css
 @import "tailwindcss";
-@import "@fixportal/design/tokens.css";
-@import "@fixportal/design/theme.css";
+
+@theme {
+  --color-text: #1f2937;
+  --color-muted: #6b7280;
+  --color-card: #ffffff;
+  --color-border-base: #d1d5db;
+  --color-brand: #2563eb;
+  --color-brand-soft: #93c5fd;
+  --color-bad-text: #b91c1c;
+  --color-bad-border: #ef4444;
+  --color-warn-bg: #fef3c7;
+  --color-warn-border: #f59e0b;
+}
+
 @source "../node_modules/@fix-portal/fixatdl-react/dist";
 ```
+
+The **names** are the contract — they are what the rendered class names resolve against. The values above are a neutral starting palette, not a brand specification; replace them with your own, or map them onto tokens you already have.
+
+Each token is used for: body text (`text`), secondary labels (`muted`), input backgrounds (`card`), input and panel borders (`border-base`), the slider accent (`brand`) and its focus ring (`brand-soft`), validation text and borders (`bad-text`, `bad-border`), and the highlighted-control outline and wash (`warn-border`, `warn-bg`).
 
 The package does not import global CSS or fetch a theme. Hosts own their stylesheet and branding. Native inputs remain functional without these styles.
 
