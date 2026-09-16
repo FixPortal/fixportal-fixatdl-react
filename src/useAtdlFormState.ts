@@ -182,7 +182,11 @@ function normalizeSeed(control: AtdlControlDto, value: unknown, fromWire: boolea
 function deriveControlState(strategy: AtdlStrategyDto, values: Record<string, unknown>, readonlyIds: Set<string>, externalValues: Record<string, unknown> = {}): Record<string, ControlFormState> {
   const result: Record<string, ControlFormState> = {}
   const ruleValues = { ...externalValues, ...controlValuesForRules(strategy, values) }
-  for (const control of flattenControls(strategy)) {
+  // Hoisted: flattenControls is a full recursive panel walk and this derive runs on every value
+  // change, so calling it inside the loop below made the derive O(n^2) in control count. seedValues
+  // and setValue already hoist it the same way.
+  const controls = flattenControls(strategy)
+  for (const control of controls) {
     const state = { enabled: true, visible: true, required: control.parameter?.useValue === 'required', errors: [] as string[] }
     for (const rule of control.stateRules) {
       // False conditions apply the inverse enabled/visible attribute, including at initialization.
@@ -191,7 +195,7 @@ function deriveControlState(strategy: AtdlStrategyDto, values: Record<string, un
       if (rule.effect === 'enabled') state.enabled = active ? rule.targetValue : !rule.targetValue
       if (rule.effect === 'visible') state.visible = active ? rule.targetValue : !rule.targetValue
     }
-    if (readonlyIds.has(control.id) || isLockedRadio(control, flattenControls(strategy), values, readonlyIds)) state.enabled = false
+    if (readonlyIds.has(control.id) || isLockedRadio(control, controls, values, readonlyIds)) state.enabled = false
     const source = parameterValueSource(strategy, values, control)
     state.errors.push(...validateControl(source, values[source.id], state.required))
     if (!Object.hasOwn(controlRegistry, control.type)) state.errors.push(`Unsupported control type: ${control.type}`)

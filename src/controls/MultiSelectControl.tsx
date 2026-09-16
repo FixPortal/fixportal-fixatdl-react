@@ -53,9 +53,17 @@ export function MultiSelectControl({ control, value, onChange, state }: ControlP
       )}
       {/* WHY: role="group" + aria-label gives assistive technology a named
           boundary for the checkbox cluster, matching ARIA checkbox group best
-          practice without requiring a <fieldset>/<legend> layout. */}
+          practice without requiring a <fieldset>/<legend> layout.
+          WHY "(Required)" in the name rather than aria-required, unlike
+          RadioListControl: aria-required is not a supported attribute of role
+          "group" (ARIA 1.2 lists it for combobox, gridcell, listbox, radiogroup,
+          spinbutton, textbox and tree). RadioListControl can use it because its
+          element is a radiogroup. Folding the state into the accessible name is
+          the group equivalent. aria-invalid IS valid here and was missing, so
+          error state now surfaces the same way the radio group's does. */}
       <fieldset
         aria-label={`${control.label ?? control.id}${state.required ? ' (Required)' : ''}`}
+        aria-invalid={hasError}
         aria-describedby={hasError ? `${inputId}-errors` : undefined}
         className={`space-y-1 rounded border px-2 py-1 min-w-0 ${borderClass}`}
       >

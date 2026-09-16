@@ -43,7 +43,12 @@ export function SliderControl({ control, value, onChange, state }: ControlProps)
         </label>
       )}
       {/* WHY: border wrapper gives the slider a visible error indicator matching
-          the text/select pattern - range inputs have no native border styling. */}
+          the text/select pattern - range inputs have no native border styling.
+          WHY aria-valuetext is set when unset: a range input has no "no position",
+          so an unset thumb parks at the minimum - the WPF NumericSlider does the
+          same and labels it "Not set". Sighted users see the adjacent "Not selected"
+          pip, but without aria-valuetext a screen reader announced the raw position
+          ("0"), which reads as a selection the order does not carry. */}
       <div
         className={`flex items-center gap-2 rounded border px-2 py-1 ${borderClass}`}
       >
@@ -61,7 +66,7 @@ export function SliderControl({ control, value, onChange, state }: ControlProps)
           aria-invalid={hasError}
           aria-required={state.required}
           aria-describedby={[unset ? `${inputId}-unset` : '', hasError ? errorId : ''].filter(Boolean).join(' ') || undefined}
-          aria-valuetext={discrete && !unset ? String(display) : undefined}
+          aria-valuetext={unset ? 'Not selected' : discrete ? String(display) : undefined}
           title={control.tooltip ?? undefined}
           className="flex-1 accent-brand disabled:opacity-50 disabled:cursor-not-allowed"
         />
