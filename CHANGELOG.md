@@ -55,6 +55,10 @@ sees.
 
 ### Fixed
 
+- The FIX delimiter constant in `fixPreviewEmitter` was a raw U+0001 byte in
+  the source rather than a `'\u0001'` escape - invisible in every editor and
+  diff, and silently destroyable by any tool that normalises control
+  characters. Same value, now legible.
 - `deriveControlState` called `flattenControls` inside its per-control loop, a
   full recursive panel walk per control on every value change. Hoisted, matching
   what `seedValues` and `setValue` already did.
