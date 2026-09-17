@@ -8,7 +8,7 @@ Dates are the release-tag date, in UTC. Entries are consumer-facing: build, CI
 and test-infrastructure commits are omitted unless they change what a consumer
 sees.
 
-## [0.2.1] - unreleased
+## [0.2.1] - 2026-09-17
 
 ### Added
 
