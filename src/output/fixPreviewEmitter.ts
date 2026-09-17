@@ -8,7 +8,7 @@ import { parameterWireValue } from '../atdlValue'
 export interface FixTag { tag: number; value: string }
 
 /** The FIX field delimiter. A tag value containing it would frame as two fields on the wire. */
-const SOH = ''
+const SOH = '\u0001'
 
 // ---------------------------------------------------------------------------
 // StrategyParametersGrp preview
