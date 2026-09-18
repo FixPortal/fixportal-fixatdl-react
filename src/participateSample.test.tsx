@@ -26,6 +26,11 @@ const sample = participate as unknown as AtdlStrategyDto
 // Fixed so the Clock control's "current time" initialisation cannot drift the suite.
 const options = { clock: () => new Date('2026-09-18T14:30:00Z') }
 
+// The labels above are matched as regular expressions, so any regex metacharacter in
+// one has to be escaped or the pattern silently means something else. `RegExp.escape`
+// would do this, but package.json declares Node >=22 and it only landed in Node 24.
+const escapeRegExp = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+
 function renderSample() {
   return render(<FormRenderer strategy={sample} options={options} />)
 }
@@ -57,7 +62,9 @@ describe('participate sample strategy', () => {
     ['Booking desk', 'combobox'],
   ])('renders %s as an accessible %s', (label, role) => {
     renderSample()
-    expect(screen.getByRole(role, { name: new RegExp(label.replace('%', '%'), 'i') })).toBeInTheDocument()
+    // A substring match, not an exact one: a required control's accessible name
+    // carries a trailing asterisk from the control's own markup.
+    expect(screen.getByRole(role, { name: new RegExp(escapeRegExp(label), 'i') })).toBeInTheDocument()
   })
 
   it('renders the Label_t copy and renders nothing for the hidden field', () => {
