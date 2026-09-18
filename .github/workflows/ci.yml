@@ -36,6 +36,13 @@ jobs:
       - run: node scripts/assert-react-external.mjs
       - run: node scripts/assert-public-dts.mjs
       - run: node scripts/assert-no-side-effects.mjs
+      - run: node scripts/assert-styles.mjs
+      # The sample app is a workspace that consumes the package through its exports
+      # map, so both steps have to come AFTER the build above - there is no dist to
+      # resolve before it. They are here rather than beside the root typecheck for
+      # that reason, not by preference.
+      - run: npm run typecheck --workspace @fix-portal/fixatdl-react-workbench
+      - run: npm run build --workspace @fix-portal/fixatdl-react-workbench
       - run: npm pack --ignore-scripts
       - name: Install and import the packed tarball
         run: |

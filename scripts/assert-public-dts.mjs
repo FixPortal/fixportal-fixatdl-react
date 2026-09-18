@@ -59,7 +59,7 @@ function* walk(dir) {
   }
 }
 const leakMarkers = [/\.(test|spec)\.d\.ts$/, /(^|\/)test\//, /__fixtures__/]
-const contentMarkers = ['twap-strategy', 'optional-fields-strategy', 'from \'vitest\'', '@testing-library']
+const contentMarkers = ['twap-strategy', 'optional-fields-strategy', 'participate-strategy', 'from \'vitest\'', '@testing-library']
 // Guard the walk: without it, a missing dist/ throws ENOENT out of readdirSync
 // before the "run npm run build first" problem above is ever printed, so the
 // developer gets a raw stack instead of the diagnostic written for them.
