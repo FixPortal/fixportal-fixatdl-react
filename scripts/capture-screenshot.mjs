@@ -17,7 +17,7 @@ import { chromium } from 'playwright'
 import { createServer } from 'node:http'
 import { readFile } from 'node:fs/promises'
 import { existsSync } from 'node:fs'
-import { extname, join, normalize } from 'node:path'
+import { extname, join, normalize, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const root = fileURLToPath(new URL('../', import.meta.url))
@@ -61,12 +61,22 @@ const server = createServer(async (request, response) => {
     response.writeHead(200, { 'content-type': TYPES['.html'] }).end(FRAME)
     return
   }
-  // normalize() collapses any `..` before the join, so a crafted path cannot escape
-  // appDist. This server only ever faces a local Playwright run, but a path check
-  // that exists is worth more than one that was reasoned to be unnecessary.
+  // Two independent steps, deliberately. The strip neutralises leading traversal
+  // segments after normalize() has hoisted them to the front; the containment check
+  // then decides on the RESOLVED path.
+  //
+  // The check compares against `appDist + sep` rather than `appDist` alone. A bare
+  // `startsWith(appDist)` also accepts a sibling whose name merely begins with it -
+  // `<appDist>-evil/secret` - which is a real hole in that idiom. Probed against this
+  // server, nine crafted requests (`/../dist-evil/secret`, `/%2e%2e/%2e%2e/secret`,
+  // `/foo/..%5c..%5cdist-evil%5csecret` and so on) all resolved INSIDE appDist, so the
+  // hole was not reachable through it: the strip removed the leading `..` first. That
+  // is exactly why the check is tightened anyway. A guard that is safe only because of
+  // a separate line's side effect fails silently the moment either line changes, and
+  // the correct comparison costs nothing.
   const relative = normalize(decodeURIComponent(url.pathname)).replace(/^([/\\.]+)/, '')
   const file = join(appDist, relative || 'index.html')
-  if (!file.startsWith(appDist)) {
+  if (file !== appDist && !file.startsWith(appDist + sep)) {
     response.writeHead(403).end('forbidden')
     return
   }
