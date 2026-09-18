@@ -1,0 +1,254 @@
+/*
+ * Everything in this file is PAGE CHROME and THEME. It restyles no control.
+ *
+ * The package's stylesheet (`@fix-portal/fixatdl-react/styles.css`, imported first
+ * in main.tsx) carries every utility class the controls emit plus the ten design
+ * tokens at their light defaults. Re-theming a FIXatdl form is therefore only a
+ * matter of redeclaring those ten custom properties, which is what the dark blocks
+ * below do -- no control selector is overridden anywhere in this sample.
+ *
+ * The package defines its defaults inside `@layer theme`, and unlayered
+ * declarations outrank every layer, so the plain `:root[...]` rules here win
+ * without needing `!important` or a higher-specificity selector.
+ *
+ * The dark palette is written out twice on purpose: once for the explicit "Dark"
+ * choice and once for "System" under a dark OS preference. CSS has no way to share
+ * one declaration block across a media-query boundary, and an indirection layer of
+ * shadow variables would cost more to read than the fourteen repeated lines.
+ */
+
+/*
+ * `color-scheme` is not decoration: it tells the browser to paint NATIVE widget
+ * internals -- the time input's picker icon, the number input's spin buttons, the
+ * scrollbars -- in the matching scheme. Without it the dark theme rendered a dark
+ * clock glyph on a dark field, which reads as a broken control rather than a themed
+ * one. The controls' own colours come from the ten tokens; this covers the parts of
+ * a native control that CSS cannot reach.
+ */
+:root {
+  color-scheme: light;
+  --wb-page: #f8fafc;
+  --wb-surface: #ffffff;
+  --wb-line: #e2e8f0;
+  --wb-accent: #2563eb;
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --color-text: #e5e7eb;
+  --color-muted: #9ca3af;
+  --color-card: #111827;
+  --color-border-base: #374151;
+  --color-brand: #60a5fa;
+  --color-brand-soft: #1e3a8a;
+  --color-bad-text: #fca5a5;
+  --color-bad-border: #ef4444;
+  --color-warn-bg: #78350f;
+  --color-warn-border: #f59e0b;
+
+  --wb-page: #0b1120;
+  --wb-surface: #111827;
+  --wb-line: #1f2937;
+  --wb-accent: #60a5fa;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root[data-theme='system'] {
+    color-scheme: dark;
+    --color-text: #e5e7eb;
+    --color-muted: #9ca3af;
+    --color-card: #111827;
+    --color-border-base: #374151;
+    --color-brand: #60a5fa;
+    --color-brand-soft: #1e3a8a;
+    --color-bad-text: #fca5a5;
+    --color-bad-border: #ef4444;
+    --color-warn-bg: #78350f;
+    --color-warn-border: #f59e0b;
+
+    --wb-page: #0b1120;
+    --wb-surface: #111827;
+    --wb-line: #1f2937;
+    --wb-accent: #60a5fa;
+  }
+}
+
+body {
+  margin: 0;
+  background: var(--wb-page);
+  color: var(--color-text);
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.wb {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 24px 20px 40px;
+}
+
+.wb-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--wb-line);
+}
+
+.wb-header h1 {
+  margin: 0;
+  font-size: 22px;
+  letter-spacing: -0.01em;
+}
+
+.wb-subtitle {
+  margin: 6px 0 0;
+  max-width: 62ch;
+  color: var(--color-muted);
+  font-size: 13px;
+}
+
+.wb-theme {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--color-muted);
+  white-space: nowrap;
+}
+
+.wb-theme select {
+  padding: 4px 8px;
+  border: 1px solid var(--color-border-base);
+  border-radius: 6px;
+  background: var(--color-card);
+  color: var(--color-text);
+  font: inherit;
+}
+
+.wb-columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+  gap: 20px;
+  margin-top: 20px;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .wb-columns {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.wb-side {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.wb-panel {
+  padding: 16px;
+  border: 1px solid var(--wb-line);
+  border-radius: 10px;
+  background: var(--wb-surface);
+}
+
+.wb-panel h2 {
+  margin: 0 0 10px;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-muted);
+}
+
+.wb-note {
+  margin: 0 0 10px;
+  color: var(--color-muted);
+  font-size: 12px;
+}
+
+.wb-ok {
+  margin: 12px 0 0;
+  color: var(--color-muted);
+  font-size: 12px;
+}
+
+.wb-alert {
+  margin: 0 0 12px;
+  padding: 8px 10px;
+  border: 1px solid var(--color-bad-border);
+  border-radius: 6px;
+  color: var(--color-bad-text);
+  font-size: 12px;
+  list-style: none;
+}
+
+.wb-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.wb-table caption {
+  text-align: left;
+  padding-bottom: 6px;
+}
+
+.wb-table th,
+.wb-table td {
+  padding: 5px 8px;
+  text-align: left;
+  border-bottom: 1px solid var(--wb-line);
+}
+
+.wb-table th {
+  color: var(--color-muted);
+  font-weight: 600;
+}
+
+.wb-wire {
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-size: 12px;
+}
+
+.wb-rules {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.wb-rule {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 10px;
+  border: 1px solid var(--wb-line);
+  border-radius: 6px;
+  font-size: 12px;
+}
+
+.wb-rule-on {
+  border-color: var(--color-warn-border);
+  background: var(--color-warn-bg);
+}
+
+.wb-rule-head {
+  font-weight: 600;
+}
+
+.wb-firing {
+  color: var(--wb-accent);
+  font-size: 12px;
+}
+
+.wb-footer {
+  margin-top: 28px;
+  padding-top: 14px;
+  border-top: 1px solid var(--wb-line);
+}

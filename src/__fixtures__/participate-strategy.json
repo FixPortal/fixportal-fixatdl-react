@@ -1,0 +1,908 @@
+{
+  "name": "Participate",
+  "description": "Percentage-of-volume participation algorithm. Synthetic demonstration strategy from the fictional provider DEMO - not a broker specification, and not tradeable anywhere.",
+  "sourceXml": "<Strategy name=\"Participate\" uiRep=\"Participate\" wireValue=\"DEMO-POV\" providerID=\"DEMO\" />",
+  "parameters": [
+    {
+      "name": "ClientRef",
+      "fixTag": 6001,
+      "type": "String_t",
+      "enumValues": null,
+      "min": null,
+      "max": null,
+      "precision": null,
+      "mutableOnCxlRpl": false,
+      "useValue": "required",
+      "defaultValue": null,
+      "minLength": 3,
+      "maxLength": 16
+    },
+    {
+      "name": "ParticipationRate",
+      "fixTag": 6002,
+      "type": "Percentage_t",
+      "enumValues": null,
+      "min": 0,
+      "max": 0.5,
+      "precision": 4,
+      "mutableOnCxlRpl": false,
+      "useValue": "required",
+      "defaultValue": null
+    },
+    {
+      "name": "MaxSliceQty",
+      "fixTag": 6003,
+      "type": "Qty_t",
+      "enumValues": null,
+      "min": 100,
+      "max": 250000,
+      "precision": null,
+      "mutableOnCxlRpl": true,
+      "useValue": null,
+      "defaultValue": null
+    },
+    {
+      "name": "PriceProtection",
+      "fixTag": 6004,
+      "type": "Char_t",
+      "enumValues": [
+        {
+          "enumId": "None",
+          "wireValue": "0"
+        },
+        {
+          "enumId": "Marketable",
+          "wireValue": "1"
+        },
+        {
+          "enumId": "Aggressive",
+          "wireValue": "2"
+        }
+      ],
+      "min": null,
+      "max": null,
+      "precision": null,
+      "mutableOnCxlRpl": false,
+      "useValue": null,
+      "defaultValue": null
+    },
+    {
+      "name": "Benchmark",
+      "fixTag": 6005,
+      "type": "Char_t",
+      "enumValues": [
+        {
+          "enumId": "Arrival",
+          "wireValue": "A"
+        },
+        {
+          "enumId": "Close",
+          "wireValue": "C"
+        },
+        {
+          "enumId": "Scheduled",
+          "wireValue": "S"
+        }
+      ],
+      "min": null,
+      "max": null,
+      "precision": null,
+      "mutableOnCxlRpl": false,
+      "useValue": null,
+      "defaultValue": null
+    },
+    {
+      "name": "AllowDark",
+      "fixTag": 6006,
+      "type": "Boolean_t",
+      "enumValues": null,
+      "min": null,
+      "max": null,
+      "precision": null,
+      "mutableOnCxlRpl": false,
+      "useValue": null,
+      "defaultValue": null,
+      "trueWireValue": "Y",
+      "falseWireValue": "N"
+    },
+    {
+      "name": "Capacity",
+      "fixTag": 6007,
+      "type": "Char_t",
+      "enumValues": [
+        {
+          "enumId": "Agency",
+          "wireValue": "A"
+        },
+        {
+          "enumId": "Principal",
+          "wireValue": "P"
+        }
+      ],
+      "min": null,
+      "max": null,
+      "precision": null,
+      "mutableOnCxlRpl": false,
+      "useValue": null,
+      "defaultValue": null
+    },
+    {
+      "name": "Urgency",
+      "fixTag": 6008,
+      "type": "Char_t",
+      "enumValues": [
+        {
+          "enumId": "Low",
+          "wireValue": "1"
+        },
+        {
+          "enumId": "Medium",
+          "wireValue": "2"
+        },
+        {
+          "enumId": "High",
+          "wireValue": "3"
+        }
+      ],
+      "min": null,
+      "max": null,
+      "precision": null,
+      "mutableOnCxlRpl": false,
+      "useValue": null,
+      "defaultValue": null
+    },
+    {
+      "name": "Desk",
+      "fixTag": 6009,
+      "type": "String_t",
+      "enumValues": null,
+      "min": null,
+      "max": null,
+      "precision": null,
+      "mutableOnCxlRpl": false,
+      "useValue": null,
+      "defaultValue": null,
+      "maxLength": 24
+    },
+    {
+      "name": "StartTime",
+      "fixTag": 6010,
+      "type": "UTCTimeOnly_t",
+      "enumValues": null,
+      "min": null,
+      "max": null,
+      "precision": null,
+      "mutableOnCxlRpl": false,
+      "useValue": null,
+      "defaultValue": null,
+      "localMktTz": "America/New_York"
+    },
+    {
+      "name": "MinFillPct",
+      "fixTag": 6011,
+      "type": "Percentage_t",
+      "enumValues": null,
+      "min": 0,
+      "max": 1,
+      "precision": null,
+      "mutableOnCxlRpl": false,
+      "useValue": null,
+      "defaultValue": null
+    },
+    {
+      "name": "Venues",
+      "fixTag": 6012,
+      "type": "MultipleCharValue_t",
+      "enumValues": [
+        {
+          "enumId": "DemoDark",
+          "wireValue": "D"
+        },
+        {
+          "enumId": "DemoLit",
+          "wireValue": "L"
+        },
+        {
+          "enumId": "DemoSyndicate",
+          "wireValue": "S"
+        }
+      ],
+      "min": null,
+      "max": null,
+      "precision": null,
+      "mutableOnCxlRpl": false,
+      "useValue": null,
+      "defaultValue": null
+    },
+    {
+      "name": "ExecInstructions",
+      "fixTag": 6013,
+      "type": "MultipleStringValue_t",
+      "enumValues": [
+        {
+          "enumId": "NoCross",
+          "wireValue": "NX"
+        },
+        {
+          "enumId": "StayOnBook",
+          "wireValue": "SB"
+        }
+      ],
+      "min": null,
+      "max": null,
+      "precision": null,
+      "mutableOnCxlRpl": false,
+      "useValue": null,
+      "defaultValue": null
+    },
+    {
+      "name": "AlgoVersion",
+      "fixTag": 6014,
+      "type": "String_t",
+      "enumValues": null,
+      "min": null,
+      "max": null,
+      "precision": null,
+      "mutableOnCxlRpl": false,
+      "useValue": null,
+      "defaultValue": null,
+      "constValue": "1.4"
+    }
+  ],
+  "strategyEdits": [
+    {
+      "errorMessage": "High urgency requires a price protection level other than None.",
+      "expression": {
+        "kind": "not",
+        "operator": null,
+        "field": null,
+        "value": null,
+        "children": [
+          {
+            "kind": "and",
+            "operator": null,
+            "field": null,
+            "value": null,
+            "children": [
+              {
+                "kind": "compare",
+                "operator": "==",
+                "field": "Urgency",
+                "value": "3",
+                "children": null
+              },
+              {
+                "kind": "compare",
+                "operator": "==",
+                "field": "PriceProtection",
+                "value": "0",
+                "children": null
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "panel": {
+    "title": "Participate",
+    "border": "None",
+    "orientation": "Vertical",
+    "collapsible": false,
+    "collapsed": false,
+    "children": [
+      {
+        "kind": "panel",
+        "title": "Order",
+        "border": "Line",
+        "orientation": "Horizontal",
+        "collapsible": false,
+        "collapsed": false,
+        "children": [
+          {
+            "kind": "control",
+            "id": "ctrl_client_ref",
+            "type": "TextField_t",
+            "label": "Client reference",
+            "parameterRef": "ClientRef",
+            "parameter": {
+              "name": "ClientRef",
+              "fixTag": 6001,
+              "type": "String_t",
+              "enumValues": null,
+              "min": null,
+              "max": null,
+              "precision": null,
+              "mutableOnCxlRpl": false,
+              "useValue": "required",
+              "defaultValue": null,
+              "minLength": 3,
+              "maxLength": 16
+            },
+            "listItems": null,
+            "initValue": "DEMO-0001",
+            "stateRules": [],
+            "tooltip": "Free-text reference carried back on every execution report."
+          },
+          {
+            "kind": "control",
+            "id": "ctrl_participation",
+            "type": "DoubleSpinner_t",
+            "label": "Participation rate %",
+            "parameterRef": "ParticipationRate",
+            "parameter": {
+              "name": "ParticipationRate",
+              "fixTag": 6002,
+              "type": "Percentage_t",
+              "enumValues": null,
+              "min": 0,
+              "max": 0.5,
+              "precision": 4,
+              "mutableOnCxlRpl": false,
+              "useValue": "required",
+              "defaultValue": null
+            },
+            "listItems": null,
+            "initValue": 10,
+            "stateRules": [],
+            "tooltip": "Share of consolidated volume to target. Entered as a percentage; the wire value is the fraction.",
+            "increment": 0.5,
+            "outerIncrement": 5
+          },
+          {
+            "kind": "control",
+            "id": "ctrl_max_slice",
+            "type": "SingleSpinner_t",
+            "label": "Max slice quantity",
+            "parameterRef": "MaxSliceQty",
+            "parameter": {
+              "name": "MaxSliceQty",
+              "fixTag": 6003,
+              "type": "Qty_t",
+              "enumValues": null,
+              "min": 100,
+              "max": 250000,
+              "precision": null,
+              "mutableOnCxlRpl": true,
+              "useValue": null,
+              "defaultValue": null
+            },
+            "listItems": null,
+            "initValue": 5000,
+            "stateRules": [
+              {
+                "effect": "enabled",
+                "targetValue": false,
+                "targetStringValue": null,
+                "expression": {
+                  "kind": "compare",
+                  "operator": "==",
+                  "field": "ctrl_urgency",
+                  "value": "High",
+                  "children": null
+                }
+              }
+            ],
+            "tooltip": "Upper bound on any single child order.",
+            "increment": 100
+          }
+        ]
+      },
+      {
+        "kind": "panel",
+        "title": "Execution",
+        "border": "Line",
+        "orientation": "Vertical",
+        "collapsible": false,
+        "collapsed": false,
+        "children": [
+          {
+            "kind": "control",
+            "id": "ctrl_urgency",
+            "type": "RadioButtonList_t",
+            "label": "Urgency",
+            "parameterRef": "Urgency",
+            "parameter": {
+              "name": "Urgency",
+              "fixTag": 6008,
+              "type": "Char_t",
+              "enumValues": [
+                {
+                  "enumId": "Low",
+                  "wireValue": "1"
+                },
+                {
+                  "enumId": "Medium",
+                  "wireValue": "2"
+                },
+                {
+                  "enumId": "High",
+                  "wireValue": "3"
+                }
+              ],
+              "min": null,
+              "max": null,
+              "precision": null,
+              "mutableOnCxlRpl": false,
+              "useValue": null,
+              "defaultValue": null
+            },
+            "listItems": [
+              {
+                "enumId": "Low",
+                "uiRep": "Low"
+              },
+              {
+                "enumId": "Medium",
+                "uiRep": "Medium"
+              },
+              {
+                "enumId": "High",
+                "uiRep": "High"
+              }
+            ],
+            "initValue": "Medium",
+            "stateRules": [],
+            "tooltip": null
+          },
+          {
+            "kind": "control",
+            "id": "ctrl_price_protection",
+            "type": "DropDownList_t",
+            "label": "Price protection",
+            "parameterRef": "PriceProtection",
+            "parameter": {
+              "name": "PriceProtection",
+              "fixTag": 6004,
+              "type": "Char_t",
+              "enumValues": [
+                {
+                  "enumId": "None",
+                  "wireValue": "0"
+                },
+                {
+                  "enumId": "Marketable",
+                  "wireValue": "1"
+                },
+                {
+                  "enumId": "Aggressive",
+                  "wireValue": "2"
+                }
+              ],
+              "min": null,
+              "max": null,
+              "precision": null,
+              "mutableOnCxlRpl": false,
+              "useValue": null,
+              "defaultValue": null
+            },
+            "listItems": [
+              {
+                "enumId": "None",
+                "uiRep": "None"
+              },
+              {
+                "enumId": "Marketable",
+                "uiRep": "Marketable limit"
+              },
+              {
+                "enumId": "Aggressive",
+                "uiRep": "Aggressive"
+              }
+            ],
+            "initValue": "Marketable",
+            "stateRules": [],
+            "tooltip": null
+          },
+          {
+            "kind": "control",
+            "id": "ctrl_benchmark",
+            "type": "SingleSelectList_t",
+            "label": "Benchmark",
+            "parameterRef": "Benchmark",
+            "parameter": {
+              "name": "Benchmark",
+              "fixTag": 6005,
+              "type": "Char_t",
+              "enumValues": [
+                {
+                  "enumId": "Arrival",
+                  "wireValue": "A"
+                },
+                {
+                  "enumId": "Close",
+                  "wireValue": "C"
+                },
+                {
+                  "enumId": "Scheduled",
+                  "wireValue": "S"
+                }
+              ],
+              "min": null,
+              "max": null,
+              "precision": null,
+              "mutableOnCxlRpl": false,
+              "useValue": null,
+              "defaultValue": null
+            },
+            "listItems": [
+              {
+                "enumId": "Arrival",
+                "uiRep": "Arrival price"
+              },
+              {
+                "enumId": "Close",
+                "uiRep": "Closing price"
+              },
+              {
+                "enumId": "Scheduled",
+                "uiRep": "Scheduled window"
+              }
+            ],
+            "initValue": "Scheduled",
+            "stateRules": [],
+            "tooltip": null
+          },
+          {
+            "kind": "control",
+            "id": "ctrl_allow_dark",
+            "type": "CheckBox_t",
+            "label": "Allow dark liquidity",
+            "parameterRef": "AllowDark",
+            "parameter": {
+              "name": "AllowDark",
+              "fixTag": 6006,
+              "type": "Boolean_t",
+              "enumValues": null,
+              "min": null,
+              "max": null,
+              "precision": null,
+              "mutableOnCxlRpl": false,
+              "useValue": null,
+              "defaultValue": null,
+              "trueWireValue": "Y",
+              "falseWireValue": "N"
+            },
+            "listItems": null,
+            "initValue": true,
+            "stateRules": [],
+            "tooltip": null
+          },
+          {
+            "kind": "panel",
+            "title": "Capacity",
+            "border": "None",
+            "orientation": "Horizontal",
+            "collapsible": false,
+            "collapsed": false,
+            "children": [
+              {
+                "kind": "control",
+                "id": "ctrl_capacity_agency",
+                "type": "RadioButton_t",
+                "label": "Agency",
+                "parameterRef": "Capacity",
+                "parameter": {
+                  "name": "Capacity",
+                  "fixTag": 6007,
+                  "type": "Char_t",
+                  "enumValues": [
+                    {
+                      "enumId": "Agency",
+                      "wireValue": "A"
+                    },
+                    {
+                      "enumId": "Principal",
+                      "wireValue": "P"
+                    }
+                  ],
+                  "min": null,
+                  "max": null,
+                  "precision": null,
+                  "mutableOnCxlRpl": false,
+                  "useValue": null,
+                  "defaultValue": null
+                },
+                "listItems": null,
+                "initValue": true,
+                "stateRules": [],
+                "tooltip": null,
+                "radioGroup": "capacity",
+                "checkedEnumRef": "Agency"
+              },
+              {
+                "kind": "control",
+                "id": "ctrl_capacity_principal",
+                "type": "RadioButton_t",
+                "label": "Principal",
+                "parameterRef": "Capacity",
+                "parameter": {
+                  "name": "Capacity",
+                  "fixTag": 6007,
+                  "type": "Char_t",
+                  "enumValues": [
+                    {
+                      "enumId": "Agency",
+                      "wireValue": "A"
+                    },
+                    {
+                      "enumId": "Principal",
+                      "wireValue": "P"
+                    }
+                  ],
+                  "min": null,
+                  "max": null,
+                  "precision": null,
+                  "mutableOnCxlRpl": false,
+                  "useValue": null,
+                  "defaultValue": null
+                },
+                "listItems": null,
+                "initValue": false,
+                "stateRules": [],
+                "tooltip": null,
+                "radioGroup": "capacity",
+                "checkedEnumRef": "Principal"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "kind": "panel",
+        "title": "Schedule",
+        "border": "Line",
+        "orientation": "Vertical",
+        "collapsible": true,
+        "collapsed": false,
+        "children": [
+          {
+            "kind": "control",
+            "id": "ctrl_start_time",
+            "type": "Clock_t",
+            "label": "Scheduled start",
+            "parameterRef": "StartTime",
+            "parameter": {
+              "name": "StartTime",
+              "fixTag": 6010,
+              "type": "UTCTimeOnly_t",
+              "enumValues": null,
+              "min": null,
+              "max": null,
+              "precision": null,
+              "mutableOnCxlRpl": false,
+              "useValue": null,
+              "defaultValue": null,
+              "localMktTz": "America/New_York"
+            },
+            "listItems": null,
+            "initValue": null,
+            "stateRules": [
+              {
+                "effect": "visible",
+                "targetValue": true,
+                "targetStringValue": null,
+                "expression": {
+                  "kind": "compare",
+                  "operator": "==",
+                  "field": "ctrl_benchmark",
+                  "value": "Scheduled",
+                  "children": null
+                }
+              }
+            ],
+            "tooltip": "Displayed in the venue timezone; the wire value is UTC.",
+            "localMktTz": "America/New_York"
+          },
+          {
+            "kind": "control",
+            "id": "ctrl_min_fill_pct",
+            "type": "Slider_t",
+            "label": "Minimum fill %",
+            "parameterRef": "MinFillPct",
+            "parameter": {
+              "name": "MinFillPct",
+              "fixTag": 6011,
+              "type": "Percentage_t",
+              "enumValues": null,
+              "min": 0,
+              "max": 1,
+              "precision": null,
+              "mutableOnCxlRpl": false,
+              "useValue": null,
+              "defaultValue": null
+            },
+            "listItems": null,
+            "initValue": 25,
+            "stateRules": [
+              {
+                "effect": "value",
+                "targetValue": false,
+                "targetStringValue": "{NULL}",
+                "expression": {
+                  "kind": "compare",
+                  "operator": "==",
+                  "field": "ctrl_allow_dark",
+                  "value": false,
+                  "children": null
+                }
+              }
+            ],
+            "tooltip": "Only meaningful while dark liquidity is enabled."
+          }
+        ]
+      },
+      {
+        "kind": "panel",
+        "title": "Routing",
+        "border": "Line",
+        "orientation": "Vertical",
+        "collapsible": false,
+        "collapsed": false,
+        "children": [
+          {
+            "kind": "control",
+            "id": "ctrl_venues",
+            "type": "MultiSelectList_t",
+            "label": "Venues",
+            "parameterRef": "Venues",
+            "parameter": {
+              "name": "Venues",
+              "fixTag": 6012,
+              "type": "MultipleCharValue_t",
+              "enumValues": [
+                {
+                  "enumId": "DemoDark",
+                  "wireValue": "D"
+                },
+                {
+                  "enumId": "DemoLit",
+                  "wireValue": "L"
+                },
+                {
+                  "enumId": "DemoSyndicate",
+                  "wireValue": "S"
+                }
+              ],
+              "min": null,
+              "max": null,
+              "precision": null,
+              "mutableOnCxlRpl": false,
+              "useValue": null,
+              "defaultValue": null
+            },
+            "listItems": [
+              {
+                "enumId": "DemoDark",
+                "uiRep": "Demo Dark"
+              },
+              {
+                "enumId": "DemoLit",
+                "uiRep": "Demo Lit"
+              },
+              {
+                "enumId": "DemoSyndicate",
+                "uiRep": "Demo Syndicate"
+              }
+            ],
+            "initValue": [
+              "DemoLit"
+            ],
+            "stateRules": [],
+            "tooltip": null
+          },
+          {
+            "kind": "control",
+            "id": "ctrl_exec_instructions",
+            "type": "CheckBoxList_t",
+            "label": "Execution instructions",
+            "parameterRef": "ExecInstructions",
+            "parameter": {
+              "name": "ExecInstructions",
+              "fixTag": 6013,
+              "type": "MultipleStringValue_t",
+              "enumValues": [
+                {
+                  "enumId": "NoCross",
+                  "wireValue": "NX"
+                },
+                {
+                  "enumId": "StayOnBook",
+                  "wireValue": "SB"
+                }
+              ],
+              "min": null,
+              "max": null,
+              "precision": null,
+              "mutableOnCxlRpl": false,
+              "useValue": null,
+              "defaultValue": null
+            },
+            "listItems": [
+              {
+                "enumId": "NoCross",
+                "uiRep": "Do not cross"
+              },
+              {
+                "enumId": "StayOnBook",
+                "uiRep": "Stay on book"
+              }
+            ],
+            "initValue": null,
+            "stateRules": [],
+            "tooltip": null
+          },
+          {
+            "kind": "control",
+            "id": "ctrl_desk",
+            "type": "EditableDropDownList_t",
+            "label": "Booking desk",
+            "parameterRef": "Desk",
+            "parameter": {
+              "name": "Desk",
+              "fixTag": 6009,
+              "type": "String_t",
+              "enumValues": null,
+              "min": null,
+              "max": null,
+              "precision": null,
+              "mutableOnCxlRpl": false,
+              "useValue": null,
+              "defaultValue": null,
+              "maxLength": 24
+            },
+            "listItems": [
+              {
+                "enumId": "ProgramTrading",
+                "uiRep": "Program Trading"
+              },
+              {
+                "enumId": "ElectronicSales",
+                "uiRep": "Electronic Sales"
+              }
+            ],
+            "initValue": null,
+            "stateRules": [],
+            "tooltip": "Pick a listed desk or type your own."
+          },
+          {
+            "kind": "control",
+            "id": "ctrl_note",
+            "type": "Label_t",
+            "label": "Parameters above are previewed as StrategyParametersGrp tags 957-960.",
+            "parameterRef": null,
+            "parameter": null,
+            "listItems": null,
+            "initValue": null,
+            "stateRules": [],
+            "tooltip": null
+          },
+          {
+            "kind": "control",
+            "id": "ctrl_algo_version",
+            "type": "HiddenField_t",
+            "label": null,
+            "parameterRef": "AlgoVersion",
+            "parameter": {
+              "name": "AlgoVersion",
+              "fixTag": 6014,
+              "type": "String_t",
+              "enumValues": null,
+              "min": null,
+              "max": null,
+              "precision": null,
+              "mutableOnCxlRpl": false,
+              "useValue": null,
+              "defaultValue": null,
+              "constValue": "1.4"
+            },
+            "listItems": null,
+            "initValue": null,
+            "stateRules": [],
+            "tooltip": null
+          }
+        ]
+      }
+    ]
+  }
+}
