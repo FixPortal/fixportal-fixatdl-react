@@ -26,11 +26,6 @@ const sample = participate as unknown as AtdlStrategyDto
 // Fixed so the Clock control's "current time" initialisation cannot drift the suite.
 const options = { clock: () => new Date('2026-09-18T14:30:00Z') }
 
-// The labels above are matched as regular expressions, so any regex metacharacter in
-// one has to be escaped or the pattern silently means something else. `RegExp.escape`
-// would do this, but package.json declares Node >=22 and it only landed in Node 24.
-const escapeRegExp = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-
 function renderSample() {
   return render(<FormRenderer strategy={sample} options={options} />)
 }
@@ -62,9 +57,12 @@ describe('participate sample strategy', () => {
     ['Booking desk', 'combobox'],
   ])('renders %s as an accessible %s', (label, role) => {
     renderSample()
-    // A substring match, not an exact one: a required control's accessible name
-    // carries a trailing asterisk from the control's own markup.
-    expect(screen.getByRole(role, { name: new RegExp(escapeRegExp(label), 'i') })).toBeInTheDocument()
+    // An EXACT accessible-name match, not a substring one. A required control renders
+    // a trailing asterisk, but the control marks that span `aria-hidden`, so it stays
+    // out of the computed name - verified by this test passing for the two required
+    // controls above. Exact is the stricter assertion: a label that grew a suffix
+    // ("Client reference extra") fails here, where a substring pattern would not.
+    expect(screen.getByRole(role, { name: label })).toBeInTheDocument()
   })
 
   it('renders the Label_t copy and renders nothing for the hidden field', () => {

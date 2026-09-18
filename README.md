@@ -181,6 +181,9 @@ npm run lint
 npm run test:coverage
 npm run build
 npm pack
+node scripts/assert-react-external.mjs
+node scripts/assert-public-dts.mjs
+node scripts/assert-no-side-effects.mjs
 node scripts/assert-styles.mjs
 ```
 

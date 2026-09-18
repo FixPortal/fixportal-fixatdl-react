@@ -106,6 +106,13 @@ if (entry !== './dist/styles.css') {
 if (!(manifest.files ?? []).includes('dist')) {
   problems.push('package.json files does not include dist, so the stylesheet would not be packed')
 }
+// A published CSS entry point and `sideEffects: false` are incompatible: importing a
+// stylesheet exports nothing, so webpack treats the import as dead code and drops it -
+// the file resolves and applies no styles, with no error anywhere. The field has to
+// keep exempting CSS, and nothing else in the repo would notice if it stopped.
+if (manifest.sideEffects === false || !(manifest.sideEffects ?? []).some(pattern => pattern.endsWith('.css'))) {
+  problems.push(`package.json sideEffects is ${JSON.stringify(manifest.sideEffects)}, which does not exempt CSS - a bundler may prune the stylesheet import`)
+}
 
 report()
 
