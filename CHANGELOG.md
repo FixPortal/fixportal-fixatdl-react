@@ -8,6 +8,13 @@ Dates are the release-tag date, in UTC. Entries are consumer-facing: build, CI
 and test-infrastructure commits are omitted unless they change what a consumer
 sees.
 
+## [Unreleased]
+
+### Changed
+
+- README hero and GitHub social preview drop the angel wings from the XML
+  card. The markdown image URL is unchanged.
+
 ## [0.2.1] - 2026-09-17
 
 ### Added
