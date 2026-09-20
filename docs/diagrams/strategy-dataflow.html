@@ -54,7 +54,7 @@
 
     <svg viewBox="0 72 960 476" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="reactflow-title reactflow-desc">
       <title id="reactflow-title">From broker XML to a rendered form</title>
-      <desc id="reactflow-desc">On the server the core .NET library parses broker FIXatdl XML into Strategy_t, which host-owned backend mapping code turns into the AtdlStrategyDto JSON contract; the @fix-portal/fixatdl-react package renders that DTO as a form and previews the 957 to 960 tags. This package never parses XML.</desc>
+      <desc id="reactflow-desc">On the server the core .NET library parses broker FIXatdl XML into Strategy_t, which host-owned backend mapping code turns into the AtdlStrategyDto JSON contract; the @fix-portal/fixatdl-react package renders that DTO as a form and emits only a browser-side preview of the 957 to 960 tags. The host remains responsible for final validation, FIX message assembly and wire serialization. This package never parses XML.</desc>
       <defs>
         <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#5b6b85"/></marker>
         <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#0f766e"/></marker>
@@ -93,6 +93,11 @@
       <line x1="456" y1="384" x2="504" y2="384" stroke="#5b6b85" stroke-width="1.2" marker-end="url(#arrow)"/>
       <rect x="462" y="364" width="36" height="12" rx="2" fill="#f7f8fa"/>
       <text x="480" y="373" fill="#6b7280" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle">VALUES</text>
+
+      <!-- browser preview -> host-owned final wire -->
+      <path d="M 720,384 H 752" fill="none" stroke="#7e22ce" stroke-width="1.2" stroke-dasharray="4 3" marker-end="url(#arrow-link)"/>
+      <rect x="720" y="332" width="32" height="12" rx="2" fill="#f7f8fa"/>
+      <text x="736" y="341" fill="#7e22ce" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle">PREVIEW</text>
 
       <!-- ===== NODES ===== -->
       <!-- N1 broker XML -->
@@ -142,6 +147,14 @@
       <text x="536" y="369" fill="#0f766e" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">EXPORT</text>
       <text x="612" y="392" fill="#1f2937" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">emitStrategyParametersGrp</text>
       <text x="612" y="408" fill="#5b6b85" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">957-960 preview only</text>
+
+      <!-- N7 host final wire -->
+      <rect x="752" y="352" width="176" height="64" rx="6" fill="#faf5ff"/>
+      <rect x="752" y="352" width="176" height="64" rx="6" fill="#f3e8ff" stroke="#7e22ce" stroke-width="1.2"/>
+      <rect x="760" y="360" width="36" height="12" rx="2" fill="transparent" stroke="rgba(126,34,206,0.55)" stroke-width="0.8"/>
+      <text x="778" y="369" fill="#7e22ce" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">HOST</text>
+      <text x="840" y="392" fill="#1f2937" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Final FIX wire</text>
+      <text x="840" y="408" fill="#5b6b85" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">validate + assemble</text>
 
       <!-- ===== LEGEND ===== -->
       <line x1="32" y1="500" x2="928" y2="500" stroke="rgba(31,41,55,0.10)" stroke-width="0.8"/>
