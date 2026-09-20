@@ -30,7 +30,15 @@ private AtdlStrategyDto MapStrategy(
         .ToDictionary(group => group.Key, group => group.Last());
     var comparisonTypes = source.Controls
         .GroupBy(control => control.Id)
-        .ToDictionary(group => group.Key, group => group.Last().GetType().Name);
+        .ToDictionary(
+            group => group.Key,
+            group => group.Last() switch
+            {
+                Clock_t => "Clock_t",
+                ListControlBase => "EnumState",
+                BinaryControlBase binary when binary.HasEnumeratedState => "EnumState",
+                _ => (string?)null,
+            });
     var astBuilder = new StateRuleAstBuilder(globalEdits, source.Edits, comparisonTypes);
     var panel = source.StrategyLayout?.StrategyPanel is { } root
         ? MapPanel(root, parametersByName, astBuilder)

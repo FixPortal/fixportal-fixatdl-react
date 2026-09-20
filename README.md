@@ -180,6 +180,7 @@ npmjs.org links it by absolute URL.
 ```sh
 npm ci
 npm run typecheck
+npm run docs:check
 npm run lint
 npm run test:coverage
 npm run build
@@ -188,6 +189,7 @@ node scripts/assert-react-external.mjs
 node scripts/assert-public-dts.mjs
 node scripts/assert-no-side-effects.mjs
 node scripts/assert-styles.mjs
+npm run browser:smoke
 ```
 
 The repo is an npm workspace: `examples/workbench` is the sample app, and `npm ci`
