@@ -61,7 +61,7 @@ Never stringify it — use the helpers.
 
 | Export | What it is |
 |---|---|
-| `emitStrategyParametersGrp(strategy, filledValues)` | Tags 957–960 preview. `filledValues` is keyed by **parameter name** (use `mapControlValuesToParameters` first). `constValue` on a parameter wins over a filled value. **Throws** if a name (958) or wire value (960) contains SOH — catch it; do not pass the control-id map or you get an empty 957. A preview only. |
+| `emitStrategyParametersGrp(strategy, filledValues)` | Tags 957–960 preview. `filledValues` is keyed by **parameter name** (use `mapControlValuesToParameters` first). `constValue` on a parameter wins over a filled value. **Throws** if a name (958) or wire value (960) contains SOH — catch it; do not pass the control-id map or nothing matches and you get an empty array. Returns an empty array whenever no parameter is filled: the 957 count is omitted rather than emitted as `0`, so do not read `tags[0]` without checking. A preview only. |
 | `FixTag` | `{ tag, value }` pair. |
 | `fixTypeCodeName(code)` | Tag-959 type code → ATDL type name (unknown codes fall back to `String_t`). |
 

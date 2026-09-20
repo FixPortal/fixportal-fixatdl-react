@@ -44,6 +44,13 @@ sees.
 
 ### Changed
 
+- **`emitStrategyParametersGrp` omits tag 957 entirely when no parameter is
+  filled**, rather than emitting `957=0` with no entries following it. An empty
+  repeating group should not appear on the wire at all, and the C# emitter
+  already omitted it at the same point. Consumer-visible: the returned array is
+  now empty in that case, so a caller reading `tags[0]` unconditionally throws.
+  This shipped in 0.2.1 and was missing from this entry until 2026-09-20; it
+  broke the FixPortal Simulator's preview pane on upgrade.
 - **`emitStrategyParametersGrp` now rejects the FIX field delimiter** in a
   parameter name (tag 958) or wire value (tag 960) rather than passing it
   through. The previous contract left the delimiter to `validateControl`, which
