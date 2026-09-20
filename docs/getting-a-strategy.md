@@ -10,9 +10,152 @@
 A worked JSON example is
 [`src/__fixtures__/twap-strategy.json`](https://github.com/FixPortal/fixportal-fixatdl-react/blob/main/src/__fixtures__/twap-strategy.json).
 
+## Worked mapper example
+
+The mapper belongs to the host backend. It receives the parsed `Strategy_t`
+from `FixPortal.FixAtdl` and emits the JSON contract consumed by this package.
+The maintained FixPortal Simulator implementation is [`AtdlDtoMapper.cs`](https://github.com/FixPortal/fixportal-simulator-backend/blob/main/src/FixPortal.Simulator.Atdl/Mapping/AtdlDtoMapper.cs).
+The following is the important end-to-end shape from that mapper, reduced to
+the strategy, parameter, panel, and control boundaries:
+
+```csharp
+private AtdlStrategyDto MapStrategy(
+    Strategy_t source,
+    IReadOnlyDictionary<string, string> sourceXmlByStrategy,
+    EditCollection? globalEdits)
+{
+    var parameterDtos = source.Parameters.Select(MapParameter).ToList();
+    var parametersByName = parameterDtos
+        .GroupBy(parameter => parameter.Name)
+        .ToDictionary(group => group.Key, group => group.Last());
+    var comparisonTypes = source.Controls
+        .GroupBy(control => control.Id)
+        .ToDictionary(group => group.Key, group => group.Last().GetType().Name);
+    var astBuilder = new StateRuleAstBuilder(globalEdits, source.Edits, comparisonTypes);
+    var panel = source.StrategyLayout?.StrategyPanel is { } root
+        ? MapPanel(root, parametersByName, astBuilder)
+        : new AtdlPanelDto(null, "None", "Vertical", false, false, []);
+
+    sourceXmlByStrategy.TryGetValue(source.Name, out var sourceXml);
+    return new AtdlStrategyDto(
+        source.Name,
+        source.Description?.Content,
+        parameterDtos,
+        panel,
+        sourceXml ?? string.Empty,
+        source.StrategyEdits.Select(edit => MapStrategyEdit(edit, astBuilder, parametersByName)).ToList());
+}
+
+private AtdlPanelDto MapPanel(
+    StrategyPanel_t source,
+    IReadOnlyDictionary<string, AtdlParameterDto> parametersByName,
+    StateRuleAstBuilder astBuilder)
+{
+    var children = source.StrategyPanels
+        .Select(child => (AtdlPanelChildDto)MapPanel(child, parametersByName, astBuilder))
+        .Concat(source.Controls.OrderBy(control => control.Index)
+            .Select(control => (AtdlPanelChildDto)MapControl(control, parametersByName, astBuilder)))
+        .ToList();
+    return new AtdlPanelDto(
+        source.Title,
+        source.Border?.ToString() ?? "None",
+        source.Orientation?.ToString() ?? "Vertical",
+        source.Collapsible ?? false,
+        source.Collapsed ?? false,
+        children);
+}
+
+private static AtdlControlDto MapControl(
+    Control_t source,
+    IReadOnlyDictionary<string, AtdlParameterDto> parametersByName,
+    StateRuleAstBuilder astBuilder)
+{
+    parametersByName.TryGetValue(source.ParameterRef ?? string.Empty, out var parameter);
+    var listItems = source is ListControlBase list && list.HasListItems
+        ? list.ListItems.Select(item => new AtdlListItemDto(item.EnumId, item.UiRep)).ToList()
+        : null;
+    return new AtdlControlDto(
+        source.Id,
+        source.GetType().Name,
+        source.Label,
+        string.IsNullOrEmpty(source.ParameterRef) ? null : source.ParameterRef,
+        parameter,
+        listItems,
+        GetInitValue(source),
+        MapStateRules(source, astBuilder),
+        source.ToolTip);
+}
+```
+
+The omitted helpers are mechanical projections of the same contract: map every
+parameter field, inline the resolved parameter into each control, emit each
+`enabled`, `visible`, and `value` state rule with its AST, preserve strategy
+edits, and carry control-specific fields such as enums, increments, clocks,
+timezones, and `UseFixField` initialization. A production mapper must also
+bound panel recursion and preserve the host’s validation/error policy. In JSON,
+the complete minimal DTO handed to the browser looks like this; panel children
+carry the discriminator explicitly:
+
+```json
+{
+  "name": "DemoStrategy",
+  "description": "Synthetic example",
+  "parameters": [{
+    "name": "OrderQty",
+    "fixTag": 38,
+    "type": "Int_t",
+    "enumValues": null,
+    "min": 1,
+    "max": 1000000,
+    "precision": null,
+    "mutableOnCxlRpl": true,
+    "useValue": "required",
+    "defaultValue": null
+  }],
+  "panel": {
+    "title": null,
+    "border": "None",
+    "orientation": "Vertical",
+    "collapsible": false,
+    "collapsed": false,
+    "children": [{
+      "kind": "control",
+      "id": "orderQty",
+      "type": "SingleSpinner_t",
+      "label": "Order quantity",
+      "parameterRef": "OrderQty",
+      "parameter": null,
+      "listItems": null,
+      "initValue": null,
+      "stateRules": [],
+      "tooltip": null,
+      "increment": 1
+    }]
+  },
+  "sourceXml": "<Strategy name=\"DemoStrategy\" />",
+  "strategyEdits": []
+}
+```
+
+In the production payload, `parameter` is normally the resolved inline copy
+of the matching entry in `parameters`; the example leaves it `null` only to
+show that the top-level parameter list is the source of truth for the DTO
+contract. The actual Simulator mapper inlines it for controls and emits all
+control-specific fields.
+
+Return the DTO from the host API, then pass it to the published package:
+
+```tsx
+import { FormRenderer, type AtdlStrategyDto } from '@fix-portal/fixatdl-react'
+
+export function StrategyEditor({ strategy }: { strategy: AtdlStrategyDto }) {
+  return <FormRenderer strategy={strategy} options={{ clock: () => new Date() }} />
+}
+```
+
 ## Pipeline
 
-![From broker XML to a rendered form: the core .NET library parses the XML on the server, a mapper you write turns Strategy_t into the AtdlStrategyDto JSON contract, and the browser package renders it and previews the 957-960 tags](images/strategy-dataflow.png)
+![From broker XML to a rendered form: the core .NET library parses the XML on the server, host-owned backend mapping code turns Strategy_t into the AtdlStrategyDto JSON contract, and the @fix-portal/fixatdl-react package renders it and previews the 957-960 tags](images/strategy-dataflow.png)
 
 <sub>Source: [`docs/diagrams/strategy-dataflow.html`](diagrams/strategy-dataflow.html) — open in a browser to edit, then re-export.</sub>
 

@@ -29,6 +29,7 @@ jobs:
           node-version: '24'
           cache: npm
       - run: npm ci
+      - run: npm run docs:check
       - run: npm run typecheck
       - run: npm run lint
       - run: npm run test:coverage
@@ -43,6 +44,8 @@ jobs:
       # that reason, not by preference.
       - run: npm run typecheck --workspace @fix-portal/fixatdl-react-workbench
       - run: npm run build --workspace @fix-portal/fixatdl-react-workbench
+      - run: npx playwright install --with-deps chromium
+      - run: npm run browser:smoke
       - run: npm pack --ignore-scripts
       - name: Install and import the packed tarball
         run: |
