@@ -4,10 +4,12 @@ import { fileURLToPath, pathToFileURL } from 'node:url'
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 
+/** Read a repository file relative to the project root. */
 function read(relativePath) {
   return readFileSync(join(root, relativePath), 'utf8')
 }
 
+/** Return the public names exported by the package entry point. */
 function publicExportNames() {
   const index = read('src/index.ts')
   const names = new Set()
@@ -28,6 +30,7 @@ function publicExportNames() {
   return [...names].sort()
 }
 
+/** Find broken relative Markdown links in one document. */
 function localLinkProblems(relativePath, markdown) {
   const problems = []
   for (const match of markdown.matchAll(/\[[^\]]*\]\(([^)]+)\)/g)) {
@@ -39,6 +42,7 @@ function localLinkProblems(relativePath, markdown) {
   return problems
 }
 
+/** Check that the public documentation matches the package contract. */
 export function checkDocumentation() {
   const problems = []
   const manifest = JSON.parse(read('package.json'))
