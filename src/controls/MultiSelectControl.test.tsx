@@ -97,6 +97,27 @@ describe('MultiSelectControl', () => {
     expect(screen.getByRole('checkbox', { name: 'MTF' })).toBeInTheDocument()
   })
 
+  it('marks each checkbox invalid when the group has errors', () => {
+    const { rerender } = render(
+      <MultiSelectControl
+        control={BASE_CONTROL}
+        value={[]}
+        onChange={vi.fn()}
+        state={{ ...ENABLED, errors: ['Required.'] }}
+      />,
+    )
+    screen.getAllByRole('checkbox').forEach(checkbox => expect(checkbox).toHaveAttribute('aria-invalid', 'true'))
+
+    rerender(
+      <MultiSelectControl
+        control={BASE_CONTROL}
+        value={[]}
+        onChange={vi.fn()}
+        state={ENABLED}
+      />,
+    )
+    screen.getAllByRole('checkbox').forEach(checkbox => expect(checkbox).toHaveAttribute('aria-invalid', 'false'))
+  })
 
 
 
