@@ -163,7 +163,7 @@ export function StrategyEditor({ strategy }: { strategy: AtdlStrategyDto }) {
 
 ## Pipeline
 
-![From broker XML to a rendered form: the core .NET library parses the XML on the server, host-owned backend mapping code turns Strategy_t into the AtdlStrategyDto JSON contract, and the @fix-portal/fixatdl-react package renders it and previews the 957-960 tags](images/strategy-dataflow.png)
+![From broker XML to a rendered form: the core .NET library parses the XML on the server, host-owned backend mapping code turns Strategy_t into the AtdlStrategyDto JSON contract, and the @fix-portal/fixatdl-react package renders it and emits 957-960 tag tuples](images/strategy-dataflow.png)
 
 <sub>Source: [`docs/diagrams/strategy-dataflow.html`](diagrams/strategy-dataflow.html) — open in a browser to edit, then re-export.</sub>
 
