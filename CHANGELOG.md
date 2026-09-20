@@ -16,12 +16,14 @@ sees.
 - Unset sliders no longer announce their visible "Not selected" marker twice.
 - The package smoke test now resolves the published `./styles.css` export.
 
-## [Unreleased]
+## [0.3.1] - 2026-09-20
 
 ### Changed
 
 - README hero and GitHub social preview drop the angel wings from the XML
   card. The markdown image URL is unchanged.
+
+## [Unreleased]
 
 ## [0.2.1] - 2026-09-17
 
