@@ -1,0 +1,9 @@
+reviews:
+  auto_review:
+    enabled: false
+    labels: ["review-high"]
+    drafts: false
+    auto_pause_after_reviewed_commits: 2
+    ignore_usernames:
+      - "dependabot[bot]"
+      - "renovate[bot]"

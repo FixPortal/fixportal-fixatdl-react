@@ -1,0 +1,229 @@
+{
+  "name": "LMT_OptionalFields",
+  "description": "Exercises the newer optional DTO fields (trueWireValue, invertOnWire, minLength/maxLength, multiplyBy100, localMktTz, strategyEdits) end to end.",
+  "parameters": [
+    {
+      "name": "Account",
+      "fixTag": 1,
+      "type": "String_t",
+      "enumValues": null,
+      "min": null,
+      "max": null,
+      "precision": null,
+      "mutableOnCxlRpl": true,
+      "useValue": null,
+      "defaultValue": null,
+      "minLength": 3,
+      "maxLength": 6
+    },
+    {
+      "name": "Aggressive",
+      "fixTag": 9002,
+      "type": "Boolean_t",
+      "enumValues": null,
+      "min": null,
+      "max": null,
+      "precision": null,
+      "mutableOnCxlRpl": true,
+      "useValue": null,
+      "defaultValue": null,
+      "trueWireValue": "T",
+      "falseWireValue": "F"
+    },
+    {
+      "name": "Exchanges",
+      "fixTag": 9003,
+      "type": "MultipleStringValue_t",
+      "enumValues": [
+        { "enumId": "xnys", "wireValue": "N" },
+        { "enumId": "xnas", "wireValue": "Q" },
+        { "enumId": "bats", "wireValue": "B" }
+      ],
+      "min": null,
+      "max": null,
+      "precision": null,
+      "mutableOnCxlRpl": true,
+      "useValue": null,
+      "defaultValue": null,
+      "invertOnWire": true
+    },
+    {
+      "name": "Participation",
+      "fixTag": 9004,
+      "type": "Percentage_t",
+      "enumValues": null,
+      "min": 0,
+      "max": 1,
+      "precision": null,
+      "mutableOnCxlRpl": true,
+      "useValue": null,
+      "defaultValue": null,
+      "multiplyBy100": true
+    },
+    {
+      "name": "ExpireTime",
+      "fixTag": 9005,
+      "type": "UTCTimestamp_t",
+      "enumValues": null,
+      "min": null,
+      "max": null,
+      "precision": null,
+      "mutableOnCxlRpl": true,
+      "useValue": null,
+      "defaultValue": null
+    }
+  ],
+  "panel": {
+    "title": null,
+    "border": "None",
+    "orientation": "Vertical",
+    "collapsible": false,
+    "collapsed": false,
+    "children": [
+      {
+        "kind": "control",
+        "id": "account",
+        "type": "TextField_t",
+        "label": "Account",
+        "parameterRef": null,
+        "parameter": {
+          "name": "Account",
+          "fixTag": 1,
+          "type": "String_t",
+          "enumValues": null,
+          "min": null,
+          "max": null,
+          "precision": null,
+          "mutableOnCxlRpl": true,
+          "useValue": null,
+          "defaultValue": null,
+          "minLength": 3,
+          "maxLength": 6
+        },
+        "listItems": null,
+        "initValue": null,
+        "stateRules": [],
+        "tooltip": null
+      },
+      {
+        "kind": "control",
+        "id": "aggressive",
+        "type": "CheckBox_t",
+        "label": "Aggressive",
+        "parameterRef": null,
+        "parameter": {
+          "name": "Aggressive",
+          "fixTag": 9002,
+          "type": "Boolean_t",
+          "enumValues": null,
+          "min": null,
+          "max": null,
+          "precision": null,
+          "mutableOnCxlRpl": true,
+          "useValue": null,
+          "defaultValue": null,
+          "trueWireValue": "T",
+          "falseWireValue": "F"
+        },
+        "listItems": null,
+        "initValue": null,
+        "stateRules": [],
+        "tooltip": null
+      },
+      {
+        "kind": "control",
+        "id": "exchanges",
+        "type": "MultiSelectList_t",
+        "label": "Exchanges",
+        "parameterRef": null,
+        "parameter": {
+          "name": "Exchanges",
+          "fixTag": 9003,
+          "type": "MultipleStringValue_t",
+          "enumValues": [
+            { "enumId": "xnys", "wireValue": "N" },
+            { "enumId": "xnas", "wireValue": "Q" },
+            { "enumId": "bats", "wireValue": "B" }
+          ],
+          "min": null,
+          "max": null,
+          "precision": null,
+          "mutableOnCxlRpl": true,
+          "useValue": null,
+          "defaultValue": null,
+          "invertOnWire": true
+        },
+        "listItems": [
+          { "enumId": "xnys", "uiRep": "NYSE" },
+          { "enumId": "xnas", "uiRep": "NASDAQ" },
+          { "enumId": "bats", "uiRep": "BATS" }
+        ],
+        "initValue": null,
+        "stateRules": [],
+        "tooltip": null
+      },
+      {
+        "kind": "control",
+        "id": "participation",
+        "type": "Slider_t",
+        "label": "Participation",
+        "parameterRef": null,
+        "parameter": {
+          "name": "Participation",
+          "fixTag": 9004,
+          "type": "Percentage_t",
+          "enumValues": null,
+          "min": 0,
+          "max": 1,
+          "precision": null,
+          "mutableOnCxlRpl": true,
+          "useValue": null,
+          "defaultValue": null,
+          "multiplyBy100": true
+        },
+        "listItems": null,
+        "initValue": null,
+        "stateRules": [],
+        "tooltip": null,
+        "increment": 1
+      },
+      {
+        "kind": "control",
+        "id": "expire",
+        "type": "Clock_t",
+        "label": "Expire",
+        "parameterRef": null,
+        "parameter": {
+          "name": "ExpireTime",
+          "fixTag": 9005,
+          "type": "UTCTimestamp_t",
+          "enumValues": null,
+          "min": null,
+          "max": null,
+          "precision": null,
+          "mutableOnCxlRpl": true,
+          "useValue": null,
+          "defaultValue": null
+        },
+        "listItems": null,
+        "initValue": "20260912-09:00:00",
+        "stateRules": [],
+        "tooltip": null,
+        "localMktTz": "Europe/London"
+      }
+    ]
+  },
+  "sourceXml": "<Strategy />",
+  "strategyEdits": [
+    {
+      "errorMessage": "Choose another account.",
+      "expression": {
+        "kind": "compare",
+        "operator": "!=",
+        "field": "Account",
+        "value": "FORBIDDEN",
+        "children": null
+      }
+    }
+  ]
+}

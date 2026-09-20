@@ -1,0 +1,507 @@
+{
+  "name": "TWAP",
+  "description": "Time-Weighted Average Price strategy fixture for renderer tests",
+  "sourceXml": "<Strategy name=\"TWAP\" />",
+  "parameters": [
+    {
+      "name": "StrategyName",
+      "fixTag": 847,
+      "type": "String_t",
+      "enumValues": null,
+      "min": null,
+      "max": null,
+      "precision": null,
+      "mutableOnCxlRpl": false,
+      "useValue": null,
+      "defaultValue": null
+    },
+    {
+      "name": "Participation",
+      "fixTag": 848,
+      "type": "Float_t",
+      "enumValues": null,
+      "min": 0,
+      "max": 100,
+      "precision": 2,
+      "mutableOnCxlRpl": false,
+      "useValue": null,
+      "defaultValue": null
+    },
+    {
+      "name": "Side",
+      "fixTag": 54,
+      "type": "Char_t",
+      "enumValues": [
+        { "enumId": "Buy", "wireValue": "1" },
+        { "enumId": "Sell", "wireValue": "2" }
+      ],
+      "min": null,
+      "max": null,
+      "precision": null,
+      "mutableOnCxlRpl": false,
+      "useValue": null,
+      "defaultValue": null
+    },
+    {
+      "name": "Aggressive",
+      "fixTag": 849,
+      "type": "Boolean_t",
+      "enumValues": null,
+      "min": null,
+      "max": null,
+      "precision": null,
+      "mutableOnCxlRpl": false,
+      "useValue": null,
+      "defaultValue": null
+    },
+    {
+      "name": "AlgoType",
+      "fixTag": 850,
+      "type": "Char_t",
+      "enumValues": [
+        { "enumId": "TWAP", "wireValue": "T" },
+        { "enumId": "VWAP", "wireValue": "V" },
+        { "enumId": "IS", "wireValue": "I" }
+      ],
+      "min": null,
+      "max": null,
+      "precision": null,
+      "mutableOnCxlRpl": false,
+      "useValue": null,
+      "defaultValue": null
+    },
+    {
+      "name": "StartTime",
+      "fixTag": 168,
+      "type": "UTCTimeOnly_t",
+      "enumValues": null,
+      "min": null,
+      "max": null,
+      "precision": null,
+      "mutableOnCxlRpl": false,
+      "useValue": null,
+      "defaultValue": null
+    },
+    {
+      "name": "PctComplete",
+      "fixTag": 851,
+      "type": "Percentage_t",
+      "enumValues": null,
+      "min": 0,
+      "max": 1,
+      "precision": null,
+      "mutableOnCxlRpl": false,
+      "useValue": null,
+      "defaultValue": null
+    },
+    {
+      "name": "Venues",
+      "fixTag": 852,
+      "type": "MultipleCharValue_t",
+      "enumValues": [
+        { "enumId": "NYSE", "wireValue": "N" },
+        { "enumId": "NASDAQ", "wireValue": "Q" },
+        { "enumId": "BATS", "wireValue": "B" }
+      ],
+      "min": null,
+      "max": null,
+      "precision": null,
+      "mutableOnCxlRpl": false,
+      "useValue": null,
+      "defaultValue": null
+    },
+    {
+      "name": "Features",
+      "fixTag": 853,
+      "type": "MultipleCharValue_t",
+      "enumValues": [
+        { "enumId": "DarkPool", "wireValue": "D" },
+        { "enumId": "Iceberg", "wireValue": "I" }
+      ],
+      "min": null,
+      "max": null,
+      "precision": null,
+      "mutableOnCxlRpl": false,
+      "useValue": null,
+      "defaultValue": null
+    },
+    {
+      "name": "Notes",
+      "fixTag": null,
+      "type": "String_t",
+      "enumValues": null,
+      "min": null,
+      "max": null,
+      "precision": null,
+      "mutableOnCxlRpl": false,
+      "useValue": null,
+      "defaultValue": null
+    },
+    {
+      "name": "EditSide",
+      "fixTag": 855,
+      "type": "Char_t",
+      "enumValues": [
+        { "enumId": "Buy", "wireValue": "1" },
+        { "enumId": "Sell", "wireValue": "2" }
+      ],
+      "min": null,
+      "max": null,
+      "precision": null,
+      "mutableOnCxlRpl": false,
+      "useValue": null,
+      "defaultValue": null
+    }
+  ],
+  "panel": {
+    "title": "TWAP Strategy",
+    "border": "None",
+    "orientation": "Vertical",
+    "collapsible": false,
+    "collapsed": false,
+    "children": [
+      {
+        "kind": "panel",
+        "title": "Primary Parameters",
+        "border": "Line",
+        "orientation": "Horizontal",
+        "collapsible": false,
+        "collapsed": false,
+        "children": [
+          {
+            "kind": "control",
+            "id": "ctrl_name",
+            "type": "TextField_t",
+            "label": "Strategy Name",
+            "parameterRef": "StrategyName",
+            "parameter": {
+              "name": "StrategyName",
+              "fixTag": 847,
+              "type": "String_t",
+              "enumValues": null,
+              "min": null,
+              "max": null,
+              "precision": null,
+              "mutableOnCxlRpl": false,
+              "useValue": null,
+              "defaultValue": null
+            },
+            "listItems": null,
+            "initValue": null,
+            "stateRules": [],
+            "tooltip": "The strategy display name"
+          },
+          {
+            "kind": "control",
+            "id": "ctrl_participation",
+            "type": "DoubleSpinner_t",
+            "label": "Participation %",
+            "parameterRef": "Participation",
+            "parameter": {
+              "name": "Participation",
+              "fixTag": 848,
+              "type": "Float_t",
+              "enumValues": null,
+              "min": 0,
+              "max": 100,
+              "precision": 2,
+              "mutableOnCxlRpl": false,
+              "useValue": null,
+              "defaultValue": null
+            },
+            "listItems": null,
+            "initValue": null,
+            "stateRules": [],
+            "tooltip": null
+          }
+        ]
+      },
+      {
+        "kind": "panel",
+        "title": "Execution Settings",
+        "border": "None",
+        "orientation": "Vertical",
+        "collapsible": false,
+        "collapsed": false,
+        "children": [
+          {
+            "kind": "control",
+            "id": "ctrl_side",
+            "type": "DropDownList_t",
+            "label": "Side",
+            "parameterRef": "Side",
+            "parameter": {
+              "name": "Side",
+              "fixTag": 54,
+              "type": "Char_t",
+              "enumValues": [
+                { "enumId": "Buy", "wireValue": "1" },
+                { "enumId": "Sell", "wireValue": "2" }
+              ],
+              "min": null,
+              "max": null,
+              "precision": null,
+              "mutableOnCxlRpl": false,
+              "useValue": null,
+              "defaultValue": null
+            },
+            "listItems": [
+              { "enumId": "Buy", "uiRep": "Buy" },
+              { "enumId": "Sell", "uiRep": "Sell" }
+            ],
+            "initValue": null,
+            "stateRules": [],
+            "tooltip": null
+          },
+          {
+            "kind": "control",
+            "id": "ctrl_aggressive",
+            "type": "CheckBox_t",
+            "label": "Aggressive",
+            "parameterRef": "Aggressive",
+            "parameter": {
+              "name": "Aggressive",
+              "fixTag": 849,
+              "type": "Boolean_t",
+              "enumValues": null,
+              "min": null,
+              "max": null,
+              "precision": null,
+              "mutableOnCxlRpl": false,
+              "useValue": null,
+              "defaultValue": null
+            },
+            "listItems": null,
+            "initValue": null,
+            "stateRules": [
+              {
+                "effect": "enabled",
+                "targetValue": false,
+                "targetStringValue": null,
+                "expression": {
+                  "kind": "compare",
+                  "operator": "==",
+                  "field": "ctrl_side",
+                  "value": "Sell",
+                  "children": null
+                }
+              }
+            ],
+            "tooltip": null
+          },
+          {
+            "kind": "control",
+            "id": "ctrl_algo_type",
+            "type": "RadioButtonList_t",
+            "label": "Algorithm",
+            "parameterRef": "AlgoType",
+            "parameter": {
+              "name": "AlgoType",
+              "fixTag": 850,
+              "type": "Char_t",
+              "enumValues": [
+                { "enumId": "TWAP", "wireValue": "T" },
+                { "enumId": "VWAP", "wireValue": "V" },
+                { "enumId": "IS", "wireValue": "I" }
+              ],
+              "min": null,
+              "max": null,
+              "precision": null,
+              "mutableOnCxlRpl": false,
+              "useValue": null,
+              "defaultValue": null
+            },
+            "listItems": [
+              { "enumId": "TWAP", "uiRep": "TWAP" },
+              { "enumId": "VWAP", "uiRep": "VWAP" },
+              { "enumId": "IS", "uiRep": "IS" }
+            ],
+            "initValue": "TWAP",
+            "stateRules": [],
+            "tooltip": null
+          },
+          {
+            "kind": "panel",
+            "title": "Advanced",
+            "border": "Line",
+            "orientation": "Vertical",
+            "collapsible": true,
+            "collapsed": true,
+            "children": [
+              {
+                "kind": "control",
+                "id": "ctrl_start_time",
+                "type": "Clock_t",
+                "label": "Start Time",
+                "parameterRef": "StartTime",
+                "parameter": {
+                  "name": "StartTime",
+                  "fixTag": 168,
+                  "type": "UTCTimeOnly_t",
+                  "enumValues": null,
+                  "min": null,
+                  "max": null,
+                  "precision": null,
+                  "mutableOnCxlRpl": false,
+                  "useValue": null,
+                  "defaultValue": null
+                },
+                "listItems": null,
+                "initValue": null,
+                "stateRules": [
+                  {
+                    "effect": "visible",
+                    "targetValue": false,
+                    "targetStringValue": null,
+                    "expression": {
+                      "kind": "compare",
+                      "operator": "==",
+                      "field": "ctrl_algo_type",
+                      "value": "IS",
+                      "children": null
+                    }
+                  }
+                ],
+                "tooltip": "UTC start time for the slice window"
+              },
+              {
+                "kind": "control",
+                "id": "ctrl_pct_complete",
+                "type": "Slider_t",
+                "label": "% Complete",
+                "parameterRef": "PctComplete",
+                "parameter": {
+                  "name": "PctComplete",
+                  "fixTag": 851,
+                  "type": "Percentage_t",
+                  "enumValues": null,
+                  "min": 0,
+                  "max": 1,
+                  "precision": null,
+                  "mutableOnCxlRpl": false,
+                  "useValue": null,
+                  "defaultValue": null
+                },
+                "listItems": null,
+                "initValue": 50,
+                "stateRules": [],
+                "tooltip": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "kind": "panel",
+        "title": "Venue & Features",
+        "border": "None",
+        "orientation": "Vertical",
+        "collapsible": false,
+        "collapsed": false,
+        "children": [
+          {
+            "kind": "control",
+            "id": "ctrl_venues",
+            "type": "MultiSelectList_t",
+            "label": "Venues",
+            "parameterRef": "Venues",
+            "parameter": {
+              "name": "Venues",
+              "fixTag": 852,
+              "type": "MultipleCharValue_t",
+              "enumValues": [
+                { "enumId": "NYSE", "wireValue": "N" },
+                { "enumId": "NASDAQ", "wireValue": "Q" },
+                { "enumId": "BATS", "wireValue": "B" }
+              ],
+              "min": null,
+              "max": null,
+              "precision": null,
+              "mutableOnCxlRpl": false,
+              "useValue": null,
+              "defaultValue": null
+            },
+            "listItems": [
+              { "enumId": "NYSE", "uiRep": "NYSE" },
+              { "enumId": "NASDAQ", "uiRep": "NASDAQ" },
+              { "enumId": "BATS", "uiRep": "BATS" }
+            ],
+            "initValue": null,
+            "stateRules": [],
+            "tooltip": null
+          },
+          {
+            "kind": "control",
+            "id": "ctrl_features",
+            "type": "CheckBoxList_t",
+            "label": "Features",
+            "parameterRef": "Features",
+            "parameter": {
+              "name": "Features",
+              "fixTag": 853,
+              "type": "MultipleCharValue_t",
+              "enumValues": [
+                { "enumId": "DarkPool", "wireValue": "D" },
+                { "enumId": "Iceberg", "wireValue": "I" }
+              ],
+              "min": null,
+              "max": null,
+              "precision": null,
+              "mutableOnCxlRpl": false,
+              "useValue": null,
+              "defaultValue": null
+            },
+            "listItems": [
+              { "enumId": "DarkPool", "uiRep": "Dark Pool" },
+              { "enumId": "Iceberg", "uiRep": "Iceberg" }
+            ],
+            "initValue": null,
+            "stateRules": [],
+            "tooltip": null
+          },
+          {
+            "kind": "control",
+            "id": "ctrl_label",
+            "type": "Label_t",
+            "label": "Strategy parameters above will be included in the FIX order.",
+            "parameterRef": null,
+            "parameter": null,
+            "listItems": null,
+            "initValue": null,
+            "stateRules": [],
+            "tooltip": null
+          },
+          {
+            "kind": "control",
+            "id": "ctrl_edit_side",
+            "type": "EditableDropDownList_t",
+            "label": "Override Side",
+            "parameterRef": "EditSide",
+            "parameter": {
+              "name": "EditSide",
+              "fixTag": 855,
+              "type": "Char_t",
+              "enumValues": [
+                { "enumId": "Buy", "wireValue": "1" },
+                { "enumId": "Sell", "wireValue": "2" }
+              ],
+              "min": null,
+              "max": null,
+              "precision": null,
+              "mutableOnCxlRpl": false,
+              "useValue": null,
+              "defaultValue": null
+            },
+            "listItems": [
+              { "enumId": "Buy", "uiRep": "Buy" },
+              { "enumId": "Sell", "uiRep": "Sell" }
+            ],
+            "initValue": null,
+            "stateRules": [],
+            "tooltip": null
+          }
+        ]
+      }
+    ]
+  }
+}
