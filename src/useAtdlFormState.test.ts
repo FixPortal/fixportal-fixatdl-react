@@ -105,6 +105,21 @@ describe('useAtdlFormState', () => {
     expect(Object.hasOwn(result.current.controlState, id)).toBe(true)
   })
 
+  it('retains input conversion errors for a __proto__ control id', () => {
+    const parameter = makeParam()
+    const strategy = makeStrategy([
+      makeControl({ id: '__proto__', parameter }),
+      makeControl({ id: 'sibling', parameter }),
+    ])
+    const initialValues = Object.assign(Object.create(null), { sibling: 'old' })
+    Object.defineProperty(initialValues, '__proto__', { value: ['old'], enumerable: true, writable: true })
+    const { result } = renderHook(() => useAtdlFormState(strategy, { initialValues }))
+    const circular: unknown[] = []
+    circular.push(circular)
+    act(() => result.current.setValue('__proto__', circular))
+    expect(result.current.controlState['__proto__'].errors.join(' ')).toContain('circular')
+  })
+
   it('allows partial typing beside a linked clock and synchronizes the completed timestamp', () => {
     const parameter = makeParam({ type: 'UTCTimestamp_t' })
     const strategy = makeStrategy([makeControl({ id: 'text', parameter }), makeControl({ id: 'clock', type: 'Clock_t', parameter, localMktTz: 'UTC' })])

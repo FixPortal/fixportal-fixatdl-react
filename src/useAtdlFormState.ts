@@ -66,7 +66,7 @@ export function useAtdlFormState(document: AtdlStrategyDto, options: AtdlFormOpt
     if (!control) return
     const now = clock?.()
     setRuntime(previous => {
-      const inputErrors = { ...previous.inputErrors }
+      const inputErrors: Record<string, string> = Object.assign(Object.create(null), previous.inputErrors)
       delete inputErrors[controlId]
       let normalized: unknown
       try {
