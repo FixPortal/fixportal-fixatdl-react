@@ -28,17 +28,19 @@ verifies that the tag is reachable from `main`, matches `package.json`, passes
 the package gate, and publishes through npm trusted publishing with provenance.
 Do not run `npm publish` manually for a normal release.
 
-## Verify the release
+## Create and verify the release
+
+Create the GitHub release for the tag and use the matching `CHANGELOG.md`
+section as its notes. Confirm the release is not a draft.
 
 ```powershell
 npm view @fix-portal/fixatdl-react version dist-tags --json
-gh release view v0.3.0 --repo FixPortal/fixportal-fixatdl-react
 gh run list --repo FixPortal/fixportal-fixatdl-react --limit 5
+gh release view v0.3.0 --repo FixPortal/fixportal-fixatdl-react
 ```
 
-Create the GitHub release for the tag and use the matching `CHANGELOG.md`
-section as its notes. Confirm the release is not a draft, npm `latest` points
-to the same version, and the workflow reports successful provenance.
+Run the verification commands after creating the release. Confirm npm `latest`
+points to the same version and the workflow reports successful provenance.
 
 ## Release checklist
 
