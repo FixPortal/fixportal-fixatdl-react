@@ -68,7 +68,16 @@ const temporalTypes = new Set(['Clock_t', 'UTCTimeOnly_t', 'UTCTimestamp_t', 'UT
 function equals(left: unknown, right: unknown, type?: string | null): boolean {
   if (isNull(left) || isNull(right)) return isNull(left) && isNull(right)
   if (Array.isArray(left)) {
-    if (Array.isArray(right)) return new Set(left).size === new Set(right).size && left.every(value => right.includes(value))
+    if (Array.isArray(right)) {
+      if (left.length !== right.length) return false
+      const remaining = [...right]
+      return left.every(value => {
+        const index = remaining.indexOf(value)
+        if (index < 0) return false
+        remaining.splice(index, 1)
+        return true
+      })
+    }
     return left.includes(right)
   }
   if (Array.isArray(right)) return right.includes(left)
@@ -76,6 +85,11 @@ function equals(left: unknown, right: unknown, type?: string | null): boolean {
   if (!type && typeof left === 'boolean' && typeof right === 'string') {
     if (['Y', 'TRUE'].includes(right.toUpperCase())) return left
     if (['N', 'FALSE'].includes(right.toUpperCase())) return !left
+  }
+  if (type && temporalTypes.has(type)) {
+    const order = compareTemporal(left, right)
+    if (order === null) throw new InvalidRule()
+    return order === 0
   }
   const order = compareValues(left, right, type)
   return order === null ? Object.is(left, right) : order === 0

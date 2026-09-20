@@ -45,8 +45,6 @@ describe('RadioListControl', () => {
     expect(onChange).toHaveBeenCalledWith('HIGH')
   })
 
-
-
   it('shows the group label', () => {
     render(<RadioListControl control={BASE_CONTROL} value={null} onChange={vi.fn()} state={ENABLED} />)
     expect(screen.getByText('Urgency')).toBeInTheDocument()

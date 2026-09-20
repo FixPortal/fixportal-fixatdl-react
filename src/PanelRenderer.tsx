@@ -191,7 +191,7 @@ function PanelChild({
   // worth explaining. The "why?" chip lets the user cross-highlight its rule rows
   // in the Rules inspector. Only offer it when the control actually carries rules.
   const ruleDisabledOrHidden =
-    (!controlState.enabled || !controlState.visible) && control.stateRules.length > 0
+    (!controlState.enabled || !controlState.visible) && (control.stateRules?.length ?? 0) > 0
   const isHighlighted = highlightedControlId === control.id
 
   return (

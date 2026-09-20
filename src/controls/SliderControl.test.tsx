@@ -93,9 +93,6 @@ describe('SliderControl', () => {
     expect(screen.getByText('42')).toBeInTheDocument()
   })
 
-
-
-
   it('applies error border class to the wrapper when state.errors is non-empty', () => {
     const { container } = render(
       <SliderControl

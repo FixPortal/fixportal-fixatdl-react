@@ -174,7 +174,7 @@
           "type": "Percentage_t",
           "enumValues": null,
           "min": 0,
-          "max": 100,
+          "max": 1,
           "precision": null,
           "mutableOnCxlRpl": true,
           "useValue": null,

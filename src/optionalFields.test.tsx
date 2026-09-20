@@ -32,6 +32,13 @@ describe('optional DTO fields against a realistic backend document', () => {
     expect(ref.current!.isValid()).toBe(true)
   })
 
+  it('keeps the embedded participation bounds in fraction units', () => {
+    const control = strategy.panel.children.find(child => 'id' in child && child.id === 'participation')
+    if (!control || !('parameter' in control) || !control.parameter) throw new Error('Participation control missing')
+    expect(control.parameter.max).toBe(1)
+    expect(strategy.parameters.find(parameter => parameter.name === 'Participation')?.max).toBe(1)
+  })
+
   it('enforces parameter minLength and maxLength through validation', () => {
     const { result } = renderHook(() => useAtdlFormState(strategy))
     act(() => result.current.setValue('account', 'AB'))

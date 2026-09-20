@@ -38,8 +38,6 @@ describe('TextFieldControl', () => {
     expect(screen.getByRole('textbox')).toHaveValue('VWAP')
   })
 
-
-
   it('shows required asterisk when state.required is true', () => {
     render(
       <TextFieldControl

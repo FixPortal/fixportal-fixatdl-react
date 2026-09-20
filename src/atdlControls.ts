@@ -48,11 +48,12 @@ export function mapControlValuesToParameters(
   controlValues: Record<string, unknown>,
 ): Record<string, unknown> {
   const out: Record<string, unknown> = Object.create(null)
-  for (const control of flattenControls(strategy)) {
+  const controls = flattenControls(strategy)
+  for (const control of controls) {
     const paramName = control.parameterRef ?? control.parameter?.name
     if (paramName == null) continue
     if (Object.prototype.hasOwnProperty.call(controlValues, control.id)) {
-      const source = parameterValueSource(strategy, controlValues, control)
+      const source = parameterValueSource(strategy, controlValues, control, controls)
       const value = controlParameterValue(source, controlValues[source.id])
       // An unmapped unchecked radio contributes no parameter value; its selected
       // sibling supplies it regardless of their document order.
@@ -63,10 +64,10 @@ export function mapControlValuesToParameters(
   return out
 }
 
-export function parameterValueSource(strategy: AtdlStrategyDto, values: Record<string, unknown>, control: AtdlControlDto): AtdlControlDto {
+export function parameterValueSource(strategy: AtdlStrategyDto, values: Record<string, unknown>, control: AtdlControlDto, controls = flattenControls(strategy)): AtdlControlDto {
   if (control.type !== 'RadioButton_t' || !control.radioGroup) return control
   const name = control.parameterRef ?? control.parameter?.name
-  return flattenControls(strategy).find(candidate => candidate.type === 'RadioButton_t' &&
+  return controls.find(candidate => candidate.type === 'RadioButton_t' &&
     candidate.radioGroup === control.radioGroup && (candidate.parameterRef ?? candidate.parameter?.name) === name && values[candidate.id] === true) ?? control
 }
 

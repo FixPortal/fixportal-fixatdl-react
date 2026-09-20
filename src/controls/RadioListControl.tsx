@@ -1,6 +1,6 @@
 import { useId } from 'react'
 import type { ControlProps } from './controlRegistry'
-import type { AtdlListItemDto, AtdlEnumPairDto } from '../types'
+import { listOptionsFor } from './listOptions'
 
 /**
  * Renders FIXatdl RadioButtonList_t and RadioButton_t as a group of radio
@@ -12,23 +12,7 @@ export function RadioListControl({ control, value, onChange, state }: ControlPro
 
   const hasError = state.errors.length > 0
 
-  // WHY: same normalisation as DropDownControl - unify listItems and
-  // parameter.enumValues into one shape before rendering.
-  const options: { enumId: string; label: string }[] = (() => {
-    if (control.listItems && control.listItems.length > 0) {
-      return (control.listItems as AtdlListItemDto[]).map((item) => ({
-        enumId: item.enumId,
-        label: item.uiRep ?? item.enumId,
-      }))
-    }
-    if (control.parameter?.enumValues && control.parameter.enumValues.length > 0) {
-      return (control.parameter.enumValues as AtdlEnumPairDto[]).map((ev) => ({
-        enumId: ev.enumId,
-        label: ev.enumId,
-      }))
-    }
-    return []
-  })()
+  const options = listOptionsFor(control)
 
   return (
     <div className="space-y-1">

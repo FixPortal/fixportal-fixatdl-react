@@ -42,6 +42,4 @@ describe('CheckBoxListControl', () => {
     expect(onChange).toHaveBeenCalledWith(['OPT_A'])
   })
 
-
-
 })

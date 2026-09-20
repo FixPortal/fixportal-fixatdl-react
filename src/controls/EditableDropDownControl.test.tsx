@@ -55,9 +55,6 @@ describe('EditableDropDownControl', () => {
     expect(onChange).toHaveBeenCalledWith('VWAP')
   })
 
-
-
-
   it('applies error border class when state.errors is non-empty', () => {
     render(
       <EditableDropDownControl

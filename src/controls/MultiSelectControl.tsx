@@ -1,6 +1,6 @@
 import { useId } from 'react'
 import type { ControlProps } from './controlRegistry'
-import type { AtdlListItemDto, AtdlEnumPairDto } from '../types'
+import { listOptionsFor } from './listOptions'
 
 /**
  * Renders FIXatdl MultiSelectList_t (and, via re-export, CheckBoxList_t) as an
@@ -17,23 +17,7 @@ export function MultiSelectControl({ control, value, onChange, state }: ControlP
 
   const hasError = state.errors.length > 0
 
-  // WHY: normalise both source shapes into a unified list so the render loop
-  // is source-agnostic - mirrors DropDownControl's fallback strategy.
-  const items: { enumId: string; uiRep: string }[] = (() => {
-    if (control.listItems && control.listItems.length > 0) {
-      return (control.listItems as AtdlListItemDto[]).map((item) => ({
-        enumId: item.enumId,
-        uiRep: item.uiRep ?? item.enumId,
-      }))
-    }
-    if (control.parameter?.enumValues && control.parameter.enumValues.length > 0) {
-      return (control.parameter.enumValues as AtdlEnumPairDto[]).map((ev) => ({
-        enumId: ev.enumId,
-        uiRep: ev.enumId,
-      }))
-    }
-    return []
-  })()
+  const items = listOptionsFor(control)
 
   const selected: string[] = Array.isArray(value) ? (value as string[]) : []
   // Set, not repeated Array.includes: the membership test runs once per item.
@@ -51,9 +35,8 @@ export function MultiSelectControl({ control, value, onChange, state }: ControlP
           )}
         </span>
       )}
-      {/* WHY: role="group" + aria-label gives assistive technology a named
-          boundary for the checkbox cluster, matching ARIA checkbox group best
-          practice without requiring a <fieldset>/<legend> layout.
+      {/* WHY: the fieldset gives assistive technology a named boundary for the
+          checkbox cluster, matching ARIA checkbox group best practice.
           WHY "(Required)" in the name rather than aria-required, unlike
           RadioListControl: aria-required is not a supported attribute of role
           "group" (ARIA 1.2 lists it for combobox, gridcell, listbox, radiogroup,
@@ -84,7 +67,7 @@ export function MultiSelectControl({ control, value, onChange, state }: ControlP
                 }}
                 className="accent-brand disabled:opacity-50 disabled:cursor-not-allowed"
               />
-              {item.uiRep}
+              {item.label}
             </label>
           )
         })}

@@ -108,8 +108,8 @@ function validateExternalValues(input: Record<string, unknown> = {}) {
 }
 
 function seedValues(strategy: AtdlStrategyDto, options: AtdlFormOptions) {
-  const seeded: Record<string, unknown> = {}
-  const errors: Record<string, string> = {}
+  const seeded: Record<string, unknown> = Object.create(null)
+  const errors: Record<string, string> = Object.create(null)
   const now = options.clock?.()
   const controls = flattenControls(strategy)
   for (const control of controls) {
@@ -180,7 +180,7 @@ function normalizeSeed(control: AtdlControlDto, value: unknown, fromWire: boolea
 }
 
 function deriveControlState(strategy: AtdlStrategyDto, values: Record<string, unknown>, readonlyIds: Set<string>, externalValues: Record<string, unknown> = {}): Record<string, ControlFormState> {
-  const result: Record<string, ControlFormState> = {}
+  const result: Record<string, ControlFormState> = Object.create(null)
   const ruleValues = { ...externalValues, ...controlValuesForRules(strategy, values) }
   // Hoisted: flattenControls is a full recursive panel walk and this derive runs on every value
   // change, so calling it inside the loop below made the derive O(n^2) in control count. seedValues
@@ -188,7 +188,7 @@ function deriveControlState(strategy: AtdlStrategyDto, values: Record<string, un
   const controls = flattenControls(strategy)
   for (const control of controls) {
     const state = { enabled: true, visible: true, required: control.parameter?.useValue === 'required', errors: [] as string[] }
-    for (const rule of control.stateRules) {
+    for (const rule of control.stateRules ?? []) {
       // False conditions apply the inverse enabled/visible attribute, including at initialization.
       const active = tryEvaluateStateRule(rule.expression as StateRuleAstNode, ruleValues)
       if (active === null) { state.errors.push('Invalid or unsupported state rule.'); continue }
@@ -196,8 +196,9 @@ function deriveControlState(strategy: AtdlStrategyDto, values: Record<string, un
       if (rule.effect === 'visible') state.visible = active ? rule.targetValue : !rule.targetValue
     }
     if (readonlyIds.has(control.id) || isLockedRadio(control, controls, values, readonlyIds)) state.enabled = false
-    const source = parameterValueSource(strategy, values, control)
-    state.errors.push(...validateControl(source, values[source.id], state.required))
+    const source = parameterValueSource(strategy, values, control, controls)
+    const selectedRadio = control.type === 'RadioButton_t' && source.id !== control.id
+    if (!selectedRadio) state.errors.push(...validateControl(source, values[source.id], state.required))
     if (!Object.hasOwn(controlRegistry, control.type)) state.errors.push(`Unsupported control type: ${control.type}`)
     result[control.id] = state
   }
@@ -233,7 +234,7 @@ function validateStrategy(strategy: AtdlStrategyDto, values: Record<string, unkn
     } else if (Array.isArray(node.children)) node.children.forEach(child => collectMissing(child, depth + 1))
   }
   for (const edit of strategy.strategyEdits ?? []) collectMissing(edit.expression as StateRuleAstNode)
-  for (const control of flattenControls(strategy)) for (const rule of control.stateRules) collectMissing(rule.expression as StateRuleAstNode)
+  for (const control of flattenControls(strategy)) for (const rule of control.stateRules ?? []) collectMissing(rule.expression as StateRuleAstNode)
   for (const field of missing) errors.push(`The host must supply ${field} for rule evaluation.`)
   return errors
 }

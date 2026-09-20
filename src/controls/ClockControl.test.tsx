@@ -54,9 +54,6 @@ describe('ClockControl', () => {
     expect(value.instant).toBe('20261025-01:30:00.1234567')
   })
 
-
-
-
   it('applies error border class when state.errors is non-empty', () => {
     render(
       <ClockControl

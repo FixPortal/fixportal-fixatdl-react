@@ -45,8 +45,6 @@ describe('CheckBoxControl', () => {
     expect(onChange).toHaveBeenCalledWith(false)
   })
 
-
-
   it('displays the label text', () => {
     render(<CheckBoxControl control={BASE_CONTROL} value={false} onChange={vi.fn()} state={ENABLED} />)
     expect(screen.getByText('Enable dark pool')).toBeInTheDocument()

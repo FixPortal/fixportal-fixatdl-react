@@ -74,7 +74,6 @@ it.each([false, true])('fails closed for an unknown node kind, nested under NOT:
   expect(evaluateStateRule(node, {})).toBe(false)
 })
 
-
 it.each(['Data_t', 'data_t', 'Tenor_t', 'MonthYear_t', 'TZTimeOnly_t', 'TZTimestamp_t'])('reports invalid typed comparisons under NOT: %s', comparisonType => {
   const expression: StateRuleAstNode = { kind: 'not', children: [{ kind: 'compare', operator: '==', field: 'a', value: 'invalid', comparisonType }] }
   expect(tryEvaluateStateRule(expression, { a: 'invalid' })).toBeNull()
@@ -84,4 +83,16 @@ it.each(['Data_t', 'data_t', 'Tenor_t', 'MonthYear_t', 'TZTimeOnly_t', 'TZTimest
 it('distinguishes a valid false rule from a malformed rule', () => {
   expect(tryEvaluateStateRule({ kind: 'compare', operator: '==', field: 'a', value: 1 }, { a: 2 })).toBe(false)
   expect(tryEvaluateStateRule({ kind: 'compare', operator: 'bogus', field: 'a', value: 1 } as unknown as StateRuleAstNode, { a: 2 })).toBeNull()
+})
+
+it('does not treat duplicate array values as equal', () => {
+  const expression: StateRuleAstNode = { kind: 'compare', operator: '==', field: 'a', value: ['A'] }
+  expect(evaluateStateRule(expression, { a: ['A', 'A'] })).toBe(false)
+})
+
+it('reports invalid UTC temporal equality instead of comparing raw strings', () => {
+  const expression: StateRuleAstNode = {
+    kind: 'compare', operator: '==', field: 'a', value: '2026-99-99-12:00:00', comparisonType: 'UTCTimestamp_t',
+  }
+  expect(tryEvaluateStateRule(expression, { a: '2026-99-99-12:00:00' })).toBeNull()
 })

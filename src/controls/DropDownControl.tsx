@@ -1,6 +1,6 @@
 import { useId } from 'react'
 import type { ControlProps } from './controlRegistry'
-import type { AtdlListItemDto, AtdlEnumPairDto } from '../types'
+import { listOptionsFor } from './listOptions'
 
 /**
  * Renders FIXatdl DropDownList_t and SingleSelectList_t as a <select>.
@@ -17,23 +17,7 @@ export function DropDownControl({ control, value, onChange, state }: ControlProp
 
   const hasError = state.errors.length > 0
 
-  // WHY: normalise both source shapes into a unified {enumId, label} list
-  // so the render loop is source-agnostic.
-  const options: { enumId: string; label: string }[] = (() => {
-    if (control.listItems && control.listItems.length > 0) {
-      return (control.listItems as AtdlListItemDto[]).map((item) => ({
-        enumId: item.enumId,
-        label: item.uiRep ?? item.enumId,
-      }))
-    }
-    if (control.parameter?.enumValues && control.parameter.enumValues.length > 0) {
-      return (control.parameter.enumValues as AtdlEnumPairDto[]).map((ev) => ({
-        enumId: ev.enumId,
-        label: ev.enumId,
-      }))
-    }
-    return []
-  })()
+  const options = listOptionsFor(control)
 
   const baseSelect =
     'w-full rounded border px-2 py-1 text-sm bg-card text-text focus:outline-none focus:ring-2'

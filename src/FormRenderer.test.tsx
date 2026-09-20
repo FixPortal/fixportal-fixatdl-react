@@ -238,12 +238,11 @@ describe('FormRenderer', () => {
     expect(screen.getByLabelText('Strategy Name')).toHaveValue(initialValue)
     expect(screen.getByLabelText('Strategy Name')).not.toBe(input)
   })
+  it('isolates DOM identities and radio groups between simultaneous editors', () => {
+    const { container } = render(<><FormRenderer strategy={strategy} /><FormRenderer strategy={strategy} /></>)
+    const ids = [...container.querySelectorAll('[id]')].map(element => element.id)
+    expect(new Set(ids).size).toBe(ids.length)
+    const groups = screen.getAllByRole('radiogroup', { name: 'Algorithm' })
+    expect(groups[0].querySelector('input')?.name).not.toBe(groups[1].querySelector('input')?.name)
+  })
 })
-
- it('isolates DOM identities and radio groups between simultaneous editors', () => {
-  const { container } = render(<><FormRenderer strategy={strategy} /><FormRenderer strategy={strategy} /></>)
-  const ids = [...container.querySelectorAll('[id]')].map(element => element.id)
-  expect(new Set(ids).size).toBe(ids.length)
-  const groups = screen.getAllByRole('radiogroup', { name: 'Algorithm' })
-  expect(groups[0].querySelector('input')?.name).not.toBe(groups[1].querySelector('input')?.name)
- })

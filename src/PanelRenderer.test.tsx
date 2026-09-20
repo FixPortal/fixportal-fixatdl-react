@@ -38,6 +38,15 @@ const panel = {
 const enabled = { price: { enabled: true, visible: true, required: false, errors: [] } }
 const disabled = { price: { enabled: false, visible: true, required: false, errors: [] } }
 
+const radioPanel = {
+  ...panel,
+  children: [{
+    kind: 'control', id: 'side', type: 'RadioButton_t', label: 'Buy', parameterRef: null,
+    parameter: null, listItems: null, initValue: false, tooltip: null, radioGroup: 'side', stateRules: [],
+    checkedEnumRef: 'buy', uncheckedEnumRef: 'sell',
+  }],
+} as unknown as AtdlPanelDto
+
 describe('PanelRenderer why? chip', () => {
   it('keeps explanation buttons from submitting a host form through text attributes', () => {
     const submit = vi.fn((event: { preventDefault(): void }) => event.preventDefault())
@@ -75,5 +84,15 @@ describe('PanelRenderer why? chip', () => {
       />,
     )
     expect(screen.queryByRole('button', { name: /why\?/i })).not.toBeInTheDocument()
+  })
+
+  it('scopes individual radio controls between simultaneous editors', () => {
+    const { container } = render(<><PanelRenderer panel={radioPanel} values={{ side: false }} setValue={() => {}}
+      state={{ side: { enabled: true, visible: true, required: false, errors: [] } }} highlightedControlId={null} />
+      <PanelRenderer panel={radioPanel} values={{ side: false }} setValue={() => {}}
+        state={{ side: { enabled: true, visible: true, required: false, errors: [] } }} highlightedControlId={null} /></>)
+    const radios = [...container.querySelectorAll('input[type="radio"]')]
+    expect(radios).toHaveLength(2)
+    expect(radios[0].getAttribute('name')).not.toBe(radios[1].getAttribute('name'))
   })
 })
