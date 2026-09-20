@@ -20,13 +20,12 @@
       font-family: var(--font-sans);
       background: var(--color-paper);
       color: var(--color-ink);
-      min-height: 100vh;
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       justify-content: center;
-      padding: 3rem 2rem;
+      padding: 1.5rem 2rem;
     }
-    .frame { max-width: 1200px; width: 100%; }
+    .frame { max-width: 1440px; width: 100%; }
     .eyebrow {
       font-family: var(--font-mono);
       font-size: 0.66rem;
@@ -53,7 +52,7 @@
     <p class="eyebrow">Data flow · @fix-portal/fixatdl-react</p>
     <h1>From broker XML to a rendered form</h1>
 
-    <svg viewBox="0 0 960 600" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="reactflow-title reactflow-desc">
+    <svg viewBox="0 72 960 476" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="reactflow-title reactflow-desc">
       <title id="reactflow-title">From broker XML to a rendered form</title>
       <desc id="reactflow-desc">On the server the core .NET library parses broker FIXatdl XML into Strategy_t, which host-owned backend mapping code turns into the AtdlStrategyDto JSON contract; the @fix-portal/fixatdl-react package renders that DTO as a form and previews the 957 to 960 tags. This package never parses XML.</desc>
       <defs>
