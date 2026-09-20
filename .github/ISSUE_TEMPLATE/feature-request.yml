@@ -1,0 +1,39 @@
+name: Feature request
+description: Propose a consumer-facing improvement.
+title: "feat: "
+labels:
+  - enhancement
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: User problem
+      description: What are you trying to accomplish, and who needs it?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behavior or API
+      description: Describe the smallest useful change and show an example where possible.
+    validations:
+      required: true
+  - type: input
+    id: fixatdl-version
+    attributes:
+      label: FIXatdl version
+      placeholder: FIXatdl 1.1 with December 2010 errata
+  - type: textarea
+    id: boundary
+    attributes:
+      label: Host boundary impact
+      description: Explain whether this belongs in the browser package, host mapper, or authoritative backend.
+    validations:
+      required: true
+  - type: checkboxes
+    id: contract
+    attributes:
+      label: Compatibility
+      options:
+        - label: I have considered whether this changes the public DTO or API contract.
+          required: true
