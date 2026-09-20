@@ -22,3 +22,10 @@ Releases are made from a merged `main` commit: update `package.json` and
 `CHANGELOG.md`, open the release PR, create the matching `v<version>` tag after
 merge, verify the npm package and provenance result, and create the GitHub
 release from that tag. See [docs/releasing.md](docs/releasing.md).
+
+## Maintenance checklist
+
+- Review Dependabot updates and keep the Node/npm support floor deliberate.
+- Check FIXatdl/core compatibility and shared conformance-corpus drift.
+- Run the package, workbench, and browser smoke checks before releases.
+- Verify the release tag, npm provenance, npm `latest`, and GitHub release agree.

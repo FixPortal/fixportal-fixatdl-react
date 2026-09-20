@@ -12,6 +12,7 @@ const types = {
   '.svg': 'image/svg+xml',
 }
 
+/** Resolve a browser request inside the built workbench directory. */
 export function resolveStaticFile(dist, pathname) {
   let decoded
   try {
@@ -25,6 +26,7 @@ export function resolveStaticFile(dist, pathname) {
   return file === dist || file.startsWith(dist + sep) ? file : null
 }
 
+/** Create the minimal static server used by the consumer smoke. */
 function createStaticServer(dist) {
   const server = createServer((request, response) => {
     const url = new URL(request.url ?? '/', 'http://localhost')
@@ -43,6 +45,7 @@ function createStaticServer(dist) {
   return server
 }
 
+/** Render the built workbench and exercise one valid and invalid edit. */
 export async function runBrowserSmoke() {
   const root = fileURLToPath(new URL('../', import.meta.url))
   const appDist = join(root, 'examples', 'workbench', 'dist')
@@ -64,6 +67,7 @@ export async function runBrowserSmoke() {
   }
 }
 
+/** Assert the representative workbench rendering, preview, and error state. */
 async function expectWorkbench(page) {
   await page.getByRole('heading', { name: 'Participate', level: 1 }).waitFor()
   const rate = page.getByRole('spinbutton', { name: 'Participation rate %' })
