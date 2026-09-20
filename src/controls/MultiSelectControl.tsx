@@ -59,11 +59,10 @@ export function MultiSelectControl({ control, value, onChange, state }: ControlP
           "group" (ARIA 1.2 lists it for combobox, gridcell, listbox, radiogroup,
           spinbutton, textbox and tree). RadioListControl can use it because its
           element is a radiogroup. Folding the state into the accessible name is
-          the group equivalent. aria-invalid IS valid here and was missing, so
-          error state now surfaces the same way the radio group's does. */}
+          the group equivalent. aria-invalid belongs on the child checkboxes,
+          where the role supports it, rather than on this group. */}
       <fieldset
         aria-label={`${control.label ?? control.id}${state.required ? ' (Required)' : ''}`}
-        aria-invalid={hasError}
         aria-describedby={hasError ? `${inputId}-errors` : undefined}
         className={`space-y-1 rounded border px-2 py-1 min-w-0 ${borderClass}`}
       >
@@ -76,6 +75,7 @@ export function MultiSelectControl({ control, value, onChange, state }: ControlP
                 checked={checked}
                 disabled={!state.enabled}
                 aria-disabled={!state.enabled}
+                aria-invalid={hasError}
                 onChange={(e) => {
                   const next = e.target.checked
                     ? [...selected, item.enumId]

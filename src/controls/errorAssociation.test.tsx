@@ -11,7 +11,6 @@ it.each(['CheckBox_t', 'Clock_t', 'EditableDropDownList_t', 'Slider_t'])('%s ass
   render(<><Component control={control} value={undefined} onChange={() => {}} state={state} />
     <Component control={control} value={undefined} onChange={() => {}} state={{ ...state, errors: ['Second error'] }} /></>)
   const inputs = screen.getAllByLabelText('Value')
-  const prefix = type === 'Slider_t' ? 'Not selected ' : ''
-  expect(inputs[0]).toHaveAccessibleDescription(`${prefix}First error`)
-  expect(inputs[1]).toHaveAccessibleDescription(`${prefix}Second error`)
+  expect(inputs[0]).toHaveAccessibleDescription('First error')
+  expect(inputs[1]).toHaveAccessibleDescription('Second error')
 })

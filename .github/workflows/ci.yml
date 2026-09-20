@@ -63,6 +63,10 @@ jobs:
           if (!entryUrl.endsWith('/dist/index.js')) {
             throw new Error(`exports map resolved to an unexpected entry: ${entryUrl}`)
           }
+          const cssUrl = import.meta.resolve('@fix-portal/fixatdl-react/styles.css')
+          if (!existsSync(fileURLToPath(cssUrl))) {
+            throw new Error(`styles.css export did not resolve: ${cssUrl}`)
+          }
           const manifest = JSON.parse(readFileSync(new URL('package.json', pkgRoot), 'utf8'))
           const typesPath = manifest.exports?.['.']?.types ?? manifest.types
           if (!typesPath || !existsSync(new URL(typesPath, pkgRoot))) {

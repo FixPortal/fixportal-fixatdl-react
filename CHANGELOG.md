@@ -69,8 +69,9 @@ sees.
 - `deriveControlState` called `flattenControls` inside its per-control loop, a
   full recursive panel walk per control on every value change. Hoisted, matching
   what `seedValues` and `setValue` already did.
-- The multi-select and checkbox-list group exposed no `aria-invalid`, so error
-  state never reached assistive technology the way the radio group's does.
+- The multi-select and checkbox-list now expose `aria-invalid` on each checkbox,
+  where the role supports it, rather than on their `group` wrapper. Error state
+  therefore reaches assistive technology without relying on deprecated group usage.
   (`aria-required` is deliberately not used there: it is not a supported
   attribute of role `group`, which is why the required state is folded into the
   accessible name instead.)

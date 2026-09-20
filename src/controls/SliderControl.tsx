@@ -65,7 +65,7 @@ export function SliderControl({ control, value, onChange, state }: ControlProps)
           aria-label={control.label ?? control.id}
           aria-invalid={hasError}
           aria-required={state.required}
-          aria-describedby={[unset ? `${inputId}-unset` : '', hasError ? errorId : ''].filter(Boolean).join(' ') || undefined}
+          aria-describedby={hasError ? errorId : undefined}
           aria-valuetext={unset ? 'Not selected' : discrete ? String(display) : undefined}
           title={control.tooltip ?? undefined}
           className="flex-1 accent-brand disabled:opacity-50 disabled:cursor-not-allowed"
