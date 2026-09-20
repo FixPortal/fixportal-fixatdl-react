@@ -43,7 +43,7 @@ npm install @fix-portal/fixatdl-react
 React and React DOM 19.2+ are peer dependencies. Consumers need Node 22+.
 Maintainers and CI use Node 24 / npm 11.
 
-![From broker XML to a rendered form: the core .NET library parses the XML on the server, host-owned backend mapping code turns Strategy_t into the AtdlStrategyDto JSON contract, and the @fix-portal/fixatdl-react package renders it and previews the 957-960 tags](https://raw.githubusercontent.com/FixPortal/fixportal-fixatdl-react/main/docs/images/strategy-dataflow.png)
+![From broker XML to a rendered form: the core .NET library parses the XML on the server, host-owned backend mapping code turns Strategy_t into the AtdlStrategyDto JSON contract, and the @fix-portal/fixatdl-react package renders it and emits 957-960 tag tuples](https://raw.githubusercontent.com/FixPortal/fixportal-fixatdl-react/main/docs/images/strategy-dataflow.png)
 
 ## Read these first
 
