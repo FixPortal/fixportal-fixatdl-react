@@ -10,7 +10,7 @@ import { defineConfig, globalIgnores } from 'eslint/config'
 //   ...fpDesignConfigs(),
 
 export default defineConfig([
-  globalIgnores(['dist', 'coverage']),
+  globalIgnores(['.claude/**', 'dist', 'coverage']),
   {
     files: ['**/*.{ts,tsx}'],
     extends: [
