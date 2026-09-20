@@ -1,6 +1,6 @@
 # API reference — `@fix-portal/fixatdl-react`
 
-> Every public export of `@fix-portal/fixatdl-react` (package 0.2.x), exactly
+> Every public export of `@fix-portal/fixatdl-react` (package 0.3.x), exactly
 > as re-exported from `src/index.ts`. Walkthroughs stay in the
 > [README](../README.md); how to produce the DTO is in
 > [getting-a-strategy.md](getting-a-strategy.md). This page is the

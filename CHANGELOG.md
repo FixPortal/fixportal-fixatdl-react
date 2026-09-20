@@ -97,3 +97,8 @@ sees.
 First public release of the extracted package. React FIXatdl strategy forms:
 `FormRenderer`, `PanelRenderer`, the `useAtdlFormState` hook, the 15-control
 registry, state-rule evaluation and the StrategyParametersGrp preview emitter.
+
+[Unreleased]: https://github.com/FixPortal/fixportal-fixatdl-react/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/FixPortal/fixportal-fixatdl-react/compare/v0.2.1...v0.3.0
+[0.2.1]: https://github.com/FixPortal/fixportal-fixatdl-react/compare/v0.2.0...v0.2.1
+[0.2.0]: https://github.com/FixPortal/fixportal-fixatdl-react/releases/tag/v0.2.0

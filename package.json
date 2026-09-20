@@ -63,6 +63,8 @@
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
+    "docs:check": "node scripts/assert-docs.mjs",
+    "browser:smoke": "node scripts/browser-smoke.mjs",
     "lint": "eslint .",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
