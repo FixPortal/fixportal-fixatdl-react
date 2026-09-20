@@ -1127,7 +1127,7 @@ def ends_non_zero(body):
     return any(form.fullmatch(segments[-1]) for form in ACCEPTED_FAILING_FORMS)
 
 
-def step_can_fail(block, span, key_indent):
+def step_can_fail(block, span, key_indent, inherited_shell="bash"):
     """(ok, reason) for the step spanning `span`: can it actually fail its job?
 
     A condition proves only that the aggregation step is REACHED. `continue-on-error:
@@ -1161,7 +1161,7 @@ def step_can_fail(block, span, key_indent):
         if normalise_condition(value) not in ("false", ""):
             return False, "carries `continue-on-error`, so it cannot fail the job"
 
-    shell = "bash"
+    shell = inherited_shell
     shell_key = step_key_pattern(key_indent, "shell")
     for i in range(start, end):
         match = shell_key.match(block[i])
@@ -1290,6 +1290,80 @@ def step_conditions(block, indent):
         index += 1
 
 
+_UNRESOLVED = object()
+
+
+def mapping_scalar(lines, start, end, indent, key):
+    """Return one scalar mapping value, or None when it is absent/unresolvable."""
+    pattern = key_pattern(indent, key)
+    for index in range(start, end):
+        match = pattern.match(lines[index].rstrip("\r\n"))
+        if not match:
+            continue
+        value = strip_inline_comment(match.group(1)).strip()
+        if not value or BLOCK_SCALAR.match(value):
+            return _UNRESOLVED
+        return decode_yaml_scalar(value).strip()
+    return None
+
+
+def inherited_run_shell(lines, jobs, job_id, job_indent):
+    """Resolve the gate job's effective workflow/job `defaults.run.shell`."""
+    workflow_defaults = None
+    for index, line in enumerate(lines):
+        if line.strip().startswith("#") or not line.strip():
+            continue
+        if len(line) - len(line.lstrip(" ")) != 0:
+            continue
+        if not re.match(r"^(?:'defaults'|\"defaults\"|defaults)\s*:", line.rstrip("\r\n")):
+            continue
+        end = jobs[min(jobs, key=jobs.get)] if jobs else len(lines)
+        defaults_indent = mapping_indent(lines, index + 1, end)
+        if defaults_indent is None:
+            continue
+        run_indent = defaults_indent
+        run_start = next(
+            (i for i in range(index + 1, end)
+             if key_pattern(run_indent, "run").match(lines[i].rstrip("\r\n"))),
+            None,
+        )
+        if run_start is not None:
+            run_body_indent = mapping_indent(lines, run_start + 1, end)
+            if run_body_indent is not None:
+                workflow_defaults = mapping_scalar(
+                    lines, run_start + 1, end, run_body_indent, "shell"
+                )
+        break
+
+    job_block_start = jobs[job_id] + 1
+    job_block_end = min((i for i in sorted(jobs.values()) if i > jobs[job_id]), default=len(lines))
+    job_body = job_body_indent(lines, jobs, job_id, job_indent)
+    if job_body is not None:
+        defaults_index = next(
+            (i for i in range(job_block_start, job_block_end)
+             if key_pattern(job_body, "defaults").match(lines[i].rstrip("\r\n"))),
+            None,
+        )
+        if defaults_index is not None:
+            run_indent = mapping_indent(lines, defaults_index + 1, job_block_end)
+            if run_indent is not None:
+                run_start = next(
+                    (i for i in range(defaults_index + 1, job_block_end)
+                     if key_pattern(run_indent, "run").match(lines[i].rstrip("\r\n"))),
+                    None,
+                )
+                if run_start is not None:
+                    shell_indent = mapping_indent(lines, run_start + 1, job_block_end)
+                    if shell_indent is not None:
+                        job_shell = mapping_scalar(
+                            lines, run_start + 1, job_block_end, shell_indent, "shell"
+                        )
+                        if job_shell is not None:
+                            return job_shell
+
+    return "bash" if workflow_defaults is None else workflow_defaults
+
+
 def assert_gate_semantics(workflow_path, lines, jobs, gate_job, needs):
     block = job_block(lines, jobs, gate_job)
     gate_line = lines[jobs[gate_job]]
@@ -1347,6 +1421,7 @@ def assert_gate_semantics(workflow_path, lines, jobs, gate_job, needs):
     # instead of printing this script's own diagnostic. A crash is a worse signal than a
     # clean fail-closed exit. Found by CodeRabbit on the upstream review.
     step_indent = body_indent + 1
+    inherited_shell = inherited_run_shell(lines, jobs, gate_job, job_indent)
 
     referenced = {}
     failing = []
@@ -1421,7 +1496,7 @@ def assert_gate_semantics(workflow_path, lines, jobs, gate_job, needs):
         span = step_span(block, index, len(match.group(1)))
         if span is None:
             continue
-        ok, reason = step_can_fail(block, span, len(match.group(1)))
+        ok, reason = step_can_fail(block, span, len(match.group(1)), inherited_shell)
         if not ok:
             continue
         for job_id, outcomes in coverage:
@@ -1549,7 +1624,11 @@ def delegated_run_bodies(root, ref, visited):
         return
     visited.add(key)
     lines = target.read_text(encoding="utf-8").splitlines()
-    using = re.search(r"^\s+using:\s*['\"]?([^\s#'\"]+)", "\n".join(lines), re.MULTILINE)
+    using = re.search(
+        r"^\s+(?:'using'|\"using\"|using)\s*:\s*['\"]?([^\s#'\"]+)",
+        "\n".join(lines),
+        re.MULTILINE,
+    )
     if using and using.group(1) != "composite":
         raise ValueError(
             f"{target}: local action uses runs.using {using.group(1)}; "
