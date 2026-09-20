@@ -25,7 +25,6 @@ export function parseTemporal(value: unknown): { date: string | null; time: stri
   return { date, time: `${time[1]}:${time[2]}:${time[3] ?? '00'}.${(time[4] ?? '').padEnd(7, '0')}` }
 }
 
-
 /** Tenor ordering follows core's nominal day magnitudes for different units. */
 export function compareTenor(left: unknown, right: unknown): number | null {
   const a = parseTenor(left)

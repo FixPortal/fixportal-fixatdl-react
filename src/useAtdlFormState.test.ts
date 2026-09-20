@@ -85,6 +85,26 @@ describe('useAtdlFormState', () => {
     expect(result.current.values).toEqual({ a: false, b: true })
   })
 
+  it('reports a selected radio error only on the selected sibling', () => {
+    const parameter = makeParam({ enumValues: [{ enumId: 'buy', wireValue: '1' }] })
+    const strategy = makeStrategy([
+      makeControl({ id: 'buy', type: 'RadioButton_t', radioGroup: 'side', checkedEnumRef: 'buy', parameter }),
+      makeControl({ id: 'sell', type: 'RadioButton_t', radioGroup: 'side', checkedEnumRef: 'sell', parameter }),
+    ])
+    const { result } = renderHook(() => useAtdlFormState(strategy))
+    act(() => result.current.setValue('sell', true))
+    expect(result.current.controlState.sell.errors).toContain('Must be a declared enumeration value.')
+    expect(result.current.controlState.buy.errors).toEqual([])
+  })
+
+  it.each(['__proto__', 'constructor'])('keeps control state safe for the reserved id %s', id => {
+    const strategy = makeStrategy([makeControl({ id, initValue: 'safe' })])
+    const { result } = renderHook(() => useAtdlFormState(strategy))
+    expect(Object.hasOwn(result.current.values, id)).toBe(true)
+    expect(result.current.values[id]).toBe('safe')
+    expect(Object.hasOwn(result.current.controlState, id)).toBe(true)
+  })
+
   it('allows partial typing beside a linked clock and synchronizes the completed timestamp', () => {
     const parameter = makeParam({ type: 'UTCTimestamp_t' })
     const strategy = makeStrategy([makeControl({ id: 'text', parameter }), makeControl({ id: 'clock', type: 'Clock_t', parameter, localMktTz: 'UTC' })])
@@ -401,11 +421,15 @@ describe('useAtdlFormState', () => {
   })
 })
 
-it.each([1.5, Number.NaN, Number.POSITIVE_INFINITY])('rejects invalid integer value %s from a control', value => {
+it.each([
+  [1.5, 'Must be a whole number.'],
+  [Number.NaN, 'Must be a finite number.'],
+  [Number.POSITIVE_INFINITY, 'Must be a finite number.'],
+] as const)('rejects invalid integer value %s from a control', (value, expectedError) => {
   const control = makeControl({ parameter: makeParam({ type: 'Int_t' }) })
   const { result } = renderHook(() => useAtdlFormState(makeStrategy([control])))
   act(() => result.current.setValue('ctrl1', value))
-  expect(result.current.controlState.ctrl1.errors.length).toBeGreaterThan(0)
+  expect(result.current.controlState.ctrl1.errors).toContain(expectedError)
 })
 
 it('accepts finite numeric prices whose string representation uses an exponent', () => {
@@ -634,7 +658,7 @@ it('resets hook state when the strategy document changes', () => {
   expect(result.current.values.ctrl1).toBe('second')
 })
 
-it('refreshes defaults, rules and amendment locks after in-place strategy edits', () => {
+it('refreshes amendment defaults and visibility after in-place strategy edits', () => {
   const parameter = makeParam()
   const strategy = makeStrategy([makeControl({ parameter, initValue: 'first' })])
   const { result, rerender } = renderHook(() => useAtdlFormState(strategy, { isAmendment: true }))
@@ -649,9 +673,21 @@ it('refreshes defaults, rules and amendment locks after in-place strategy edits'
   rerender()
   expect(result.current.values.ctrl1).toBe('second')
   expect(result.current.controlState.ctrl1).toMatchObject({ enabled: false, visible: false })
-  act(() => result.current.setValue('ctrl1', 'blocked'))
-  expect(result.current.values.ctrl1).toBe('second')
+})
 
+it('blocks edits to an amended control after it becomes immutable', () => {
+  const parameter = makeParam({ mutableOnCxlRpl: false })
+  const strategy = makeStrategy([makeControl({ parameter, initValue: 'value' })])
+  const { result } = renderHook(() => useAtdlFormState(strategy, { isAmendment: true }))
+  act(() => result.current.setValue('ctrl1', 'blocked'))
+  expect(result.current.values.ctrl1).toBe('value')
+  expect(result.current.values.ctrl1).not.toBe('blocked')
+})
+
+it('allows edits again when an amended control becomes mutable', () => {
+  const parameter = makeParam({ mutableOnCxlRpl: false })
+  const strategy = makeStrategy([makeControl({ parameter, initValue: 'value' })])
+  const { result, rerender } = renderHook(() => useAtdlFormState(strategy, { isAmendment: true }))
   parameter.mutableOnCxlRpl = true
   rerender()
   act(() => result.current.setValue('ctrl1', 'allowed'))
@@ -659,39 +695,11 @@ it('refreshes defaults, rules and amendment locks after in-place strategy edits'
   expect(result.current.controlState.ctrl1).toMatchObject({ enabled: true, visible: true })
 })
 
-it('throws a TypeError when a control DTO is missing stateRules (characterisation)', () => {
-  // WHY: types.ts declares stateRules non-optional and five sites iterate it
-  // unguarded, so a DTO missing it fails fast from inside the hook rather than
-  // silently dropping every rule the strategy carries. This pins the current
-  // behaviour as a characterisation; whether to grow a guard instead is a
-  // production decision, deliberately not taken here.
+it('treats a control DTO missing stateRules as having no rules', () => {
   const malformed = makeControl({ id: 'broken' })
   delete (malformed as Partial<AtdlControlDto>).stateRules
   const strategy = makeStrategy([malformed])
-  const spy = vi.spyOn(console, 'error').mockImplementation(() => {})
-  try {
-    let thrown: unknown
-    try {
-      renderHook(() => useAtdlFormState(strategy))
-    } catch (error) {
-      thrown = error
-    }
-    expect(thrown).toBeInstanceOf(TypeError)
-  } finally { spy.mockRestore() }
-})
-
-it('renders the same control normally once stateRules is present, isolating the cause', () => {
-  // The contrast case is what makes the characterisation above attributable. On its
-  // own, "a TypeError was thrown" could be caused by anything else in the fixture;
-  // an identical control that differs ONLY by carrying an empty stateRules array
-  // pins the missing field as the cause.
-  //
-  // WHY NOT assert the thrown message: it reads "Cannot read properties of undefined
-  // (reading 'filter')", which is V8's exact phrasing AND names whichever of the five
-  // unguarded sites happens to run first (currently stateTransitions.ts:25). Both are
-  // refactor-fragile and neither is the behaviour under test. The message carries no
-  // control id or field name, so there is nothing more specific to assert on it.
-  const { result } = renderHook(() => useAtdlFormState(makeStrategy([makeControl({ id: 'broken', stateRules: [] })])))
+  const { result } = renderHook(() => useAtdlFormState(strategy))
   expect(result.current.controlState.broken).toMatchObject({ enabled: true, visible: true })
   expect(result.current.hasErrors).toBe(false)
 })
@@ -702,6 +710,18 @@ it('keeps a failed value-rule conversion invalid across unrelated edits', () => 
   expect(result.current.hasErrors).toBe(true)
   act(() => result.current.setValue('other', 'changed'))
   expect(result.current.hasErrors).toBe(true)
+})
+
+it('surfaces a non-cloneable value-rule snapshot as a form error', () => {
+  const strategy = makeStrategy([
+    makeControl({ id: 'trigger', initValue: 'on' }),
+    makeControl({ id: 'target', initValue: null, stateRules: [{
+      effect: 'value', targetValue: false, targetStringValue: 'changed', expression: makeEqExpression('trigger', 'on'),
+    }] }),
+  ])
+  const { result } = renderHook(() => useAtdlFormState(strategy, { initialValues: { target: () => {} } }))
+  expect(result.current.hasErrors).toBe(true)
+  expect(result.current.strategyErrors).toContain('target: Value could not be copied safely.')
 })
 
 it('discards the whole working copy when a sibling assignment throws mid-update', () => {

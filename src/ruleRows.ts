@@ -29,7 +29,7 @@ export function collectRuleRows(
   const rows: RuleRow[] = []
   const ruleValues = { ...externalValues, ...controlValuesForRules(strategy, values) }
   for (const control of flattenControls(strategy)) {
-    for (const rule of control.stateRules) {
+    for (const rule of control.stateRules ?? []) {
       // expression is typed StateRuleAstNodeDto on the wire; cast to the evaluator's
       // node type exactly as useAtdlFormState does.
       const expression = rule.expression as unknown as StateRuleAstNode

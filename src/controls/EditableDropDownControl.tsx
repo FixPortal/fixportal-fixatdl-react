@@ -1,6 +1,6 @@
 import { useId } from 'react'
 import type { ControlProps } from './controlRegistry'
-import type { AtdlListItemDto, AtdlEnumPairDto } from '../types'
+import { listOptionsFor } from './listOptions'
 
 /**
  * Renders FIXatdl EditableDropDownList_t as an HTML5 combobox.
@@ -17,23 +17,7 @@ export function EditableDropDownControl({ control, value, onChange, state }: Con
 
   const hasError = state.errors.length > 0
 
-  // WHY: normalise both source shapes into a unified list so the render loop
-  // is source-agnostic - mirrors DropDownControl's fallback strategy.
-  const items: { enumId: string; uiRep: string }[] = (() => {
-    if (control.listItems && control.listItems.length > 0) {
-      return (control.listItems as AtdlListItemDto[]).map((item) => ({
-        enumId: item.enumId,
-        uiRep: item.uiRep ?? item.enumId,
-      }))
-    }
-    if (control.parameter?.enumValues && control.parameter.enumValues.length > 0) {
-      return (control.parameter.enumValues as AtdlEnumPairDto[]).map((ev) => ({
-        enumId: ev.enumId,
-        uiRep: ev.enumId,
-      }))
-    }
-    return []
-  })()
+  const items = listOptionsFor(control)
 
   const baseInput =
     'w-full rounded border px-2 py-1 text-sm bg-card text-text focus:outline-none focus:ring-2'
@@ -73,7 +57,7 @@ export function EditableDropDownControl({ control, value, onChange, state }: Con
       <datalist id={listId}>
         {items.map((item) => (
           <option key={item.enumId} value={item.enumId}>
-            {item.uiRep}
+            {item.label}
           </option>
         ))}
       </datalist>

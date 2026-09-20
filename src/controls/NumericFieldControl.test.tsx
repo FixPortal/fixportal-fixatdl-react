@@ -81,8 +81,6 @@ describe('NumericFieldControl', () => {
     expect(onChange).toHaveBeenCalledWith(null)
   })
 
-
-
   it('sets step based on precision for Float_t parameters', () => {
     const ctrl = { ...BASE_CONTROL, parameter: makeParam({ type: 'Float_t', precision: 2 }) }
     render(<NumericFieldControl control={ctrl} value={null} onChange={vi.fn()} state={ENABLED} />)

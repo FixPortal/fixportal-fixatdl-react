@@ -22,7 +22,7 @@ export function settleValueRules(
   externalValues: Record<string, unknown> = {},
 ): ValueRuleState {
   const bindings = flattenControls(strategy).flatMap(control =>
-    control.stateRules.filter(rule => rule.effect === 'value' && rule.targetStringValue !== null)
+    (control.stateRules ?? []).filter(rule => rule.effect === 'value' && rule.targetStringValue !== null)
       .map(rule => ({ control, rule })),
   )
   const rules = bindings.map((_, index) => ({
@@ -41,7 +41,8 @@ export function settleValueRules(
       if (active === memory.active) continue
       let value: unknown
       if (active) {
-        memory.previousValue = structuredClone(values[control.id])
+        try { memory.previousValue = structuredClone(values[control.id]) }
+        catch { return { values, rules, errors: [`${control.id}: Value could not be copied safely.`] } }
         try {
           value = control.type === 'Clock_t'
             ? editClockValue(control, values[control.id], rule.targetStringValue!, now)
@@ -50,7 +51,8 @@ export function settleValueRules(
           return { values, rules, errors: [`${control.id}: ${error instanceof Error ? error.message : String(error)}`] }
         }
       } else if (rule.targetStringValue === '{NULL}') {
-        value = values[control.id] === null ? structuredClone(memory.previousValue) : values[control.id]
+        try { value = values[control.id] === null ? structuredClone(memory.previousValue) : values[control.id] }
+        catch { return { values, rules, errors: [`${control.id}: Value could not be copied safely.`] } }
       } else { memory.active = false; continue }
       try { changed = assignControlValue(strategy, values, control, value, readonlyIds, now) || changed }
       catch (error) { return { values, rules, errors: [`${control.id}: ${error instanceof Error ? error.message : String(error)}`] } }

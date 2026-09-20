@@ -119,8 +119,6 @@ describe('MultiSelectControl', () => {
     screen.getAllByRole('checkbox').forEach(checkbox => expect(checkbox).toHaveAttribute('aria-invalid', 'false'))
   })
 
-
-
   it('applies error border class to the group wrapper when state.errors is non-empty', () => {
     render(
       <MultiSelectControl

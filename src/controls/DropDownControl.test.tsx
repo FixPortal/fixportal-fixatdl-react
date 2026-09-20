@@ -55,8 +55,6 @@ describe('DropDownControl', () => {
     expect(onChange).toHaveBeenCalledWith('VWAP')
   })
 
-
-
   it('falls back to parameter.enumValues when listItems is absent', () => {
     const ctrl: AtdlControlDto = {
       ...BASE_CONTROL,
