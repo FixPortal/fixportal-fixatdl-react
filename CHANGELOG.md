@@ -8,6 +8,14 @@ Dates are the release-tag date, in UTC. Entries are consumer-facing: build, CI
 and test-infrastructure commits are omitted unless they change what a consumer
 sees.
 
+## [0.3.0] - 2026-09-20
+
+### Changed
+
+- `aria-invalid` is exposed on each multi-select checkbox rather than its group wrapper.
+- Unset sliders no longer announce their visible "Not selected" marker twice.
+- The package smoke test now resolves the published `./styles.css` export.
+
 ## [Unreleased]
 
 ### Changed
