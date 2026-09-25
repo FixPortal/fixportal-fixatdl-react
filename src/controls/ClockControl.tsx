@@ -39,7 +39,7 @@ export function ClockControl({ control, value, onChange, state }: ControlProps) 
         onChange={(e) => onChange(e.target.value)}
         disabled={!state.enabled}
         aria-disabled={!state.enabled}
-        aria-label={control.label ?? control.id}
+        aria-label={control.label == null ? control.id : undefined}
         aria-required={state.required}
         aria-invalid={hasError}
         aria-describedby={hasError ? errorId : undefined}

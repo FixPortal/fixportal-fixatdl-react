@@ -28,6 +28,8 @@ export function SliderControl({ control, value, onChange, state }: ControlProps)
   const unset = isUnfilledAtdlValue(value) || (discrete && index < 0)
   const current = discrete ? String(Math.max(0, index)) : unset ? min : String(value)
   const display = discrete ? (items[Number(current)]?.uiRep ?? items[Number(current)]?.enumId ?? '') : current
+  let ariaLabel = control.label == null ? control.id : undefined
+  if (state.required) ariaLabel = `${control.label ?? control.id} (Required)`
   const choose = (position: string) => onChange(discrete ? items[Number(position)]?.enumId : decimalInputValue(position))
 
   const borderClass = hasError ? 'border-bad-border' : 'border-border-base'
@@ -62,9 +64,8 @@ export function SliderControl({ control, value, onChange, state }: ControlProps)
           onChange={(e) => choose(e.target.value)}
           disabled={!state.enabled}
           aria-disabled={!state.enabled}
-          aria-label={control.label ?? control.id}
+          aria-label={ariaLabel}
           aria-invalid={hasError}
-          aria-required={state.required}
           aria-describedby={hasError ? errorId : undefined}
           aria-valuetext={unset ? 'Not selected' : discrete ? String(display) : undefined}
           title={control.tooltip ?? undefined}
