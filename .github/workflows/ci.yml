@@ -130,15 +130,18 @@ jobs:
         uses: raven-actions/actionlint@3d39aea434753780c3b3d4a1a31c854b4dbf49d7 # v2
         with:
           shellcheck: true
-      - name: Require a release from main
-        run: |
-          git fetch --no-tags origin main
-          git merge-base --is-ancestor HEAD FETCH_HEAD
       - uses: actions/setup-node@v7
         with:
           node-version: '24'
           cache: npm
           # No registry-url or NODE_AUTH_TOKEN: npm uses its trusted publisher.
+      - name: Require a release from main
+        run: |
+          git fetch --no-tags origin main
+        # Extracted from an inline `git merge-base --is-ancestor HEAD FETCH_HEAD` so
+        # it can be unit-tested; see scripts/assert-release-is-ancestor.test.mjs,
+        # which runs in the normal suite.
+      - run: node scripts/assert-release-is-ancestor.mjs
       # Extracted from an inline `node -e` so it can be unit-tested; see
       # scripts/assert-tag-matches-version.test.mjs, which runs in the normal suite.
       - name: Match tag to package version

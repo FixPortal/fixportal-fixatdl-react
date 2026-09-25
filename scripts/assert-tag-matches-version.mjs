@@ -4,11 +4,9 @@
 // and a publish to npm cannot be undone.
 //
 // The sibling guard in that job -- `git merge-base --is-ancestor HEAD FETCH_HEAD`,
-// which requires the release to sit on main -- is deliberately NOT extracted.
-// Testing it meaningfully needs a real repository with fabricated ancestor and
-// non-ancestor refs, which is a large harness for a guard whose failure mode is
-// "you tagged off a side branch". This check is a pure function of two strings and
-// is the likelier of the two to be broken by a typo, so it is the one worth pinning.
+// which requires the release to sit on main -- is extracted the same way, into
+// scripts/assert-release-is-ancestor.mjs, and tested against a real temporary git
+// repository (see its .test.mjs) rather than this pure-string comparison.
 import { readFileSync } from 'node:fs'
 
 /**
