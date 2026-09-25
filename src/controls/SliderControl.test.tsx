@@ -134,6 +134,7 @@ describe('SliderControl', () => {
       />,
     )
     expect(screen.getByText('*')).toBeInTheDocument()
-    expect(screen.getByRole('slider')).toHaveAttribute('aria-required', 'true')
+    expect(screen.getByRole('slider', { name: 'Participation Rate (Required)' })).toBeInTheDocument()
+    expect(screen.getByRole('slider')).not.toHaveAttribute('aria-required')
   })
 })
