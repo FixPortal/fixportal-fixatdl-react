@@ -21,12 +21,14 @@ describe('release commit must be an ancestor of main', () => {
     writeFileSync(join(dir, 'a.txt'), '1')
     git('add', '.')
     git('commit', '-q', '-m', 'base')
-    git('checkout', '-q', '-b', 'release')
+    // Simulate a release cut from main: the release commit is main's own tip,
+    // so it is checked out ('release' points at the same commit as 'main')
+    // rather than living on a branch main never merged.
     writeFileSync(join(dir, 'a.txt'), '2')
     git('add', '.')
-    git('commit', '-q', '-m', 'release commit, still on main history')
-    git('checkout', '-q', 'main')
-    git('checkout', '-q', '-b', 'side')
+    git('commit', '-q', '-m', 'release commit, merged into main')
+    git('branch', '-q', 'release', 'main')
+    git('checkout', '-q', '-b', 'side', 'HEAD~1')
     writeFileSync(join(dir, 'b.txt'), '1')
     git('add', '.')
     git('commit', '-q', '-m', 'side commit, diverged from main')
@@ -36,12 +38,9 @@ describe('release commit must be an ancestor of main', () => {
     rmSync(dir, { recursive: true, force: true })
   })
 
-  it('returns true when the ref is on main (release cut from main)', () => {
-    expect(isAncestor(dir, 'release', 'main')).toBe(false)
-    // 'release' branches off main's tip, so main is an ancestor of release,
-    // not the other way round - assert the actual relationship a real
-    // "release cut from main" tag would have: main is reachable from it.
-    expect(isAncestor(dir, 'main', 'release')).toBe(true)
+  it('returns true when the release commit is an ancestor of main (release cut from main)', () => {
+    // Same (ref, ofRef) order the production call uses: isAncestor(cwd, 'HEAD', 'FETCH_HEAD').
+    expect(isAncestor(dir, 'release', 'main')).toBe(true)
   })
 
   it('returns false when the ref diverged from main (release cut from a side branch)', () => {
