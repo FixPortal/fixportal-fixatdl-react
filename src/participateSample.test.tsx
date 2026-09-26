@@ -169,7 +169,7 @@ describe('participate sample strategy', () => {
     act(() => result.current.setValue('ctrl_participation', 40))
     expect(result.current.controlState.ctrl_participation.errors).toEqual([])
     act(() => result.current.setValue('ctrl_participation', 60))
-    expect(result.current.controlState.ctrl_participation.errors).toContain('Must be ≤ 0.5.')
+    expect(result.current.controlState.ctrl_participation.errors).toContain('Must be ≤ 50.')
   })
 })
 

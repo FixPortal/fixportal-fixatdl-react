@@ -103,6 +103,20 @@ describe('useAtdlFormState', () => {
     expect(Object.hasOwn(result.current.values, id)).toBe(true)
     expect(result.current.values[id]).toBe('safe')
     expect(Object.hasOwn(result.current.controlState, id)).toBe(true)
+    act(() => result.current.setValue(id, 'updated'))
+    expect(Object.hasOwn(result.current.values, id)).toBe(true)
+    expect(result.current.values[id]).toBe('updated')
+  })
+
+  it('validates an unseeded required control with a reserved id', () => {
+    const parameter = makeParam({ useValue: 'required' })
+    const strategy = makeStrategy([makeControl({ id: '__proto__', parameter })])
+    const { result } = renderHook(() => useAtdlFormState(strategy))
+    expect(Object.hasOwn(result.current.values, '__proto__')).toBe(false)
+    expect(result.current.controlState['__proto__'].errors).toContain('This field is required.')
+    act(() => result.current.setValue('__proto__', 'entered'))
+    expect(result.current.values['__proto__']).toBe('entered')
+    expect(result.current.controlState['__proto__'].errors).toEqual([])
   })
 
   it('retains input conversion errors for a __proto__ control id', () => {
@@ -688,6 +702,8 @@ it('refreshes amendment defaults and visibility after in-place strategy edits', 
   rerender()
   expect(result.current.values.ctrl1).toBe('second')
   expect(result.current.controlState.ctrl1).toMatchObject({ enabled: false, visible: false })
+  act(() => result.current.setValue('ctrl1', 'blocked'))
+  expect(result.current.values.ctrl1).toBe('second')
 })
 
 it('blocks edits to an amended control after it becomes immutable', () => {

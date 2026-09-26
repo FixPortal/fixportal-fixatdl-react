@@ -387,6 +387,9 @@
   {"name": "clock_date_less_than_later_time", "ast": {"kind": "compare", "operator": "<", "field": "a", "value": "11:00:00", "children": null, "comparisonType": "Clock_t"}, "formState": {"a": "20260912-10:00:00"}, "expected": true},
   {"name": "clock_date_not_less_than_earlier_time", "ast": {"kind": "compare", "operator": "<", "field": "a", "value": "09:00:00", "children": null, "comparisonType": "Clock_t"}, "formState": {"a": "20260912-10:00:00"}, "expected": false},
   {"name": "clock_invalid_time", "ast": {"kind": "compare", "operator": "<", "field": "a", "value": "10:00:00", "children": null, "comparisonType": "Clock_t"}, "formState": {"a": "99:00:00"}, "expected": false},
+  {"name": "clock_invalid_time_equal", "ast": {"kind": "compare", "operator": "==", "field": "a", "value": "99:00:00", "children": null, "comparisonType": "Clock_t"}, "formState": {"a": "99:00:00"}, "expected": false},
+  {"name": "clock_invalid_time_not_equal", "ast": {"kind": "compare", "operator": "!=", "field": "a", "value": "99:00:00", "children": null, "comparisonType": "Clock_t"}, "formState": {"a": "99:00:00"}, "expected": true},
+  {"name": "array_equality_ignores_duplicate_values", "ast": {"kind": "compare", "operator": "==", "field": "a", "value": ["A", "A"], "children": null}, "formState": {"a": ["A"]}, "expected": true},
   {"name": "boolean_uppercase_literal", "ast": {"kind": "compare", "operator": "==", "field": "a", "value": "TRUE", "children": null}, "formState": {"a": true}, "expected": true},
   {"name": "boolean_lowercase_literal", "ast": {"kind": "compare", "operator": "==", "field": "a", "value": "false", "children": null}, "formState": {"a": false}, "expected": true},
   {"name": "boolean_is_not_numeric_one", "ast": {"kind": "compare", "operator": "==", "field": "a", "value": 1, "children": null}, "formState": {"a": true}, "expected": false},
@@ -405,5 +408,6 @@
   {"name": "tz_time_wraps_midnight", "ast": {"kind": "compare", "operator": "==", "field": "a", "value": "23:15:00Z", "children": null, "comparisonType": "TZTimeOnly_t"}, "formState": {"a": "00:15+01"}, "expected": true},
   {"name": "tz_timestamp_rollover", "ast": {"kind": "compare", "operator": "==", "field": "a", "value": "20251231-23:15:00Z", "children": null, "comparisonType": "TZTimestamp_t"}, "formState": {"a": "20260101-00:15+01"}, "expected": true},
   {"name": "tz_timestamp_fraction_order", "ast": {"kind": "compare", "operator": ">", "field": "a", "value": "20260601-08:00:00.1234566Z", "children": null, "comparisonType": "TZTimestamp_t"}, "formState": {"a": "20260601-10:00:00.1234567+02:00"}, "expected": true},
-  {"name": "tz_missing_offset_defaults_utc", "ast": {"kind": "compare", "operator": "==", "field": "a", "value": "10:00:00.123Z", "children": null, "comparisonType": "TZTimeOnly_t"}, "formState": {"a": "10:00:00.123"}, "expected": true}
+  {"name": "tz_missing_offset_defaults_utc", "ast": {"kind": "compare", "operator": "==", "field": "a", "value": "10:00:00.123Z", "children": null, "comparisonType": "TZTimeOnly_t"}, "formState": {"a": "10:00:00.123"}, "expected": true},
+  {"name": "boolean_string_field_against_bool_literal", "ast": {"kind": "compare", "operator": "==", "field": "a", "value": true, "children": null, "comparisonType": "Boolean_t"}, "formState": {"a": "TRUE"}, "expected": true}
 ]

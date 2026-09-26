@@ -5,7 +5,7 @@ import { flattenControls, controlValuesForRules, mapControlValuesToParameters, a
 import { isUnfilledAtdlValue, isBinaryControl, normalizeControlValue, controlParameterValue, parameterWireValue, parameterFromWire } from './atdlValue'
 import { MAX_STATE_RULE_DEPTH, type StateRuleAstNode } from './stateRuleAst'
 import { settleValueRules } from './stateTransitions'
-import { compareDecimals } from './decimalValue'
+import { compareDecimals, formatDecimal } from './decimalValue'
 import { createClockValue, editClockValue } from './atdlClock'
 import { compareTemporal, parseTemporal, compareTenor, compareMonthYear, normalizeTenor, normalizeMonthYear, normalizeTzTemporal, compareTzTemporal } from './temporalValue'
 import { controlRegistry } from './controls/controlRegistry'
@@ -29,8 +29,10 @@ export interface AtdlFormOptions {
 }
 
 export interface AtdlFormStateApi {
+  /** Null-prototype map; use Object.hasOwn to check for a control ID. */
   values: Record<string, unknown>
   setValue(controlId: string, value: unknown): void
+  /** Null-prototype map; use Object.hasOwn to check for a control ID. */
   controlState: Record<string, ControlFormState>
   strategyErrors: string[]
   hasErrors: boolean
@@ -77,7 +79,7 @@ export function useAtdlFormState(document: AtdlStrategyDto, options: AtdlFormOpt
         inputErrors[controlId] = error instanceof Error ? error.message : String(error)
         return { ...previous, inputErrors }
       }
-      const next = { ...previous.values }
+      const next: Record<string, unknown> = Object.assign(Object.create(null), previous.values)
       try { assignControlValue(strategy, next, control, normalized, readonlyIds, now) }
       catch (error) {
         inputErrors[controlId] = error instanceof Error ? error.message : String(error)
@@ -283,8 +285,9 @@ function validateControl(control: AtdlControlDto, raw: unknown, required: boolea
     const boundedValue = type === 'Percentage_t' ? logical : value
     const defaultMin = ['Qty_t', 'Price_t', 'PriceOffset_t', 'Amt_t', 'Percentage_t'].includes(type) ? 0 : null
     const min = parameter?.min ?? defaultMin
-    if (min != null && compareDecimals(boundedValue, min) === -1) errors.push(`Must be ≥ ${min}.`)
-    if (parameter?.max != null && compareDecimals(boundedValue, parameter.max) === 1) errors.push(`Must be ≤ ${parameter.max}.`)
+    const displayBound = (bound: unknown) => type === 'Percentage_t' ? formatDecimal(bound, null, -2) ?? String(bound) : String(bound)
+    if (min != null && compareDecimals(boundedValue, min) === -1) errors.push(`Must be ≥ ${displayBound(min)}.`)
+    if (parameter?.max != null && compareDecimals(boundedValue, parameter.max) === 1) errors.push(`Must be ≤ ${displayBound(parameter.max)}.`)
     const typeMin = INTEGER_TYPES.has(type) ? (type === 'Int_t' ? '-2147483648' : '1') : '-79228162514264337593543950335'
     const typeMax = INTEGER_TYPES.has(type) ? (type === 'Int_t' ? '2147483647' : '4294967295') : '79228162514264337593543950335'
     if (compareDecimals(boundedValue, typeMin) === -1 || compareDecimals(boundedValue, typeMax) === 1) errors.push(`Value is outside the ${type} range.`)

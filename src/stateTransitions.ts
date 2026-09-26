@@ -29,7 +29,7 @@ export function settleValueRules(
     active: previous?.rules[index]?.active ?? false,
     previousValue: structuredClone(previous?.rules[index]?.previousValue),
   }))
-  const values = { ...next }
+  const values: Record<string, unknown> = Object.assign(Object.create(null), next)
   // ponytail: bounded full scans; use a dependency queue if large strategies need it.
   const maxPasses = Math.max(64, bindings.length * 4)
   for (let pass = 0; pass < maxPasses; pass++) {

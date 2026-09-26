@@ -85,14 +85,14 @@ it('distinguishes a valid false rule from a malformed rule', () => {
   expect(tryEvaluateStateRule({ kind: 'compare', operator: 'bogus', field: 'a', value: 1 } as unknown as StateRuleAstNode, { a: 2 })).toBeNull()
 })
 
-it('does not treat duplicate array values as equal', () => {
+it('matches set equality for array values', () => {
   const expression: StateRuleAstNode = { kind: 'compare', operator: '==', field: 'a', value: ['A'] }
-  expect(evaluateStateRule(expression, { a: ['A', 'A'] })).toBe(false)
+  expect(evaluateStateRule(expression, { a: ['A', 'A'] })).toBe(true)
 })
 
-it('reports invalid UTC temporal equality instead of comparing raw strings', () => {
+it.each([['==', false], ['!=', true]] as const)('matches C# temporal comparison for invalid values with %s', (operator, expected) => {
   const expression: StateRuleAstNode = {
-    kind: 'compare', operator: '==', field: 'a', value: '2026-99-99-12:00:00', comparisonType: 'UTCTimestamp_t',
+    kind: 'compare', operator, field: 'a', value: '99:00:00', comparisonType: 'Clock_t',
   }
-  expect(tryEvaluateStateRule(expression, { a: '2026-99-99-12:00:00' })).toBeNull()
+  expect(tryEvaluateStateRule(expression, { a: '99:00:00' })).toBe(expected)
 })

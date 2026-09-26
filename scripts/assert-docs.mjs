@@ -16,7 +16,7 @@ function publicExportNames() {
 
   for (const match of index.matchAll(/export(?: type)? \{([^}]+)\}/g)) {
     for (const name of match[1].split(',')) {
-      const cleaned = name.trim().split(/\s+as\s+/)[0]
+      const cleaned = name.trim().replace(/^type\s+/, '').split(/\s+as\s+/).at(-1)
       if (cleaned) names.add(cleaned)
     }
   }
@@ -31,13 +31,22 @@ function publicExportNames() {
 }
 
 /** Find broken relative Markdown links in one document. */
-function localLinkProblems(relativePath, markdown) {
+export function localLinkProblems(rootPath, relativePath, markdown) {
   const problems = []
-  for (const match of markdown.matchAll(/\[[^\]]*\]\(([^)]+)\)/g)) {
-    const link = match[1].split('#')[0]
-    if (!link || /^(?:https?:|mailto:|#)/.test(link)) continue
-    const target = fileURLToPath(new URL(link, pathToFileURL(join(root, relativePath))))
-    if (!existsSync(target)) problems.push(`${relativePath} -> ${link}`)
+  const links = [...markdown.matchAll(/\[[^\]]*\]\(\s*(<[^>]+>|(?:[^()\s]|\([^)]*\))+)(?:\s+[^)]*)?\)/g)].map(match => match[1])
+  for (const match of markdown.matchAll(/^\s*\[[^\]]+\]:\s*(<[^>]+>|\S+)/gm)) links.push(match[1])
+  for (const rawLink of links) {
+    const link = rawLink.replace(/^<|>$/g, '').split('#')[0]
+    if (!link) continue
+    try {
+      const base = pathToFileURL(join(rootPath, relativePath))
+      const url = new URL(link.startsWith('/') ? `.${link}` : link, base)
+      if (url.protocol !== 'file:') continue
+      const target = fileURLToPath(url)
+      if (!existsSync(target)) problems.push(`${relativePath} -> ${link}`)
+    } catch {
+      problems.push(`${relativePath} -> ${link}`)
+    }
   }
   return problems
 }
@@ -67,6 +76,13 @@ export function checkDocumentation() {
   for (const name of publicExportNames()) {
     if (!new RegExp(`\\b${name}\\b`).test(api)) problems.push(`docs/api.md is missing public export ${name}`)
   }
+  const exportLines = read('src/index.ts').split(/\r?\n/).filter(line => /^\s*export\b/.test(line))
+  for (const line of exportLines) {
+    if (!/^\s*export(?:\s+type)?\s*\{[^}]*\}\s*(?:from\s+['"][^'"]+['"])?\s*;?\s*$/.test(line) &&
+        !/^\s*export\s+type\s+\*\s+from\s+['"]\.\/types['"]\s*;?\s*$/.test(line)) {
+      problems.push(`scripts/assert-docs.mjs cannot parse public export: ${line.trim()}`)
+    }
+  }
 
   const registryNames = [...read('src/controls/controlRegistry.ts').matchAll(/^\s{2}(\w+_t):/gm)].map(match => match[1])
   const countPattern = new RegExp(`\\b${registryNames.length}\\b`)
@@ -77,7 +93,7 @@ export function checkDocumentation() {
     problems.push(`docs/api.md does not document ${registryNames.length} registered control types`)
   }
 
-  for (const [file, markdown] of docs) problems.push(...localLinkProblems(file, markdown))
+  for (const [file, markdown] of docs) problems.push(...localLinkProblems(root, file, markdown))
   return problems
 }
 
