@@ -1039,7 +1039,7 @@ def step_span(block, index, key_indent):
     return start, end
 
 
-def mask_quoted(line):
+def mask_quoted(line, *, powershell=False):
     """`line` with the contents of every quoted span blanked out.
 
     A SCANNER, not a regex. A `"[^"]*"` alternation ends a double-quoted span at the
@@ -1047,8 +1047,9 @@ def mask_quoted(line):
     `echo "then \\" ; exit 1"` is a single inert string, but blanking only as far as
     the escaped quote left `; exit 1"` looking like a real command, which
     ends_non_zero would then have accepted. That is the fail-OPEN direction, so it is
-    worth the extra ten lines. POSIX single quotes have no escapes at all, so only the
-    double-quoted arm consumes a backslash.
+    worth the extra ten lines. In PowerShell mode, double quotes escape with a backtick
+    and single quotes escape by doubling; in bash mode only double quotes consume a
+    backslash.
 
     An unterminated quote blanks the rest of the line. That is broken shell either
     way, and refusing to find an exit there errs toward rejecting the step rather than
@@ -1059,7 +1060,14 @@ def mask_quoted(line):
     index = 0
     while index < len(line):
         char = line[index]
-        if quote != "'" and char == BACKSLASH and index + 1 < len(line):
+        if powershell and quote == "'" and char == "'" and line[index + 1:index + 2] == "'":
+            out.append("  ")
+            index += 2
+            continue
+        if (
+            (powershell and quote == '"' and char == "`")
+            or (not powershell and quote != "'" and char == BACKSLASH)
+        ) and index + 1 < len(line):
             out.append("  ")
             index += 2
             continue
@@ -1142,6 +1150,25 @@ def ends_non_zero(body):
     return any(form.fullmatch(segments[-1]) for form in ACCEPTED_FAILING_FORMS)
 
 
+def powershell_ends_non_zero(body, windows_runner=False):
+    """Recognise a final PowerShell `throw`/nonzero `exit` after inert message lines."""
+    string = r"(?:'(?:[^'\n]|'')*'|\"(?:[^`\"\n]|`.)*\")"
+    message = re.compile(rf"(?:Write-Host|Write-Output|Write-Information)(?:\s+{string})?", re.IGNORECASE)
+    status = r"[1-9][0-9]*" if windows_runner else _NONZERO_STATUS
+    failure = re.compile(rf"(?:throw(?:\s+{string})?|exit\s+{status})\s*", re.IGNORECASE)
+    lines = [line.strip().rstrip(";").strip() for line in body.splitlines() if line.strip()]
+    return bool(lines) and all(message.fullmatch(line) for line in lines[:-1]) and bool(failure.fullmatch(lines[-1]))
+
+
+def job_uses_windows_runner(block):
+    """Use Windows exit-code semantics only when the job declares a literal Windows runner."""
+    for line in block:
+        match = re.match(r"^\s*(?:'runs-on'|\"runs-on\"|runs-on)\s*:\s*(.*?)\s*$", strip_comment(line))
+        if match and re.search(r"(?i)(?<![A-Za-z0-9_])windows(?:-|\]|$)", match.group(1)):
+            return True
+    return False
+
+
 def step_can_fail(block, span, key_indent):
     """(ok, reason) for the step spanning `span`: can it actually fail its job?
 
@@ -1190,7 +1217,15 @@ def step_can_fail(block, span, key_indent):
         if match and len(match.group(1)) == key_indent:
             shell = decode_yaml_scalar(strip_inline_comment(match.group(2)).strip()).strip()
             break
-    if shell not in ("bash", "bash {0}", "pwsh", "pwsh {0}"):
+    if shell not in (
+        "bash",
+        "bash {0}",
+        "bash --noprofile --norc -eo pipefail {0}",
+        "pwsh",
+        "pwsh {0}",
+        "pwsh -command . '{0}'",
+        'pwsh -command ". \'{0}\'"',
+    ):
         return False, f"uses unsupported shell `{shell}`"
 
     run_key = step_key_pattern(key_indent, "run")
@@ -1242,19 +1277,20 @@ def step_can_fail(block, span, key_indent):
             # alone. A blind sub would eat that message and fail the fullmatch for an
             # unrelated reason. Removed back-to-front so earlier offsets stay valid.
             probe = joined
-            masked = mask_quoted(probe)
+            masked = mask_quoted(probe, powershell=True)
             for comment in reversed(list(re.finditer(r"(?m)(?<!\S)#[^\n]*", masked))):
                 probe = probe[: comment.start()] + probe[comment.end() :]
-            if not re.fullmatch(
-                r"\s*throw(?:\s+(?:'[^'\n]*'|\"[^\"\n]*\"))?\s*", probe
-            ):
-                return False, "uses pwsh; only an unconditional throw with an optional static message is supported"
+            if "$(" in probe or "${{" in probe:
+                return False, "uses pwsh with a command subexpression or GitHub expression the checker cannot verify"
+            if powershell_ends_non_zero(probe, job_uses_windows_runner(block)):
+                return True, ""
+            return False, "uses pwsh; only inert Write-Host/Write-Output/Write-Information lines followed by throw or nonzero exit are supported"
         if ends_non_zero(joined):
             return True, ""
         return False, (
             "its `run:` body is not a recognised failing form, so this checker will not "
-            "vouch for it. Use one of: `exit 1`; `false`; `echo \"...\"; exit 1`; or, "
-            "under `shell: pwsh`, an unconditional `throw`. Each may carry a trailing "
+            "vouch for it. Under bash use `exit 1`; `false`; or `echo \"...\"; exit 1`. "
+            "Under `shell: pwsh`, use an unconditional `throw`. Each may carry a trailing "
             "redirection, and may be preceded by message lines (`echo`/`printf`) and "
             "`set` shell-option lines only. A command subexpression `$(...)` anywhere "
             "in the body is refused: under pwsh it can exit the step before the failing "
@@ -1535,7 +1571,7 @@ GATE_SCRIPT = re.compile(
     # review before wiring it into a merge barrier. Spelled as character classes rather
     # than an inline `(?i:...)` group, which needs Python 3.11 -- this asset runs on
     # whatever python3 a consuming repository's runner provides.
-    r"""(?<![\w.-])\.?[\\/]?((?:\.github[\\/]scripts|scripts|build|tools)[\\/]"""
+    r"""(?<![\w.-])(?:\.[\\/])?[\\/]?((?:[\w.-]+[\\/])*(?:\.github[\\/]scripts|scripts|build|tools)[\\/]"""
     r"""[\w.\\/-]*\.(?:[Pp][Ss]1|[Pp][Yy]|[Ss][Hh]))\b"""
 )
 # A `run:` key at any depth. Group 1 is everything before the key, so its LENGTH is the
@@ -1824,19 +1860,42 @@ def run_payload_indexes(lines):
 # (`- working-directory: sub`). Without the optional dash that spelling was invisible, so
 # a gate script under `sub/` resolved against the repository root and went untiered --
 # fail-open on ordinary YAML. (fixportal-agents-skills#263, item 6.)
-WORKDIR = re.compile(r"""^\s*(?:-\s+)?(?:'working-directory'|"working-directory"|working-directory)\s*:\s*['"]?([^\s#'"]+)""")
+WORKDIR = re.compile(r"""^\s*(?:-\s+)?(?:'working-directory'|"working-directory"|working-directory)\s*:\s*(.*?)\s*$""")
 # The composite action's own directory, spelled the three ways a run body can reach it.
 ACTION_PATH = re.compile(r"\$\{\{\s*github\.action_path\s*\}\}|\$\{GITHUB_ACTION_PATH\}|\$GITHUB_ACTION_PATH\b")
 STEPS_KEY = re.compile(r"""^(?:'steps'|"steps"|steps)\s*:""")
 
 
 def working_directories(lines):
-    """Every `working-directory:` value in `lines`, normalised to `/` without a trailing one."""
+    """Every working directory, resolving github.workspace and refusing unknown expressions."""
     found = set()
-    for line in lines:
+    index = 0
+    while index < len(lines):
+        line = lines[index]
         match = WORKDIR.match(strip_comment(line))
         if match:
-            found.add(match.group(1).replace("\\", "/").rstrip("/"))
+            value = match.group(1).strip()
+            indent = len(match.group(0)) - len(match.group(0).lstrip())
+            if BLOCK_SCALAR.match(value):
+                body, index = continuation_lines(lines, index, indent + (2 if line.lstrip().startswith("-") else 0))
+                value = " ".join(part.strip() for part in body)
+            else:
+                index += 1
+            value = value.strip().strip("'\"")
+            workspace_rooted = bool(re.search(r"\$\{\{\s*github\.workspace\s*\}\}", value, re.IGNORECASE))
+            value = re.sub(r"\$\{\{\s*github\.workspace\s*\}\}", "", value, flags=re.IGNORECASE)
+            if "${{" in value:
+                found.add(f"!unsupported working-directory expression: {value}")
+                continue
+            value = value.replace("\\", "/").strip()
+            if (value.startswith("/") and not workspace_rooted) or re.match(r"^[A-Za-z]:", value):
+                found.add(f"!unsupported absolute working-directory: {value}")
+                continue
+            value = value.strip("/")
+            if value:
+                found.add(value.rstrip("/"))
+            continue
+        index += 1
     return found
 
 
@@ -1883,7 +1942,7 @@ def job_level_lines(block, body_indent):
     return out
 
 
-def delegated_run_bodies(root, ref, visited):
+def delegated_run_bodies(root, ref, visited, include_directories=True, strict=True):
     """Yield run bodies and their action-level working directories."""
     relative = ref[2:]
     target = root / relative
@@ -1904,10 +1963,12 @@ def delegated_run_bodies(root, ref, visited):
     # flow style, as they were here. (CodeRabbit, fixportal-claude-skills#110.)
     using = resolve_runs_using(lines, target)
     if using is not None and using != "composite":
-        raise ValueError(
-            f"{target}: local action uses runs.using {using}; "
-            "gate coverage only follows composite action bodies"
-        )
+        if strict:
+            raise ValueError(
+                f"{target}: local action uses runs.using {using}; "
+                "gate coverage only follows composite action bodies"
+            )
+        return
     # A composite action reaches its OWN files through the action path. Rewriting that
     # expression to the action's repository-relative directory lets both a run body's
     # script reference and a `working-directory: ${{ github.action_path }}` resolve to
@@ -1935,7 +1996,7 @@ def delegated_run_bodies(root, ref, visited):
             scoped = step_lines(lines, run_index, len(match.group(1)))
             if action_dir is not None:
                 scoped = [ACTION_PATH.sub(action_dir, line) for line in scoped]
-            directories = working_directories(scoped)
+            directories = working_directories(scoped) if include_directories else set()
             if action_dir is not None and any(ACTION_PATH.search(line) for line in body):
                 directories.add(action_dir)
                 body = [ACTION_PATH.sub(action_dir, line) for line in body]
@@ -1946,10 +2007,64 @@ def delegated_run_bodies(root, ref, visited):
             continue
         match = LOCAL_USES.match(line)
         if match:
-            yield from delegated_run_bodies(root, match.group(1), visited)
+            yield from delegated_run_bodies(root, match.group(1), visited, include_directories, strict)
 
 
-def gated_run_bodies(lines, jobs, needs, gate_job, root):
+def delegated_workflow_run_bodies(root, ref, visited, include_directories=True, strict=True):
+    """Yield run bodies from a local reusable workflow with its own defaults applied."""
+    target = root / ref[2:]
+    if not target.is_file():
+        return
+    key = target.resolve().as_posix()
+    if key in visited:
+        return
+    visited.add(key)
+    lines = target.read_text(encoding="utf-8-sig").splitlines()
+    jobs, _, _ = read_gate_contract(lines, "__coverage_no_gate__")
+    if not jobs:
+        return
+    first_job = min(jobs.values())
+    job_indent = len(lines[first_job]) - len(lines[first_job].lstrip(" "))
+    workflow_directories = working_directories(lines[:first_job]) if include_directories else set()
+    for job_id in jobs:
+        block = job_block(lines, jobs, job_id)
+        job_directories = set(workflow_directories)
+        if include_directories:
+            job_directories |= working_directories(
+                job_level_lines(block, job_body_indent(lines, jobs, job_id, job_indent))
+            )
+        payload_indexes = run_payload_indexes(block)
+        index = 0
+        while index < len(block):
+            match = RUN_KEY.match(block[index])
+            if not match:
+                index += 1
+                continue
+            run_index = index
+            value = strip_inline_comment(match.group(2)).strip()
+            if BLOCK_SCALAR.match(value):
+                body, index = continuation_lines(block, index, len(match.group(1)))
+            else:
+                body, index = ([value] if value else []), index + 1
+            directories = set(job_directories)
+            if include_directories:
+                directories |= working_directories(step_lines(block, run_index, len(match.group(1))))
+            if body:
+                yield body, directories
+        for line_index, line in enumerate(block):
+            if line_index in payload_indexes:
+                continue
+            local = LOCAL_USES.match(line)
+            if not local:
+                continue
+            nested = local.group(1)
+            if nested[2:].startswith(".github/workflows/"):
+                yield from delegated_workflow_run_bodies(root, nested, visited, include_directories, strict)
+            else:
+                yield from delegated_run_bodies(root, nested, set(), include_directories, strict)
+
+
+def gated_run_bodies(lines, jobs, needs, gate_job, root, include_directories=True, strict=True):
     """Every `run:` body line belonging to a job that can fail the gate, with its job id.
 
     Scoped to the gate's `needs:` plus the gate job itself, because that is exactly the
@@ -1960,7 +2075,7 @@ def gated_run_bodies(lines, jobs, needs, gate_job, root):
     job_indent = len(lines[jobs[gate_job]]) - len(lines[jobs[gate_job]].lstrip(" "))
     # Workflow-level lines end at the first job; only `defaults.run` there can set a
     # working directory for this job's steps.
-    workflow_directories = working_directories(lines[:min(jobs.values())])
+    workflow_directories = working_directories(lines[:min(jobs.values())]) if include_directories else set()
     pending = list(set(needs) | {gate_job})
     seen = set()
     while pending:
@@ -1975,9 +2090,11 @@ def gated_run_bodies(lines, jobs, needs, gate_job, root):
         # `defaults.run.working-directory`. A step's own value is added per run body
         # below; a sibling step's is not (fixportal-agents-skills#263, item 3). Computed
         # once per job rather than once per script match (item 9).
-        job_directories = workflow_directories | working_directories(
-            job_level_lines(block, job_body_indent(lines, jobs, job_id, job_indent))
-        )
+        job_directories = set(workflow_directories)
+        if include_directories:
+            job_directories |= working_directories(
+                job_level_lines(block, job_body_indent(lines, jobs, job_id, job_indent))
+            )
         index = 0
         while index < len(block):
             match = RUN_KEY.match(block[index])
@@ -1998,9 +2115,9 @@ def gated_run_bodies(lines, jobs, needs, gate_job, root):
                 body, index = continuation_lines(block, index, len(match.group(1)))
             else:
                 body, index = ([value] if value else []), index + 1
-            directories = job_directories | working_directories(
-                step_lines(block, run_index, len(match.group(1)))
-            )
+            directories = set(job_directories)
+            if include_directories:
+                directories |= working_directories(step_lines(block, run_index, len(match.group(1))))
             for body_line in body:
                 yield job_id, body_line, body, directories
         payload_indexes = run_payload_indexes(block)
@@ -2009,7 +2126,11 @@ def gated_run_bodies(lines, jobs, needs, gate_job, root):
                 continue
             match = LOCAL_USES.match(line)
             if match:
-                for delegated_body, directories in delegated_run_bodies(root, match.group(1), set()):
+                if match.group(1)[2:].startswith(".github/workflows/"):
+                    delegated = delegated_workflow_run_bodies(root, match.group(1), set(), include_directories, strict)
+                else:
+                    delegated = delegated_run_bodies(root, match.group(1), set(), include_directories, strict)
+                for delegated_body, directories in delegated:
                     for body_line in delegated_body:
                         yield job_id, body_line, delegated_body, directories
         pending.extend(job_needs(lines, jobs, job_id, job_indent) - seen)
@@ -2113,40 +2234,39 @@ def resolve_committed_paths(root, relative):
     # runs can be a different one -- and vouching for the lexical answer would require
     # HIGH on a path the gate never runs while the one it does run goes untiered.
     #
-    # So when the candidate climbed, resolve it through the filesystem as well and keep
-    # BOTH spellings. The error direction is the same as everywhere else in this check:
+    # Resolve through the filesystem as well as by committed spelling, and keep BOTH
+    # spellings. A symlink target is the script whose contents can be edited; tiering only
+    # the link would leave that target outside review. The error direction is:
     # more scripts required HIGH, never fewer. A disagreement between the lexical and the
-    # real answer can only ADD a requirement. A target outside the checkout is dropped
-    # rather than clamped -- nothing out there is a repo-local gate script.
+    # real answer can only ADD a requirement. A target outside the checkout is refused.
     #
     # Measured before writing this: zero committed symlinks across the estate, so the
     # hazard is unreachable today. It is closed because the cost is a dozen lines and the
     # direction is fail-open, not because it was observed. (CodeRabbit.)
-    if climbed:
-        try:
-            real = (root / relative).resolve()
-            if real.is_file() and real.is_relative_to(root.resolve()):
-                spelled = real.relative_to(root.resolve()).as_posix()
-                if spelled not in matches:
-                    return sorted(matches + [spelled])
-        except (OSError, ValueError):
-            # Resolution can fail on a broken or circular link, a permission error, or a
-            # path the platform rejects outright. Falling through leaves the LEXICAL
-            # answer, which is already in `matches` and is what this function returned
-            # before the filesystem check existed -- so a failure here costs the extra
-            # requirement this block might have added and nothing else. Reporting no gate
-            # script at all because a link could not be read would be the fail-open
-            # direction, which is what this whole block exists to avoid.
-            pass
+    resolved_matches = []
+    try:
+        real = (root / relative).resolve()
+        if real.is_file() and real.is_relative_to(root.resolve()):
+            spelled = real.relative_to(root.resolve()).as_posix()
+            if spelled not in matches:
+                resolved_matches.append(spelled)
+        elif real.is_file():
+            sys.exit(f"{root}: gate script resolves outside the repository: {relative}")
+    except (OSError, ValueError):
+        # A broken or circular link cannot be read by the runner either. Keep the
+        # committed lexical spelling, which is still subject to HIGH tiering.
+        pass
 
-    # The walk may have broken out with nothing, and the climbed block above may have
-    # added nothing to it. Only now is "this path resolves to no file at all" true.
-    if not matches:
+    # The walk may have broken out with nothing and filesystem resolution may have added
+    # nothing. Only now is "this path resolves to no file at all" true.
+    if not matches and not resolved_matches:
         return []
 
     # The exact-match test uses the NORMALISED spelling: `scripts/./probe.py` resolves to
     # `scripts/probe.py`, and comparing against the raw text would never match it.
-    return [normalised] if normalised in matches else matches
+    if normalised in matches:
+        return sorted({normalised, *resolved_matches})
+    return sorted({*matches, *resolved_matches})
 
 
 # A directory change at a COMMAND position: line start, after a separator, inside a
@@ -2165,9 +2285,17 @@ _KEYWORDS = r"(?:(?:then|do|else|if|elif|while|until|!)\s+)*"
 # too (`cd>log` is `cd` to $HOME); `#` does not, since `cd#x` is one word, not a comment.
 # A `$` expansion does end it, in effect: `cd$X`, `cd${SUB}` and `cd$(...)` run `cd` when
 # the expansion is empty or begins with whitespace (word splitting), so they fail closed.
-_DIRECTORY_COMMAND = r"(?:cd|pushd|Set-Location)(?=[\s;&|()`<>$]|$)"
+_ASSIGNMENT_WORD = r"[A-Za-z_][A-Za-z0-9_]*=(?:'(?:[^']|'')*'|\"(?:\\.|[^\"])*\"|[^\s;&|]+)"
+_DIRECTORY_COMMAND = r"(?:(?:command|builtin)\s+|" + _ASSIGNMENT_WORD + r"\s+)*(?P<directory>cd|pushd|Push-Location|Set-Location)(?=[\s;&|()`<>$]|$)"
 # An unquoted backtick opens a command substitution just as `$(` does, so it anchors too.
 DIRECTORY_CHANGE = re.compile(r"(?:^|[;&|(`{])\s*" + _KEYWORDS + _DIRECTORY_COMMAND, re.IGNORECASE)
+_QUOTED_ASSIGNMENT_WORD = r"[A-Za-z_][A-Za-z0-9_]*=(?:'(?:[^']|'')*'|\"(?:\\.|[^\"])*\")"
+QUOTED_ASSIGNMENT_DIRECTORY_CHANGE = re.compile(
+    r"(?:^|[;&|(`{])\s*" + _KEYWORDS +
+    r"(?:(?:command|builtin)\s+)*(?:" + _QUOTED_ASSIGNMENT_WORD + r"\s+)+"
+    r"(?P<directory>cd|pushd|Push-Location|Set-Location)(?=[\s;&|()`<>$]|$)",
+    re.IGNORECASE,
+)
 # A directory change as a command INSIDE a quoted string, which may span lines. An opening
 # `$(` or backtick starts a command too: a substitution runs even inside printed text.
 SEGMENT_DIRECTORY_CHANGE = re.compile(
@@ -2263,9 +2391,16 @@ def changes_directory(body):
     # Backtick pairs are counted across the whole body, not per line: a substitution may
     # close on a later line, and its closing backtick must not read as an opening one.
     unquoted = opening_backticks_only("\n".join(mask_quoted(line) for line in body))
-    for line in unquoted.split("\n"):
-        if DIRECTORY_CHANGE.search(line):
+    for line, visible in zip(body, unquoted.split("\n")):
+        if DIRECTORY_CHANGE.search(visible):
             return True
+        # Also inspect the original line so quoted assignment values such as
+        # `X="1 2" cd sub` remain parseable. Require the quoted assignment prefix so
+        # a backtick inside a printed message cannot become a synthetic command boundary.
+        for match in QUOTED_ASSIGNMENT_DIRECTORY_CHANGE.finditer(line):
+            command = match.span("directory")
+            if visible[command[0]:command[1]].casefold() == match.group("directory").casefold():
+                return True
     text = "\n".join(body)
     masked = mask_quoted(text)
     for start, end, content in quoted_segments(text):
@@ -2306,13 +2441,19 @@ def gate_script_paths(lines, jobs, needs, gate_job, root):
     for job_id, body_line, body, directories in gated_run_bodies(lines, jobs, needs, gate_job, root):
         for match in GATE_SCRIPT.finditer(body_line):
             relative = match.group(1).replace("\\", "/")
+            unsupported = next((directory for directory in directories if directory.startswith("!unsupported ")), None)
+            if unsupported:
+                sys.exit(f"{root}: {unsupported[1:]}")
             if changes_directory(body):
                 sys.exit(f"{root}: cannot verify gate script paths after a directory change in job '{job_id}'; use working-directory:")
             # Every plausible spelling is kept -- the repository root, and each directory
             # that applies to this run body (workflow and job defaults, the body's own
             # step, a composite action's own directory). More scripts required HIGH,
             # never fewer.
-            candidates = {relative} | {directory + "/" + relative for directory in directories if directory}
+            candidates = {relative} | {
+                directory + "/" + relative for directory in directories
+                if directory and not directory.startswith("!unsupported ")
+            }
             for candidate in candidates:
                 for committed in resolve_committed_paths(root, candidate):
                     found.setdefault(committed, job_id)
@@ -2473,13 +2614,47 @@ def check_file(workflow_path, gate_job, exempt, conditional_exempt, *, on_empty=
     # (fixportal-agents-skills#263, item 4). And block-scalar `run:` payloads are skipped:
     # a heredoc line starting `BASH_ENV:` is shell text, not an env key (item 1).
     payload_indexes = run_payload_indexes(lines)
+    root = policy_root(workflow_path) or Path(workflow_path).resolve().parent.parent.parent
     # Quoted keys admitted, as for every other key this checker reads: `"BASH_ENV":` is the
     # same env key, and missing it let the override through.
-    if any(
-        re.match(r"""^\s*(?:'BASH_ENV'|"BASH_ENV"|BASH_ENV)\s*:""", strip_comment(line))
-        for index, line in enumerate(lines)
-        if index not in payload_indexes
-    ):
+    bash_env_key = False
+    for index, line in enumerate(lines):
+        if index in payload_indexes:
+            continue
+        stripped = strip_comment(line)
+        if re.match(r"""^\s*(?:'BASH_ENV'|"BASH_ENV"|BASH_ENV)\s*:""", stripped):
+            bash_env_key = True
+            break
+        env = re.match(r"""^\s*(?:'env'|"env"|env)\s*:\s*(.*)$""", stripped)
+        if env and env.group(1).lstrip().startswith("{"):
+            entries = parse_flow_mapping(env.group(1).strip())
+            if entries is None:
+                sys.exit(f"{workflow_path}: cannot parse an inline env mapping; refusing to verify BASH_ENV.")
+            if any(key.strip("'\"") == "BASH_ENV" for key, _ in entries):
+                bash_env_key = True
+                break
+    if not bash_env_key:
+        seen_run_bodies = set()
+        for job_id, _, body, _ in gated_run_bodies(
+            lines, jobs, needs, gate_job, root, include_directories=False
+        ):
+            body_key = (job_id, tuple(body))
+            if body_key in seen_run_bodies:
+                continue
+            seen_run_bodies.add(body_key)
+            body_text = "\n".join(body)
+            # Fail closed across the whole run body: heredoc payloads split the
+            # BASH_ENV assignment from the GITHUB_ENV redirection onto separate lines.
+            # This intentionally may reject an unrelated assignment plus env write in
+            # one step; parsing arbitrary shell/heredoc semantics is out of scope.
+            if (
+                re.search(r"(?i)\bBASH_ENV\s*=", body_text)
+                and re.search(r"(?i)(?:>>?|\btee\b)", body_text)
+                and re.search(r"(?i)\$\{?GITHUB_ENV\}?", body_text)
+            ):
+                bash_env_key = True
+                break
+    if bash_env_key:
         sys.exit(
             f"{workflow_path}: BASH_ENV can load shell functions that override the gate's "
             "accepted exit command. Remove the override or use a separately verified gate shell."
