@@ -40,7 +40,9 @@ export function localLinkProblems(rootPath, relativePath, markdown) {
     if (!link) continue
     try {
       const base = pathToFileURL(join(rootPath, relativePath))
-      const url = new URL(link.startsWith('/') ? `.${link}` : link, base)
+      const url = link.startsWith('/')
+        ? new URL(link.slice(1), new URL('./', pathToFileURL(join(rootPath, 'package.json'))))
+        : new URL(link, base)
       if (url.protocol !== 'file:') continue
       const target = fileURLToPath(url)
       if (!existsSync(target)) problems.push(`${relativePath} -> ${link}`)
