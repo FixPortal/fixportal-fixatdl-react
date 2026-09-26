@@ -81,7 +81,7 @@ async function expectWorkbench(page) {
 
   await rate.fill('60')
   await rate.blur()
-  await page.getByText('Must be ≤ 0.5.').waitFor()
+  await page.getByText('Must be ≤ 50.').waitFor()
   await page.getByText('The form has errors. A host must not submit this preview.').waitFor()
 }
 
