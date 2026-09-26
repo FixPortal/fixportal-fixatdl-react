@@ -11,11 +11,13 @@ describe('public documentation contract', () => {
 
   it('checks Markdown local links with titles, angle brackets, references, and root paths', () => {
     const root = mkdtempSync(join(tmpdir(), 'fixatdl-docs-'))
-    mkdirSync(join(root, 'docs'), { recursive: true })
+    mkdirSync(join(root, 'docs', 'deep'), { recursive: true })
+    writeFileSync(join(root, 'README.md'), 'root')
     writeFileSync(join(root, 'docs', 'api.md'), 'ok')
     try {
       const markdown = '[angle](<docs/api.md>) [title](docs/api.md "Title") [root](/docs/api.md)\n[ref]: docs/api.md\n[bad](%ZZ)'
       expect(localLinkProblems(root, 'README.md', markdown)).toEqual(['README.md -> %ZZ'])
+      expect(localLinkProblems(root, 'docs/deep/api.md', '[root](/README.md)')).toEqual([])
     } finally {
       rmSync(root, { recursive: true, force: true })
     }
