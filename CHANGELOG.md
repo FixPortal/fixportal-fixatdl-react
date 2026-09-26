@@ -8,13 +8,16 @@ Dates are the release-tag date, in UTC. Entries are consumer-facing: build, CI
 and test-infrastructure commits are omitted unless they change what a consumer
 sees.
 
-## [0.3.0] - 2026-09-20
+## [Unreleased]
 
-### Changed
+### Fixed
 
-- `aria-invalid` is exposed on each multi-select checkbox rather than its group wrapper.
-- Unset sliders no longer announce their visible "Not selected" marker twice.
-- The package smoke test now resolves the published `./styles.css` export.
+- Percentage validation errors now show bounds in the same percent units as
+  the control.
+- Form values remain safe for reserved object property names such as
+  `__proto__`, including unseeded controls and value-rule updates.
+- State-rule comparisons now match the shared server corpus for invalid
+  temporal values, duplicate selections, and Boolean wire text.
 
 ## [0.3.1] - 2026-09-20
 
@@ -23,7 +26,13 @@ sees.
 - README hero and GitHub social preview drop the angel wings from the XML
   card. The markdown image URL is unchanged.
 
-## [Unreleased]
+## [0.3.0] - 2026-09-20
+
+### Changed
+
+- `aria-invalid` is exposed on each multi-select checkbox rather than its group wrapper.
+- Unset sliders no longer announce their visible "Not selected" marker twice.
+- The package smoke test now resolves the published `./styles.css` export.
 
 ## [0.2.1] - 2026-09-17
 
@@ -107,7 +116,8 @@ First public release of the extracted package. React FIXatdl strategy forms:
 `FormRenderer`, `PanelRenderer`, the `useAtdlFormState` hook, the 15-control
 registry, state-rule evaluation and the StrategyParametersGrp preview emitter.
 
-[Unreleased]: https://github.com/FixPortal/fixportal-fixatdl-react/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/FixPortal/fixportal-fixatdl-react/compare/v0.3.1...HEAD
+[0.3.1]: https://github.com/FixPortal/fixportal-fixatdl-react/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/FixPortal/fixportal-fixatdl-react/compare/v0.2.1...v0.3.0
 [0.2.1]: https://github.com/FixPortal/fixportal-fixatdl-react/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/FixPortal/fixportal-fixatdl-react/releases/tag/v0.2.0

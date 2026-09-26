@@ -27,7 +27,7 @@ export function resolveStaticFile(dist, pathname) {
 }
 
 /** Create the minimal static server used by the consumer smoke. */
-function createStaticServer(dist) {
+export function createStaticServer(dist) {
   const server = createServer((request, response) => {
     const url = new URL(request.url ?? '/', 'http://localhost')
     const file = resolveStaticFile(dist, url.pathname)
@@ -36,8 +36,8 @@ function createStaticServer(dist) {
       return
     }
     try {
-      response.writeHead(200, { 'content-type': types[extname(file)] ?? 'application/octet-stream' })
-        .end(readFileSync(file))
+      const body = readFileSync(file)
+      response.writeHead(200, { 'content-type': types[extname(file)] ?? 'application/octet-stream' }).end(body)
     } catch {
       response.writeHead(404).end('not found')
     }
@@ -81,7 +81,7 @@ async function expectWorkbench(page) {
 
   await rate.fill('60')
   await rate.blur()
-  await page.getByText('Must be ≤ 0.5.').waitFor()
+  await page.getByText('Must be ≤ 50.').waitFor()
   await page.getByText('The form has errors. A host must not submit this preview.').waitFor()
 }
 
