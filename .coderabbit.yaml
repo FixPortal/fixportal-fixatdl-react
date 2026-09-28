@@ -1,7 +1,9 @@
 reviews:
   auto_review:
     enabled: false
-    labels: ["review-high"]
+    # `review-high-manual` is a durable manual override for an otherwise NORMAL PR and is
+    # never removed; review-tier.yml no longer re-applies `review-high` for it.
+    labels: ["review-high", "review-high-manual"]
     drafts: false
     auto_pause_after_reviewed_commits: 2
     ignore_usernames:
