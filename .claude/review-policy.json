@@ -15,7 +15,9 @@
     "vite.config.ts",
     "vitest.config.ts",
     ".github/workflows/review-tier.yml",
-    ".github/canonical-assets.json"
+    ".github/canonical-assets.json",
+    "scripts/assert-*.mjs",
+    "scripts/browser-smoke.mjs"
   ],
   "low": [
     "docs/**",

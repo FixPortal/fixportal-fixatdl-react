@@ -30,6 +30,12 @@ export function settleValueRules(
     previousValue: structuredClone(previous?.rules[index]?.previousValue),
   }))
   const values: Record<string, unknown> = Object.assign(Object.create(null), next)
+  // Snapshot the incoming state so a failing rule mid-cascade rolls the whole call
+  // back: earlier rules' writes and active flags must not survive alongside the
+  // error. Entry copies suffice — the loop only ever replaces entry fields
+  // (memory.active =, memory.previousValue =), it never mutates them in place.
+  const snapshotValues: Record<string, unknown> = Object.assign(Object.create(null), next)
+  const snapshotRules = rules.map(entry => ({ ...entry }))
   // ponytail: bounded full scans; use a dependency queue if large strategies need it.
   const maxPasses = Math.max(64, bindings.length * 4)
   for (let pass = 0; pass < maxPasses; pass++) {
@@ -42,23 +48,23 @@ export function settleValueRules(
       let value: unknown
       if (active) {
         try { memory.previousValue = structuredClone(values[control.id]) }
-        catch { return { values, rules, errors: [`${control.id}: Value could not be copied safely.`] } }
+        catch { return { values: snapshotValues, rules: snapshotRules, errors: [`${control.id}: Value could not be copied safely.`] } }
         try {
           value = control.type === 'Clock_t'
             ? editClockValue(control, values[control.id], rule.targetStringValue!, now)
             : normalizeControlValue(control, rule.targetStringValue)
         } catch (error) {
-          return { values, rules, errors: [`${control.id}: ${error instanceof Error ? error.message : String(error)}`] }
+          return { values: snapshotValues, rules: snapshotRules, errors: [`${control.id}: ${error instanceof Error ? error.message : String(error)}`] }
         }
       } else if (rule.targetStringValue === '{NULL}') {
         try { value = values[control.id] === null ? structuredClone(memory.previousValue) : values[control.id] }
-        catch { return { values, rules, errors: [`${control.id}: Value could not be copied safely.`] } }
+        catch { return { values: snapshotValues, rules: snapshotRules, errors: [`${control.id}: Value could not be copied safely.`] } }
       } else { memory.active = false; continue }
       try { changed = assignControlValue(strategy, values, control, value, readonlyIds, now) || changed }
-      catch (error) { return { values, rules, errors: [`${control.id}: ${error instanceof Error ? error.message : String(error)}`] } }
+      catch (error) { return { values: snapshotValues, rules: snapshotRules, errors: [`${control.id}: ${error instanceof Error ? error.message : String(error)}`] } }
       memory.active = active
     }
     if (!changed) return { values, rules, errors: [] }
   }
-  return { values, rules, errors: ['State rules did not converge. Check for a cyclic value rule.'] }
+  return { values: snapshotValues, rules: snapshotRules, errors: ['State rules did not converge. Check for a cyclic value rule.'] }
 }
