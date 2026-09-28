@@ -743,6 +743,24 @@ it('keeps a failed value-rule conversion invalid across unrelated edits', () => 
   expect(result.current.hasErrors).toBe(true)
 })
 
+it('rolls back the whole cascade when a later value rule fails', () => {
+  // WHY: settleValueRules applies rules into a working copy; a failing rule must not
+  // commit the earlier rules' writes (or their active flags) alongside the error.
+  // 'first' sorts before 'clock' in flattenControls order, so its write lands first.
+  const strategy = makeStrategy([
+    makeControl({ id: 'trigger', initValue: 'on' }),
+    makeControl({ id: 'first', initValue: 'original', stateRules: [{ effect: 'value', targetValue: false, targetStringValue: 'from-rule', expression: makeEqExpression('trigger', 'on') }] }),
+    makeControl({ id: 'clock', type: 'Clock_t', localMktTz: 'UTC', stateRules: [{ effect: 'value', targetValue: false, targetStringValue: 'bad-time', expression: makeEqExpression('trigger', 'on') }] }),
+  ])
+  const { result } = renderHook(() => useAtdlFormState(strategy, { clock: () => new Date('2026-09-12T12:00:00Z') }))
+  expect(result.current.hasErrors).toBe(true)
+  expect(result.current.values.first).toBe('original')
+  // The failed rule is retried on every settle, and the rollback holds there too.
+  act(() => result.current.setValue('trigger', 'on'))
+  expect(result.current.hasErrors).toBe(true)
+  expect(result.current.values.first).toBe('original')
+})
+
 it('surfaces a non-cloneable value-rule snapshot as a form error', () => {
   const strategy = makeStrategy([
     makeControl({ id: 'trigger', initValue: 'on' }),
