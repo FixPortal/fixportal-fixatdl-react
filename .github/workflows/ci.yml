@@ -119,6 +119,8 @@ jobs:
         env:
           # Publishing is downstream of the quality gate and only runs for release tags.
           GATE_EXEMPT: publish
+      - name: Assert canonical asset copies match the committed manifest
+        run: python3 .github/scripts/assert_canonical_assets.py
   ci-gate:
     name: CI Gate
     if: always()
