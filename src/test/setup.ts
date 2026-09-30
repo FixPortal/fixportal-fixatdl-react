@@ -9,7 +9,3 @@ import '@testing-library/jest-dom/vitest'
 import { afterEach } from 'vitest'
 import { cleanup } from '@testing-library/react'
 afterEach(() => { cleanup() })
-
-// Add project-specific test-environment shims below. Common ones:
-//   - vi.stubEnv('VITE_SOME_FLAG', 'false')  // pin dev-only flags off under test
-//   - jsdom <dialog> imperative-API stubs (showModal/close throw in jsdom)
