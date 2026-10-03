@@ -1,0 +1,9 @@
+node_modules/
+dist/
+coverage/
+*.tgz
+*.tsbuildinfo
+.claude/*
+!.claude/review-policy.json
+.semgrep/
+.github/**/__pycache__/

@@ -1,0 +1,52 @@
+/*
+ * Source for the optional stylesheet published as `@fix-portal/fixatdl-react/styles.css`.
+ *
+ * The controls emit Tailwind v4 utility classes against ten design tokens (see the
+ * README "Styling" section). A host already running Tailwind v4 should keep supplying
+ * those tokens itself and scan this package's `dist` -- that path stays the primary
+ * one and is unchanged. This file exists for the other host: one that is not running
+ * Tailwind, and would otherwise have to reimplement every utility by hand before the
+ * controls look like anything.
+ *
+ * Two deliberate constraints:
+ *
+ *  - NO PREFLIGHT. `@import "tailwindcss"` would pull Tailwind's base reset in, and a
+ *    library stylesheet that resets the host's margins, headings and form elements is
+ *    not "optional" in any meaningful sense. Importing the theme and utilities layers
+ *    separately is the documented v4 way to leave the host's own base styles alone.
+ *
+ *  - TOKENS ARE DEFAULTS, NOT DECISIONS. The ten `--color-*` values below are the
+ *    neutral palette the README already documents. They are plain custom properties,
+ *    so a host overrides any of them -- for branding, or for a dark scheme -- by
+ *    redeclaring them further down its own cascade. `examples/workbench` does exactly
+ *    that for its dark mode and adds no other CSS of its own.
+ *
+ * `source(none)` turns Tailwind's automatic source detection OFF, and the `@source`
+ * below names the one directory to scan instead. Measured rather than assumed: with
+ * detection left on, that `@source` line was a no-op -- deleting it produced a
+ * byte-identical 10560-byte stylesheet, because automatic detection already walks the
+ * whole repository. The published CSS therefore depended on whatever else happened to
+ * be in the tree, and scripts/assert-styles.mjs could not tell a correct scan from a
+ * broken one. Scoped explicitly the output is 9742 bytes, and a wrong path now fails
+ * that gate instead of passing it.
+ */
+
+@layer theme, base, components, utilities;
+
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities) source(none);
+
+@source "../src";
+
+@theme {
+  --color-text: #1f2937;
+  --color-muted: #6b7280;
+  --color-card: #ffffff;
+  --color-border-base: #d1d5db;
+  --color-brand: #2563eb;
+  --color-brand-soft: #93c5fd;
+  --color-bad-text: #b91c1c;
+  --color-bad-border: #ef4444;
+  --color-warn-bg: #fef3c7;
+  --color-warn-border: #f59e0b;
+}

@@ -1,0 +1,84 @@
+import { useId } from 'react'
+import type { ControlProps } from './controlRegistry'
+import { listOptionsFor } from './listOptions'
+
+/**
+ * Renders FIXatdl MultiSelectList_t (and, via re-export, CheckBoxList_t) as an
+ * ordered list of checkboxes. The wire value is an array of selected enumId
+ * strings. Checkbox lists are preferred over <select multiple> here for
+ * usability on touch devices and because the existing FixPortal UI uses checkbox
+ * groups for all multi-selection patterns.
+ */
+export function MultiSelectControl({ control, value, onChange, state }: ControlProps) {
+  const inputId = useId()
+  // WHY: invisible controls consume no layout space - returning null avoids
+  // residual aria tree clutter.
+  if (!state.visible) return null
+
+  const hasError = state.errors.length > 0
+
+  const items = listOptionsFor(control)
+
+  const selected: string[] = Array.isArray(value) ? (value as string[]) : []
+  // Set, not repeated Array.includes: the membership test runs once per item.
+  const selectedSet = new Set(selected)
+
+  const borderClass = hasError ? 'border-bad-border' : 'border-border-base'
+
+  return (
+    <div className="space-y-1">
+      {control.label != null && (
+        <span className="block text-xs text-muted font-medium">
+          {control.label}
+          {state.required && (
+            <span className="text-bad-text ml-1" aria-hidden="true">*</span>
+          )}
+        </span>
+      )}
+      {/* WHY: the fieldset gives assistive technology a named boundary for the
+          checkbox cluster, matching ARIA checkbox group best practice.
+          WHY "(Required)" in the name rather than aria-required, unlike
+          RadioListControl: aria-required is not a supported attribute of role
+          "group" (ARIA 1.2 lists it for combobox, gridcell, listbox, radiogroup,
+          spinbutton, textbox and tree). RadioListControl can use it because its
+          element is a radiogroup. Folding the state into the accessible name is
+          the group equivalent. aria-invalid belongs on the child checkboxes,
+          where the role supports it, rather than on this group. */}
+      <fieldset
+        aria-label={`${control.label ?? control.id}${state.required ? ' (Required)' : ''}`}
+        aria-describedby={hasError ? `${inputId}-errors` : undefined}
+        className={`space-y-1 rounded border px-2 py-1 min-w-0 ${borderClass}`}
+      >
+        {items.map((item) => {
+          const checked = selectedSet.has(item.enumId)
+          return (
+            <label key={item.enumId} className="flex items-center gap-2 text-sm text-text">
+              <input
+                type="checkbox"
+                checked={checked}
+                disabled={!state.enabled}
+                aria-disabled={!state.enabled}
+                aria-invalid={hasError}
+                onChange={(e) => {
+                  const next = e.target.checked
+                    ? [...selected, item.enumId]
+                    : selected.filter((id) => id !== item.enumId)
+                  onChange(next)
+                }}
+                className="accent-brand disabled:opacity-50 disabled:cursor-not-allowed"
+              />
+              {item.label}
+            </label>
+          )
+        })}
+      </fieldset>
+      {hasError && (
+        <ul id={`${inputId}-errors`} className="space-y-0.5">
+          {state.errors.map((err, index) => (
+            <li key={index} className="text-xs text-bad-text">{err}</li>
+          ))}
+        </ul>
+      )}
+    </div>
+  )
+}

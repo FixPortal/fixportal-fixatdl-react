@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>From broker XML to a rendered form</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --color-paper:   #f7f8fa;
+      --color-ink:     #1f2937;
+      --color-muted:   #5b6b85;
+      --color-accent:  #0f766e;
+      --font-sans:     'Geist', system-ui, sans-serif;
+      --font-serif:    'Instrument Serif', serif;
+      --font-mono:     'Geist Mono', ui-monospace, monospace;
+    }
+    body {
+      font-family: var(--font-sans);
+      background: var(--color-paper);
+      color: var(--color-ink);
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 1.5rem 2rem;
+    }
+    .frame { max-width: 1440px; width: 100%; }
+    .eyebrow {
+      font-family: var(--font-mono);
+      font-size: 0.66rem;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--color-muted);
+      margin-bottom: 0.5rem;
+    }
+    h1 {
+      font-family: var(--font-serif);
+      font-size: clamp(1.5rem, 2.4vw + 0.75rem, 2rem);
+      font-weight: 400;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+      color: var(--color-ink);
+      margin-bottom: 1.5rem;
+    }
+    svg { width: 100%; min-width: 900px; display: block; }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">Data flow · @fix-portal/fixatdl-react</p>
+    <h1>From broker XML to a rendered form</h1>
+
+    <svg viewBox="0 72 960 476" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="reactflow-title reactflow-desc">
+      <title id="reactflow-title">From broker XML to a rendered form</title>
+      <desc id="reactflow-desc">On the server the core .NET library parses broker FIXatdl XML into Strategy_t, which host-owned backend mapping code turns into the AtdlStrategyDto JSON contract; the @fix-portal/fixatdl-react package renders that DTO as a form and emits the 957 to 960 group as tag tuples. The host remains responsible for final validation, FIX message assembly and wire serialization. This package never parses XML.</desc>
+      <defs>
+        <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#5b6b85"/></marker>
+        <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#0f766e"/></marker>
+        <marker id="arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#2563eb"/></marker>
+      </defs>
+
+      <rect width="100%" height="100%" fill="#f7f8fa"/>
+
+      <!-- ===== ZONES ===== -->
+      <rect x="32" y="144" width="816" height="112" rx="8" fill="rgba(31,41,55,0.02)" stroke="rgba(31,41,55,0.10)" stroke-width="0.8"/>
+      <rect x="400" y="148" width="80" height="12" rx="2" fill="#f7f8fa"/>
+      <text x="440" y="157" fill="rgba(31,41,55,0.40)" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.14em">SERVER (.NET)</text>
+
+      <rect x="224" y="320" width="512" height="112" rx="8" fill="rgba(15,118,110,0.04)" stroke="#0f766e" stroke-width="1.2"/>
+      <rect x="360" y="324" width="240" height="12" rx="2" fill="#f7f8fa"/>
+      <text x="480" y="333" fill="#0f766e" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.10em">@FIX-PORTAL/FIXATDL-REACT · PUBLISHED NPM PACKAGE</text>
+
+      <!-- ===== ARROWS ===== -->
+      <line x1="192" y1="208" x2="240" y2="208" stroke="#5b6b85" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <rect x="198" y="182" width="36" height="12" rx="2" fill="#f7f8fa"/>
+      <text x="216" y="191" fill="#6b7280" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle">PARSE</text>
+
+      <line x1="416" y1="208" x2="464" y2="208" stroke="#5b6b85" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <rect x="422" y="182" width="36" height="12" rx="2" fill="#f7f8fa"/>
+      <text x="440" y="191" fill="#6b7280" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle">MODEL</text>
+
+      <line x1="640" y1="208" x2="688" y2="208" stroke="#5b6b85" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <rect x="628" y="182" width="72" height="12" rx="2" fill="#f7f8fa"/>
+      <text x="664" y="191" fill="#6b7280" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle">SERIALIZE</text>
+
+      <!-- DTO down into the browser -->
+      <path d="M 760,240 V 288 Q 760,296 752,296 H 356 Q 348,296 348,304 V 352" fill="none" stroke="#5b6b85" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <rect x="524" y="270" width="76" height="12" rx="2" fill="#f7f8fa"/>
+      <text x="562" y="279" fill="#6b7280" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle">HTTP / JSON</text>
+
+      <line x1="456" y1="384" x2="504" y2="384" stroke="#5b6b85" stroke-width="1.2" marker-end="url(#arrow)"/>
+      <rect x="462" y="364" width="36" height="12" rx="2" fill="#f7f8fa"/>
+      <text x="480" y="373" fill="#6b7280" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle">VALUES</text>
+
+      <!-- 957-960 tag tuples -> host-owned final wire -->
+      <path d="M 720,384 H 752" fill="none" stroke="#7e22ce" stroke-width="1.2" stroke-dasharray="4 3" marker-end="url(#arrow-link)"/>
+      <rect x="720" y="332" width="32" height="12" rx="2" fill="#f7f8fa"/>
+      <text x="736" y="341" fill="#7e22ce" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle">GROUP TAGS</text>
+
+      <!-- ===== NODES ===== -->
+      <!-- N1 broker XML -->
+      <rect x="48" y="176" width="144" height="64" rx="6" fill="#fffbeb"/>
+      <rect x="48" y="176" width="144" height="64" rx="6" fill="#ffedd5" stroke="#c2410c" stroke-width="1.2"/>
+      <rect x="56" y="184" width="32" height="12" rx="2" fill="transparent" stroke="rgba(194,65,12,0.55)" stroke-width="0.8"/>
+      <text x="72" y="193" fill="#9a3412" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">XML</text>
+      <text x="120" y="216" fill="#1f2937" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">FIXatdl 1.1</text>
+      <text x="120" y="232" fill="#5b6b85" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">from the broker</text>
+
+      <!-- N2 core -->
+      <rect x="240" y="176" width="176" height="64" rx="6" fill="#eef2ff"/>
+      <rect x="240" y="176" width="176" height="64" rx="6" fill="#dbeafe" stroke="#1e3a8a" stroke-width="1.2"/>
+      <rect x="248" y="184" width="44" height="12" rx="2" fill="transparent" stroke="rgba(30,58,138,0.55)" stroke-width="0.8"/>
+      <text x="270" y="193" fill="#1e3a8a" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">NUGET</text>
+      <text x="328" y="216" fill="#1f2937" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">FixPortal.FixAtdl</text>
+      <text x="328" y="232" fill="#5b6b85" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">the only XML parser</text>
+
+      <!-- N3 host mapper -->
+      <rect x="464" y="176" width="176" height="64" rx="6" fill="#faf5ff"/>
+      <rect x="464" y="176" width="176" height="64" rx="6" fill="#f3e8ff" stroke="#7e22ce" stroke-width="1.2"/>
+      <rect x="472" y="184" width="36" height="12" rx="2" fill="transparent" stroke="rgba(126,34,206,0.55)" stroke-width="0.8"/>
+      <text x="490" y="193" fill="#7e22ce" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">HOST</text>
+      <text x="552" y="212" fill="#1f2937" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Host backend mapper</text>
+      <text x="552" y="232" fill="#5b6b85" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">Strategy_t → AtdlStrategyDto</text>
+
+      <!-- N4 the DTO contract -->
+      <rect x="688" y="176" width="144" height="64" rx="6" fill="#eff6ff"/>
+      <rect x="688" y="176" width="144" height="64" rx="6" fill="#bfdbfe" stroke="#2563eb" stroke-width="1.2"/>
+      <rect x="696" y="184" width="40" height="12" rx="2" fill="transparent" stroke="rgba(37,99,235,0.55)" stroke-width="0.8"/>
+      <text x="716" y="193" fill="#1d4ed8" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">JSON</text>
+      <text x="760" y="216" fill="#1f2937" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">AtdlStrategyDto</text>
+      <text x="760" y="232" fill="#5b6b85" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">the contract</text>
+
+      <!-- N5 renderer -->
+      <rect x="240" y="352" width="216" height="64" rx="6" fill="#ecfdf5"/>
+      <rect x="240" y="352" width="216" height="64" rx="6" fill="#ccfbf1" stroke="#0f766e" stroke-width="1.2"/>
+      <rect x="248" y="360" width="32" height="12" rx="2" fill="transparent" stroke="rgba(15,118,110,0.55)" stroke-width="0.8"/>
+      <text x="264" y="369" fill="#0f766e" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">EXPORT</text>
+      <text x="348" y="392" fill="#1f2937" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">FormRenderer</text>
+      <text x="348" y="408" fill="#5b6b85" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">useAtdlFormState</text>
+
+      <!-- N6 StrategyParametersGrp emitter -->
+      <rect x="504" y="352" width="216" height="64" rx="6" fill="#ecfdf5"/>
+      <rect x="504" y="352" width="216" height="64" rx="6" fill="#ccfbf1" stroke="#0f766e" stroke-width="1.2"/>
+      <rect x="512" y="360" width="48" height="12" rx="2" fill="transparent" stroke="rgba(15,118,110,0.55)" stroke-width="0.8"/>
+      <text x="536" y="369" fill="#0f766e" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">EXPORT</text>
+      <text x="612" y="392" fill="#1f2937" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">emitStrategyParametersGrp</text>
+      <text x="612" y="408" fill="#5b6b85" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">957-960 tag tuples</text>
+
+      <!-- N7 host final wire -->
+      <rect x="752" y="352" width="176" height="64" rx="6" fill="#faf5ff"/>
+      <rect x="752" y="352" width="176" height="64" rx="6" fill="#f3e8ff" stroke="#7e22ce" stroke-width="1.2"/>
+      <rect x="760" y="360" width="36" height="12" rx="2" fill="transparent" stroke="rgba(126,34,206,0.55)" stroke-width="0.8"/>
+      <text x="778" y="369" fill="#7e22ce" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">HOST</text>
+      <text x="840" y="392" fill="#1f2937" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Final FIX wire</text>
+      <text x="840" y="408" fill="#5b6b85" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">validate + assemble</text>
+
+      <!-- ===== LEGEND ===== -->
+      <line x1="32" y1="500" x2="928" y2="500" stroke="rgba(31,41,55,0.10)" stroke-width="0.8"/>
+      <text x="32" y="520" fill="#5b6b85" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.14em">LEGEND</text>
+
+      <rect x="116" y="511" width="12" height="10" rx="2" fill="#f3e8ff" stroke="#7e22ce" stroke-width="1"/>
+      <text x="136" y="520" fill="#5b6b85" font-size="8" font-family="'Geist Mono', monospace">HOST-OWNED CODE</text>
+
+      <rect x="292" y="511" width="12" height="10" rx="2" fill="#ccfbf1" stroke="#0f766e" stroke-width="1"/>
+      <text x="312" y="520" fill="#5b6b85" font-size="8" font-family="'Geist Mono', monospace">REACT PACKAGE</text>
+
+      <rect x="484" y="511" width="12" height="10" rx="2" fill="#bfdbfe" stroke="#2563eb" stroke-width="1"/>
+      <text x="504" y="520" fill="#5b6b85" font-size="8" font-family="'Geist Mono', monospace">JSON CONTRACT</text>
+
+      <rect x="656" y="511" width="12" height="10" rx="2" fill="#ffedd5" stroke="#c2410c" stroke-width="1"/>
+      <text x="676" y="520" fill="#5b6b85" font-size="8" font-family="'Geist Mono', monospace">EXTERNAL INPUT</text>
+    </svg>
+  </div>
+</body>
+</html>
