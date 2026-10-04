@@ -32,6 +32,7 @@ export function NumericFieldControl({ control, value, onChange, state }: Control
   const borderClass = hasError
     ? 'border-bad-border focus:ring-bad-border'
     : 'border-border-base focus:ring-brand-soft'
+  const outerStepButton = 'inline-flex min-h-11 min-w-11 items-center justify-center rounded border border-border-base bg-card px-2 py-1 text-sm text-text font-mono focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-soft disabled:opacity-50 disabled:cursor-not-allowed'
   const shift = param?.type === 'Percentage_t' ? -2 : 0
   const min = formatDecimal(param?.min, null, shift) ?? undefined
   const max = formatDecimal(param?.max, null, shift) ?? undefined
@@ -74,8 +75,8 @@ export function NumericFieldControl({ control, value, onChange, state }: Control
       />
       {control.type === 'DoubleSpinner_t' && control.outerIncrement != null && (
         <div className="flex gap-1">
-          <button type="button" disabled={!state.enabled} aria-label={`Decrease ${control.label ?? control.id} by ${control.outerIncrement}`} onClick={() => outerStep(-1)}>−{control.outerIncrement}</button>
-          <button type="button" disabled={!state.enabled} aria-label={`Increase ${control.label ?? control.id} by ${control.outerIncrement}`} onClick={() => outerStep(1)}>+{control.outerIncrement}</button>
+          <button type="button" className={outerStepButton} disabled={!state.enabled} aria-label={`Decrease ${control.label ?? control.id} by ${control.outerIncrement}`} onClick={() => outerStep(-1)}>−{control.outerIncrement}</button>
+          <button type="button" className={outerStepButton} disabled={!state.enabled} aria-label={`Increase ${control.label ?? control.id} by ${control.outerIncrement}`} onClick={() => outerStep(1)}>+{control.outerIncrement}</button>
         </div>
       )}
       {hasError && (
