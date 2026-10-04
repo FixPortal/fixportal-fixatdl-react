@@ -2,7 +2,7 @@
 import { createRequire } from 'node:module'
 import { mkdtemp, mkdir, writeFile, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
-import { join, relative } from 'node:path'
+import { basename, dirname, join, relative, resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
 // Resolve from the real consumer, so this checks the scoped override's native
@@ -25,6 +25,9 @@ describe('Tailwind native watcher ignore compatibility', () => {
     ['mixed array', ['skip.css', 'nested/**'], ['keep.css', '.hidden.css']],
   ])('%s', async (_name, ignore, expected) => {
     const root = await mkdtemp(join(tmpdir(), 'fixatdl-watcher-compat-'))
+    if (dirname(resolve(root)) !== resolve(tmpdir()) || !basename(root).startsWith('fixatdl-watcher-compat-')) {
+      throw new Error('Refusing cleanup outside the owned watcher fixture')
+    }
     const watched = join(root, 'watched')
     const snapshot = join(root, 'snapshot')
     try {
