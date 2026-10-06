@@ -8,8 +8,10 @@ the workbench typecheck/build, and `npm pack --dry-run` before opening a pull
 request against `main`. Use `npm run browser:smoke` when changing the sample,
 package exports, rendering, or styles.
 
-Keep the DTO contract compatible with the simulator backend. Preserve the shared
-rule corpus, accessibility and host-owned styling. Add a regression for behaviour
+Keep the DTO contract compatible with `FixPortal.FixAtdl.Contracts`, which
+produces it: `src/contractsPackageSample.test.tsx` renders that package's real
+output. The shared rule corpus is canonical in fixportal-fixatdl; change it
+there first. Preserve accessibility and host-owned styling. Add a regression for behaviour
 changes and identify any public API break in the PR. Changes use Apache-2.0 and
 Conventional Commits; PRs are merged by rebase.
 

@@ -1,108 +1,68 @@
 # Getting a strategy into `@fix-portal/fixatdl-react`
 
 > This package never parses FIXatdl XML. The host backend parses with
-> [`FixPortal.FixAtdl`](https://github.com/FixPortal/fixportal-fixatdl)
-> and maps the resulting `Strategy_t` into the JSON `AtdlStrategyDto`
-> this page describes. The C# DTO of the same name lives in FixPortal
-> Simulator, not in the core NuGet package — an OSS host writes its own
-> mapper.
+> [`FixPortal.FixAtdl`](https://www.nuget.org/packages/FixPortal.FixAtdl/)
+> and maps the resulting model into the JSON `AtdlStrategyDto` this page
+> describes, using
+> [`FixPortal.FixAtdl.Contracts`](https://www.nuget.org/packages/FixPortal.FixAtdl.Contracts/).
+> Both are public NuGet packages; no FixPortal account or token is needed.
 
 A worked JSON example is
 [`src/__fixtures__/twap-strategy.json`](https://github.com/FixPortal/fixportal-fixatdl-react/blob/main/src/__fixtures__/twap-strategy.json).
 
-## Worked mapper example
+## Mapping on a .NET backend
 
-The mapper belongs to the host backend. It receives the parsed `Strategy_t`
-from `FixPortal.FixAtdl` and emits the JSON contract consumed by this package.
-The maintained FixPortal Simulator implementation is [`AtdlDtoMapper.cs`](https://github.com/FixPortal/fixportal-simulator-backend/blob/main/src/FixPortal.Simulator.Atdl/Mapping/AtdlDtoMapper.cs).
-The following is the important end-to-end shape from that mapper, reduced to
-the strategy, parameter, panel, and control boundaries:
+`FixPortal.FixAtdl.Contracts` contains the C# records for this contract, the
+mapper from the parsed `Strategies_t`, and the state-rule AST builder that turns
+FIXatdl `Edit` trees into the `stateRules` / `strategyEdits` this package
+evaluates. It is the same code FixPortal's own services use.
 
-```csharp
-private AtdlStrategyDto MapStrategy(
-    Strategy_t source,
-    IReadOnlyDictionary<string, string> sourceXmlByStrategy,
-    EditCollection? globalEdits)
-{
-    var parameterDtos = source.Parameters.Select(MapParameter).ToList();
-    var parametersByName = parameterDtos
-        .GroupBy(parameter => parameter.Name)
-        .ToDictionary(group => group.Key, group => group.Last());
-    var comparisonTypes = source.Controls
-        .GroupBy(control => control.Id)
-        .ToDictionary(
-            group => group.Key,
-            group => group.Last() switch
-            {
-                Clock_t => "Clock_t",
-                ListControlBase => "EnumState",
-                BinaryControlBase binary when binary.HasEnumeratedState => "EnumState",
-                _ => (string?)null,
-            });
-    var astBuilder = new StateRuleAstBuilder(globalEdits, source.Edits, comparisonTypes);
-    var panel = source.StrategyLayout?.StrategyPanel is { } root
-        ? MapPanel(root, parametersByName, astBuilder)
-        : new AtdlPanelDto(null, "None", "Vertical", false, false, []);
-
-    sourceXmlByStrategy.TryGetValue(source.Name, out var sourceXml);
-    return new AtdlStrategyDto(
-        source.Name,
-        source.Description?.Content,
-        parameterDtos,
-        panel,
-        sourceXml ?? string.Empty,
-        source.StrategyEdits.Select(edit => MapStrategyEdit(edit, astBuilder, parametersByName)).ToList());
-}
-
-private AtdlPanelDto MapPanel(
-    StrategyPanel_t source,
-    IReadOnlyDictionary<string, AtdlParameterDto> parametersByName,
-    StateRuleAstBuilder astBuilder)
-{
-    var children = source.StrategyPanels
-        .Select(child => (AtdlPanelChildDto)MapPanel(child, parametersByName, astBuilder))
-        .Concat(source.Controls.OrderBy(control => control.Index)
-            .Select(control => (AtdlPanelChildDto)MapControl(control, parametersByName, astBuilder)))
-        .ToList();
-    return new AtdlPanelDto(
-        source.Title,
-        source.Border?.ToString() ?? "None",
-        source.Orientation?.ToString() ?? "Vertical",
-        source.Collapsible ?? false,
-        source.Collapsed ?? false,
-        children);
-}
-
-private static AtdlControlDto MapControl(
-    Control_t source,
-    IReadOnlyDictionary<string, AtdlParameterDto> parametersByName,
-    StateRuleAstBuilder astBuilder)
-{
-    parametersByName.TryGetValue(source.ParameterRef ?? string.Empty, out var parameter);
-    var listItems = source is ListControlBase list && list.HasListItems
-        ? list.ListItems.Select(item => new AtdlListItemDto(item.EnumId, item.UiRep)).ToList()
-        : null;
-    return new AtdlControlDto(
-        source.Id,
-        source.GetType().Name,
-        source.Label,
-        string.IsNullOrEmpty(source.ParameterRef) ? null : source.ParameterRef,
-        parameter,
-        listItems,
-        GetInitValue(source),
-        MapStateRules(source, astBuilder),
-        source.ToolTip);
-}
+```shell
+dotnet add package FixPortal.FixAtdl.Contracts
 ```
 
-The omitted helpers are mechanical projections of the same contract: map every
-parameter field, inline the resolved parameter into each control, emit each
-`enabled`, `visible`, and `value` state rule with its AST, preserve strategy
-edits, and carry control-specific fields such as enums, increments, clocks,
-timezones, and `UseFixField` initialization. A production mapper must also
-bound panel recursion and preserve the host’s validation/error policy. In JSON,
-the complete minimal DTO handed to the browser looks like this; panel children
-carry the discriminator explicitly:
+```csharp
+using System.Text.Json;
+using FixPortal.FixAtdl.Contracts;
+using FixPortal.FixAtdl.Xml;
+
+using var stream = File.OpenRead("strategies.xml");
+var strategies = new StrategiesReader().Load(stream);
+
+AtdlStrategiesDto contract = new AtdlDtoMapper().Map(strategies);
+
+// Hand one strategy to the browser; FormRenderer takes a single AtdlStrategyDto.
+AtdlStrategyDto pov = contract.Strategies.Single(s => s.Name == "POV");
+string json = JsonSerializer.Serialize(pov, AtdlContractJson.Options);
+```
+
+Serialize with `AtdlContractJson.Options` (camelCase, null members omitted):
+this package's optional fields expect absent members, not `null`.
+
+Two details:
+
+- `Map` takes an optional `IReadOnlyDictionary<string, string>` of each
+  strategy's source XML, emitted as `sourceXml`. The form uses `sourceXml` only
+  as an identity (state resets when it changes), so an empty string is fine if
+  you do not keep the fragment.
+- Mapping throws `AtdlParseException` for a document whose state rules cannot
+  be built: an unresolved `EditRef`, an unknown operator, an invalid literal, or
+  nesting past the supported depth. `Code` carries a machine-readable reason.
+
+The output of exactly this snippet, for the `pov.xml` fixture in the core
+repository, is committed here as
+[`src/__fixtures__/contracts-pov-strategy.json`](https://github.com/FixPortal/fixportal-fixatdl-react/blob/main/src/__fixtures__/contracts-pov-strategy.json)
+and rendered by `src/contractsPackageSample.test.tsx`, so the two packages
+cannot drift apart unnoticed.
+
+## Hosts that are not .NET
+
+The contract is plain JSON. A host in another language maps its own FIXatdl
+model into the shape below; the field tables that follow and
+[`contracts/state-rule-cases.json`](https://github.com/FixPortal/fixportal-fixatdl/blob/main/contracts/state-rule-cases.json)
+(the state-rule AST cases both evaluators are tested against) are the
+specification. The complete minimal DTO handed to the browser looks like this;
+panel children carry the discriminator explicitly:
 
 ```json
 {
@@ -145,11 +105,13 @@ carry the discriminator explicitly:
 }
 ```
 
-In the production payload, `parameter` is normally the resolved inline copy
-of the matching entry in `parameters`; the example leaves it `null` only to
-show that the top-level parameter list is the source of truth for the DTO
-contract. The actual Simulator mapper inlines it for controls and emits all
+In a mapped payload, `parameter` is normally the resolved inline copy of the
+matching entry in `parameters`; the example leaves it `null` only to show that
+the top-level parameter list is the source of truth for the DTO contract.
+`FixPortal.FixAtdl.Contracts` inlines it for controls and emits all
 control-specific fields.
+
+## Rendering it
 
 Return the DTO from the host API, then pass it to the published package:
 
@@ -245,7 +207,8 @@ evaluating the DTO by hand.
 ## What the host still owns
 
 - Schema validation of the XML (the core library does not ship the XSD).
-- Mapping `Strategy_t` → this JSON. There is no published OpenAPI.
+- Serving the JSON. `FixPortal.FixAtdl.Contracts` does the mapping; the
+  endpoint, auth and caching around it are the host's.
 - Authoritative FIX serialization. `emitStrategyParametersGrp` is a
   preview of tags 957–960 and **throws** if a name or value contains
   SOH. Direct parameter tags and the rest of the order are yours.
