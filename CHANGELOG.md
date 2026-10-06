@@ -14,6 +14,8 @@ with the pre-release history.
 
 ## [Unreleased]
 
+## [0.3.3] - 2026-10-07
+
 ### Changed
 
 - Documentation: `getting-a-strategy.md` now maps strategies with the public
@@ -129,5 +131,6 @@ First public release of the extracted package. React FIXatdl strategy forms:
 `FormRenderer`, `PanelRenderer`, the `useAtdlFormState` hook, the 15-control
 registry, state-rule evaluation and the StrategyParametersGrp preview emitter.
 
-[Unreleased]: https://github.com/FixPortal/fixportal-fixatdl-react/compare/v0.3.2...HEAD
+[Unreleased]: https://github.com/FixPortal/fixportal-fixatdl-react/compare/v0.3.3...HEAD
+[0.3.3]: https://github.com/FixPortal/fixportal-fixatdl-react/releases/tag/v0.3.3
 [0.3.2]: https://github.com/FixPortal/fixportal-fixatdl-react/releases/tag/v0.3.2
