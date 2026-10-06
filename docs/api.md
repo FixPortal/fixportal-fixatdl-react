@@ -76,7 +76,9 @@ Tag 959 codes match FIX 5.0 SP2 and the core library: `Int_t=1` … `Percentage_
 ## Contract types (`types.ts`)
 
 The host backend parses XML through `FixPortal.FixAtdl` and maps the model
-into these DTOs. This package never parses XML itself.
+into these DTOs, typically with `FixPortal.FixAtdl.Contracts` (see
+[getting-a-strategy.md](getting-a-strategy.md)). This package never parses XML
+itself.
 
 | Export | What it is |
 |---|---|

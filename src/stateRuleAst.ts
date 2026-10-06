@@ -23,5 +23,5 @@ export type StateRuleOperator =
   | '<='
   | 'exists'
   | 'not-exists'
-/** Matches the simulator backend's AST evaluation limit. */
+/** Matches the AST evaluation limit of `StateRuleEvaluator` in FixPortal.FixAtdl.Contracts. */
 export const MAX_STATE_RULE_DEPTH = 64

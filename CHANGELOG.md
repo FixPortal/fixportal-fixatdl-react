@@ -14,6 +14,13 @@ with the pre-release history.
 
 ## [Unreleased]
 
+### Changed
+
+- Documentation: `getting-a-strategy.md` now maps strategies with the public
+  `FixPortal.FixAtdl.Contracts` NuGet package (DTOs, mapper and state-rule AST
+  builder) instead of describing a mapper in a private repository. The package
+  description and NOTICE no longer point at private repositories.
+
 ## [0.3.2] - 2026-10-03
 
 ### Fixed

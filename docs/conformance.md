@@ -8,7 +8,7 @@
 
 | File | Count | Also consumed by | What it pins |
 |---|---|---|---|
-| [`contracts/state-rule-cases.json`](../contracts/state-rule-cases.json) | 87 | FixPortal Simulator (backend-owned snapshot; integration checks drift) | Edit evaluator: typed compares, XOR exactly-one, `{NULL}`, Boolean literals, missing values. |
+| [`contracts/state-rule-cases.json`](../contracts/state-rule-cases.json) | 91 | `FixPortal.FixAtdl.Contracts` evaluator tests; this file is a copy of the canonical [`contracts/state-rule-cases.json`](https://github.com/FixPortal/fixportal-fixatdl/blob/main/contracts/state-rule-cases.json) in fixportal-fixatdl | Edit evaluator: typed compares, XOR exactly-one, `{NULL}`, Boolean literals, missing values. |
 | [`contracts/state-transitions.json`](../contracts/state-transitions.json) | 6 | WPF `EditViewModel` tests, core fixture copy | Value-rule machine: initial false enabled/visible inversion, `{NULL}` clear/restore, ordinary transitions, cascades, cycle rejection. |
 
 The six transition scenarios, by their names in the file, are:

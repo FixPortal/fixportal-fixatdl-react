@@ -1,6 +1,6 @@
 # FixPortal.FixAtdl.React
 
-React adapter over a backend-mapped FIXatdl strategy DTO. No XML parser, no simulator HTTP/auth/store imports. The host maps `FixPortal.FixAtdl` `Strategy_t` into `AtdlStrategyDto` — see `docs/getting-a-strategy.md`.
+React adapter over a backend-mapped FIXatdl strategy DTO. No XML parser, no simulator HTTP/auth/store imports. The host maps the parsed model into `AtdlStrategyDto` with the public `FixPortal.FixAtdl.Contracts` NuGet package — see `docs/getting-a-strategy.md`. `src/__fixtures__/contracts-pov-strategy.json` is that package's real output; never hand-edit it. The rule corpus is canonical in fixportal-fixatdl.
 
 Consumers: Node 22+, React 19. Maintainers/CI: Node 24 / npm 11. Checks: npm run typecheck, npm run lint, npm run test:coverage, npm run build, npm pack --dry-run, then the four dist gates under scripts/ (react-external, public-dts, no-side-effects, styles).
 
