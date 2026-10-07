@@ -54,6 +54,36 @@ describe('FormRenderer', () => {
   }
   const hidden = { effect: 'visible', targetValue: false, targetStringValue: null, expression: { kind: 'and', children: [], field: null, operator: null, value: null } }
 
+  it('does not repeat a visible control error for a hidden sibling on the same parameter', () => {
+    const parameter = { ...strategy.parameters[0], name: 'Venues', enumValues: [{ enumId: 'a', wireValue: 'A' }] }
+    const base = flattenControls(strategy)[0]
+    const child = (id: string, type: string, label: string) => ({ ...base, id, type, label, parameter, parameterRef: parameter.name, initValue: 'nope', stateRules: [], kind: 'control' as const })
+    const document = { ...strategy, parameters: [parameter], panel: { ...strategy.panel, children: [child('shown', 'TextField_t', 'Shown'), child('hidden', 'HiddenField_t', 'Hidden copy')] } }
+    render(<FormRenderer strategy={document} />)
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+    expect(screen.getByText('Must be a declared enumeration value.')).toBeInTheDocument()
+  })
+
+  it('keeps focus and an open panel when a replacement strategy has the same content', () => {
+    const panel = { title: 'Section', border: 'None', orientation: 'Vertical', collapsible: true, collapsed: true, children: [] as AtdlStrategyDto['panel']['children'] }
+    const control = { kind: 'control' as const, id: 'name', type: 'TextField_t', label: 'Name', parameterRef: null, parameter: null, listItems: null, initValue: 'seed', stateRules: [], tooltip: null }
+    const document: AtdlStrategyDto = { name: 'S', parameters: [], panel: { ...panel, children: [control] }, sourceXml: '<Strategy />' }
+    const { rerender } = render(<FormRenderer strategy={document} />)
+    const details = screen.getByText('Section').closest('details')
+    expect(details).not.toBeNull()
+    details!.open = true
+    const input = screen.getByLabelText('Name')
+    fireEvent.change(input, { target: { value: 'edited' } })
+    input.focus()
+    const equivalent: AtdlStrategyDto = { sourceXml: '<Strategy />', description: null, panel: { children: [{ ...control, tooltip: null }], collapsed: true, collapsible: true, orientation: 'Vertical', border: 'None', title: 'Section' }, parameters: [], name: 'S' }
+    rerender(<FormRenderer strategy={equivalent} />)
+    expect(screen.getByLabelText('Name')).toBe(input)
+    expect(input).toHaveValue('edited')
+    expect(input).toHaveFocus()
+    expect(screen.getByText('Section').closest('details')).toBe(details)
+    expect(details!.open).toBe(true)
+  })
+
   it.each(['TextField_t', 'HiddenField_t'])('surfaces a hidden required control error with its label: %s', type => {
     const ref = createRef<FormRendererHandle>()
     const document = single({ type, label: 'Hidden quantity', initValue: null, parameter: { ...strategy.parameters[0], useValue: 'required' }, stateRules: type === 'HiddenField_t' ? [] : [hidden] })

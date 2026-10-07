@@ -2,7 +2,7 @@ import { useMemo, useState, useCallback } from 'react'
 import type { AtdlStrategyDto, AtdlControlDto } from './types.js'
 import { tryEvaluateStateRule } from './StateRuleEvaluator.js'
 import { flattenControls, controlValuesForRules, mapControlValuesToParameters, assignControlValue, isLockedRadio, parameterValueSource } from './atdlControls.js'
-import { isUnfilledAtdlValue, isBinaryControl, normalizeControlValue, controlParameterValue, parameterWireValue, parameterFromWire } from './atdlValue.js'
+import { isUnfilledAtdlValue, isBinaryControl, normalizeControlValue, controlParameterValue, parameterWireValue, parameterFromWire, multiValueEnumIds } from './atdlValue.js'
 import { MAX_STATE_RULE_DEPTH, type StateRuleAstNode } from './stateRuleAst.js'
 import { settleValueRules } from './stateTransitions.js'
 import { compareDecimals, formatDecimal } from './decimalValue.js'
@@ -38,13 +38,34 @@ export interface AtdlFormStateApi {
   hasErrors: boolean
 }
 
+/**
+ * Identity of a strategy document. Property order does not count, and a null
+ * member counts as omitted: Contracts writes nulls that way, and the form
+ * already treats the two alike. A real change of content still produces a new key.
+ */
+export function strategyContentKey(value: unknown): string {
+  return JSON.stringify(canonicalizeStrategy(value))
+}
+
+function canonicalizeStrategy(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(canonicalizeStrategy)
+  if (value !== null && typeof value === 'object') {
+    const source = value as Record<string, unknown>
+    const keys = Object.keys(source).filter(key => source[key] !== null && source[key] !== undefined).sort()
+    const result: Record<string, unknown> = {}
+    for (const key of keys) result[key] = canonicalizeStrategy(source[key])
+    return result
+  }
+  return value
+}
+
 /** One strategy's settled values and validation, including parameter StrategyEdits. */
 export function useAtdlFormState(document: AtdlStrategyDto, options: AtdlFormOptions = {}): AtdlFormStateApi {
   const { clock } = options
   const { values: validatedExternalValues, errors: externalErrors } = validateExternalValues(options.externalValues)
   const contextKey = `${JSON.stringify(validatedExternalValues)}`
   const externalValues = useMemo(() => JSON.parse(contextKey) as Record<string, unknown>, [contextKey])
-  const documentKey = JSON.stringify(document)
+  const documentKey = strategyContentKey(document)
   // Content identity refreshes every derived cache, even when the host reuses its DTO object.
   const strategy = useMemo(() => JSON.parse(documentKey) as AtdlStrategyDto, [documentKey])
   const readonlyIds = useMemo(() => new Set(flattenControls(strategy)
@@ -256,7 +277,7 @@ function validateControl(control: AtdlControlDto, raw: unknown, required: boolea
   if (isUnfilledAtdlValue(value)) return errors
   if (isBinaryControl(control) && typeof raw !== 'boolean') errors.push('Must be checked or unchecked.')
   if (parameter?.enumValues?.length && control.type !== 'EditableDropDownList_t') {
-    const selections = Array.isArray(logical) ? logical : [logical]
+    const selections = multiValueEnumIds(parameter, logical) ?? (Array.isArray(logical) ? logical : [logical])
     if (selections.some(id => !parameter.enumValues?.some(item => item.enumId === id))) errors.push('Must be a declared enumeration value.')
   }
   const type = parameter?.type ?? ''

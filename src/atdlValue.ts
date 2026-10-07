@@ -47,14 +47,49 @@ export function controlParameterValue(control: AtdlControlDto, value: unknown): 
   return value
 }
 
+const MULTI_VALUE_TYPES = ['MultipleStringValue_t', 'MultipleCharValue_t']
+
+/**
+ * Enum ids for one multi-value parameter. A space-separated string is split once
+ * here so validation and wire emission see the same tokens. A token that is
+ * already a wire value becomes its enum id; anything else is left unchanged.
+ */
+export function multiValueEnumIds(parameter: AtdlParameterDto, value: unknown): string[] | null {
+  if (!MULTI_VALUE_TYPES.includes(parameter.type)) return null
+  const enums = parameter.enumValues ?? []
+  let tokens: string[] | null
+  if (Array.isArray(value)) {
+    tokens = value.map(item => String(item))
+  } else if (typeof value === 'string' && value !== '') {
+    tokens = value.split(/\s+/).filter(Boolean)
+  } else {
+    tokens = null
+  }
+  if (!tokens) return null
+  return tokens.map(token => {
+    const byId = enums.find(item => item.enumId === token)?.enumId
+    if (byId !== undefined) return byId
+    const byWire = enums.find(item => item.wireValue === token)?.enumId
+    return byWire ?? token
+  })
+}
+
+function wireOfEnumId(enums: { enumId: string; wireValue: string }[], id: string): string {
+  return enums.find(item => item.enumId === id)?.wireValue ?? id
+}
+
 export function parameterWireValue(parameter: AtdlParameterDto, value: unknown, applyPrecision = true): string | null {
   if (value == null || value === '{NULL}') return null
   const enums = parameter.enumValues ?? []
-  if (typeof value === 'string' && value !== '' && ['MultipleStringValue_t', 'MultipleCharValue_t'].includes(parameter.type)) {
-    const selections = value.split(/\s+/).filter(Boolean).map(token =>
-      enums.find(item => item.enumId === token)?.enumId ?? enums.find(item => item.wireValue === token)?.enumId ?? token)
-    // Keep malformed tokens visible; complementing them would hide invalid constants.
-    if (enums.length && selections.some(id => !enums.some(item => item.enumId === id))) return value
+  const selections = multiValueEnumIds(parameter, value)
+  if (selections) {
+    const unknown = enums.length > 0 && selections.some(id => !enums.some(item => item.enumId === id))
+    // An unknown token stays on the wire as typed. Complementing the known ones
+    // would hide that free text, which an editable dropdown is allowed to keep.
+    if (unknown) {
+      const wire = selections.map(id => wireOfEnumId(enums, id)).filter(item => item !== '{NULL}' && item !== '').join(' ')
+      return wire || null
+    }
     value = selections
   }
   if (Array.isArray(value)) {
