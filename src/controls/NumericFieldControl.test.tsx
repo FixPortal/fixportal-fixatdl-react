@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import { render, screen, fireEvent, cleanup } from '@testing-library/react'
-import { NumericFieldControl } from './NumericFieldControl'
-import type { AtdlControlDto, AtdlParameterDto } from '../types'
-import type { ControlFormState } from '../useAtdlFormState'
+import { NumericFieldControl } from './NumericFieldControl.js'
+import type { AtdlControlDto, AtdlParameterDto } from '../types.js'
+import type { ControlFormState } from '../useAtdlFormState.js'
 
 afterEach(cleanup)
 

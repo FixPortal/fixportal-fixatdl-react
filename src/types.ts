@@ -1,7 +1,11 @@
+// Every member that is nullable in C# is optional here: FixPortal.FixAtdl.Contracts
+// serializes with JsonIgnoreCondition.WhenWritingNull, so a null member is omitted from
+// the wire rather than sent as null. Treat an absent member and a null one alike.
+
 /** Mirrors C# AtdlStrategyDto - one FIXatdl Strategy element with parameters and panel tree. */
 export interface AtdlStrategyDto {
   name: string
-  description: string | null
+  description?: string | null
   parameters: AtdlParameterDto[]
   panel: AtdlPanelDto
   sourceXml: string
@@ -16,15 +20,15 @@ export interface AtdlStrategyEditDto {
 /** Mirrors C# AtdlParameterDto - a FIXatdl Parameter with type metadata and optional enum values. */
 export interface AtdlParameterDto {
   name: string
-  fixTag: number | null
+  fixTag?: number | null
   type: string
-  enumValues: AtdlEnumPairDto[] | null
-  min: unknown
-  max: unknown
-  precision: number | null
+  enumValues?: AtdlEnumPairDto[] | null
+  min?: unknown
+  max?: unknown
+  precision?: number | null
   mutableOnCxlRpl: boolean
-  useValue: string | null
-  defaultValue: unknown
+  useValue?: string | null
+  defaultValue?: unknown
   trueWireValue?: string | null
   falseWireValue?: string | null
   invertOnWire?: boolean | null
@@ -51,13 +55,13 @@ export interface AtdlListItemDto {
 export interface AtdlControlDto {
   id: string
   type: string
-  label: string | null
-  parameterRef: string | null
-  parameter: AtdlParameterDto | null
-  listItems: AtdlListItemDto[] | null
-  initValue: unknown
+  label?: string | null
+  parameterRef?: string | null
+  parameter?: AtdlParameterDto | null
+  listItems?: AtdlListItemDto[] | null
+  initValue?: unknown
   stateRules: AtdlStateRuleDto[]
-  tooltip: string | null
+  tooltip?: string | null
   checkedEnumRef?: string | null
   uncheckedEnumRef?: string | null
   radioGroup?: string | null
@@ -72,7 +76,7 @@ export interface AtdlControlDto {
 
 /** Mirrors C# AtdlPanelDto - a FIXatdl StrategyPanel with layout metadata and ordered children. */
 export interface AtdlPanelDto {
-  title: string | null
+  title?: string | null
   border: string
   orientation: string
   collapsible: boolean
@@ -99,17 +103,17 @@ export type AtdlPanelChildDto =
 export interface AtdlStateRuleDto {
   effect: string
   targetValue: boolean
-  targetStringValue: string | null
+  targetStringValue?: string | null
   expression: StateRuleAstNodeDto
 }
 
 /** Mirrors C# StateRuleAstNodeDto - one node in a StateRule condition tree (recursive). */
 export interface StateRuleAstNodeDto {
   kind: string
-  operator: string | null
-  field: string | null
-  value: unknown
-  children: StateRuleAstNodeDto[] | null
+  operator?: string | null
+  field?: string | null
+  value?: unknown
+  children?: StateRuleAstNodeDto[] | null
   field2?: string | null
   comparisonType?: string | null
 }

@@ -1,10 +1,10 @@
 import { useImperativeHandle } from 'react'
 import type { Ref } from 'react'
-import type { AtdlStrategyDto } from './types'
-import { PanelRenderer } from './PanelRenderer'
-import { useAtdlFormState } from './useAtdlFormState'
-import type { AtdlFormOptions } from './useAtdlFormState'
-import { flattenControls } from './atdlControls'
+import type { AtdlStrategyDto } from './types.js'
+import { PanelRenderer } from './PanelRenderer.js'
+import { useAtdlFormState } from './useAtdlFormState.js'
+import type { AtdlFormOptions } from './useAtdlFormState.js'
+import { flattenControls } from './atdlControls.js'
 
 // ---------------------------------------------------------------------------
 // Imperative handle - lets parent pages pull current values without prop drilling

@@ -1,6 +1,6 @@
 import { useId } from 'react'
-import type { ControlProps } from './controlRegistry'
-import { listOptionsFor } from './listOptions'
+import type { ControlProps } from './controlRegistry.js'
+import { listOptionsFor } from './listOptions.js'
 
 /**
  * Renders FIXatdl MultiSelectList_t (and, via re-export, CheckBoxList_t) as an

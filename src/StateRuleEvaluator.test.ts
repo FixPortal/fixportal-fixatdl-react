@@ -9,8 +9,8 @@
  */
 import { describe, it, expect } from 'vitest'
 import corpus from '../contracts/state-rule-cases.json'
-import { evaluateStateRule, tryEvaluateStateRule } from './StateRuleEvaluator'
-import type { StateRuleAstNode } from './stateRuleAst'
+import { evaluateStateRule, tryEvaluateStateRule } from './StateRuleEvaluator.js'
+import type { StateRuleAstNode } from './stateRuleAst.js'
 
 it.each([['Y', true], ['N', false], ['TRUE', true], ['false', false]] as const)('coerces %s symmetrically', (wire, logical) => {
   expect(evaluateStateRule({ kind: 'compare', field: 'a', operator: '==', value: logical }, { a: wire })).toBe(true)

@@ -1,6 +1,6 @@
 import { useId } from 'react'
-import type { ControlProps } from './controlRegistry'
-import { listOptionsFor } from './listOptions'
+import type { ControlProps } from './controlRegistry.js'
+import { listOptionsFor } from './listOptions.js'
 
 /**
  * Renders FIXatdl RadioButtonList_t and RadioButton_t as a group of radio

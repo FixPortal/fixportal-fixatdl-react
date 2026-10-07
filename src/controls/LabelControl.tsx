@@ -1,4 +1,4 @@
-import type { ControlProps } from './controlRegistry'
+import type { ControlProps } from './controlRegistry.js'
 
 /**
  * Renders a FIXatdl Label_t as static display text.

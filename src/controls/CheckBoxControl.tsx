@@ -1,5 +1,5 @@
 import { useId } from 'react'
-import type { ControlProps } from './controlRegistry'
+import type { ControlProps } from './controlRegistry.js'
 
 /**
  * Renders a FIXatdl CheckBox_t as a checkbox input wrapped in a clickable

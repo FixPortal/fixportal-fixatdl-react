@@ -2,7 +2,7 @@
 
 React adapter over a backend-mapped FIXatdl strategy DTO. No XML parser, no simulator HTTP/auth/store imports. The host maps the parsed model into `AtdlStrategyDto` with the public `FixPortal.FixAtdl.Contracts` NuGet package — see `docs/getting-a-strategy.md`. `src/__fixtures__/contracts-pov-strategy.json` is that package's real output; never hand-edit it. The rule corpus is canonical in fixportal-fixatdl.
 
-Consumers: Node 22+, React 19. Maintainers/CI: Node 24 / npm 11. Checks: npm run typecheck, npm run lint, npm run test:coverage, npm run build, npm pack --dry-run, then the four dist gates under scripts/ (react-external, public-dts, no-side-effects, styles).
+Consumers: Node 22+, React 19. Maintainers/CI: Node 24 / npm 11. Checks: npm run typecheck, npm run lint, npm run test:coverage, npm run build, npm pack --dry-run, then the five dist gates under scripts/ (react-external, public-dts, consumer-types, no-side-effects, styles).
 
 Keep control behaviour and the shared rule corpus covered by tests. React remains external to the ESM bundle. Document browser-validation and approximate FIX-preview limits.
 

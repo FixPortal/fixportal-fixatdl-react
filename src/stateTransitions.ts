@@ -1,9 +1,9 @@
-import type { AtdlStrategyDto } from './types'
-import type { StateRuleAstNode } from './stateRuleAst'
-import { flattenControls, controlValuesForRules, assignControlValue } from './atdlControls'
-import { normalizeControlValue } from './atdlValue'
-import { editClockValue } from './atdlClock'
-import { evaluateStateRule } from './StateRuleEvaluator'
+import type { AtdlStrategyDto } from './types.js'
+import type { StateRuleAstNode } from './stateRuleAst.js'
+import { flattenControls, controlValuesForRules, assignControlValue } from './atdlControls.js'
+import { normalizeControlValue } from './atdlValue.js'
+import { editClockValue } from './atdlClock.js'
+import { evaluateStateRule } from './StateRuleEvaluator.js'
 
 interface RuleMemory { active: boolean; previousValue: unknown }
 export interface ValueRuleState {
@@ -22,7 +22,7 @@ export function settleValueRules(
   externalValues: Record<string, unknown> = {},
 ): ValueRuleState {
   const bindings = flattenControls(strategy).flatMap(control =>
-    (control.stateRules ?? []).filter(rule => rule.effect === 'value' && rule.targetStringValue !== null)
+    (control.stateRules ?? []).filter(rule => rule.effect === 'value' && rule.targetStringValue != null)
       .map(rule => ({ control, rule })),
   )
   const rules = bindings.map((_, index) => ({

@@ -1,5 +1,5 @@
-import type { StateRuleAstNode } from './stateRuleAst'
-import { MAX_STATE_RULE_DEPTH } from './stateRuleAst'
+import type { StateRuleAstNode } from './stateRuleAst.js'
+import { MAX_STATE_RULE_DEPTH } from './stateRuleAst.js'
 
 export interface TreeLine {
   depth: number

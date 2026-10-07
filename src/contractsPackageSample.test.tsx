@@ -1,9 +1,9 @@
 import { describe, it, expect, afterEach } from 'vitest'
 import { render, screen, cleanup, act, renderHook } from '@testing-library/react'
 import pov from './__fixtures__/contracts-pov-strategy.json'
-import type { AtdlStrategyDto } from './types'
-import { FormRenderer } from './FormRenderer'
-import { useAtdlFormState } from './useAtdlFormState'
+import type { AtdlStrategyDto } from './types.js'
+import { FormRenderer } from './FormRenderer.js'
+import { useAtdlFormState } from './useAtdlFormState.js'
 
 afterEach(cleanup)
 

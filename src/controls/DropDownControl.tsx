@@ -1,6 +1,6 @@
 import { useId } from 'react'
-import type { ControlProps } from './controlRegistry'
-import { listOptionsFor } from './listOptions'
+import type { ControlProps } from './controlRegistry.js'
+import { listOptionsFor } from './listOptions.js'
 
 /**
  * Renders FIXatdl DropDownList_t and SingleSelectList_t as a <select>.

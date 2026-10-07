@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { flattenControls, mapControlValuesToParameters, assignControlValue } from './atdlControls'
-import type { AtdlPanelChildDto, AtdlPanelDto, AtdlStrategyDto, AtdlParameterDto } from './types'
+import { flattenControls, mapControlValuesToParameters, assignControlValue } from './atdlControls.js'
+import type { AtdlPanelChildDto, AtdlPanelDto, AtdlStrategyDto, AtdlParameterDto } from './types.js'
 
 function control(id: string, parameterRef: string | null) {
   return {

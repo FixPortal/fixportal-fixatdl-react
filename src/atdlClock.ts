@@ -1,4 +1,4 @@
-import type { AtdlControlDto } from './types'
+import type { AtdlControlDto } from './types.js'
 
 /** Keeps a loaded instant intact when a displayed clock crosses a DST overlap. */
 export interface ClockValue {

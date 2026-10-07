@@ -1,8 +1,8 @@
-import type { AtdlStrategyDto } from './types'
-import { flattenControls, controlValuesForRules } from './atdlControls'
-import { evaluateStateRule } from './StateRuleEvaluator'
-import { stateRuleToText } from './stateRuleToText'
-import type { StateRuleAstNode } from './stateRuleAst'
+import type { AtdlStrategyDto } from './types.js'
+import { flattenControls, controlValuesForRules } from './atdlControls.js'
+import { evaluateStateRule } from './StateRuleEvaluator.js'
+import { stateRuleToText } from './stateRuleToText.js'
+import type { StateRuleAstNode } from './stateRuleAst.js'
 
 export interface RuleRow {
   controlId: string
@@ -37,7 +37,7 @@ export function collectRuleRows(
         controlId: control.id,
         controlLabel: control.label ?? control.id,
         effect: rule.effect,
-        targetValue: rule.effect === 'value' ? rule.targetStringValue : rule.targetValue,
+        targetValue: rule.effect === 'value' ? (rule.targetStringValue ?? null) : rule.targetValue,
         conditionText: stateRuleToText(expression),
         expression,
         firing: evaluateStateRule(expression, ruleValues),

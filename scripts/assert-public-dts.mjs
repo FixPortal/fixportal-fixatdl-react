@@ -44,8 +44,8 @@ if (!existsSync(entry)) {
   for (const name of exported) {
     if (!intended.has(name)) problems.push(`dist/index.d.ts exports ${name}, which is not in the intended public surface - add it to \`expected\` here and to src/index.test.ts if it is deliberate`)
   }
-  if (!/export\s+type\s+\*\s+from\s*['"]\.\/types['"]/.test(declaration)) {
-    problems.push("dist/index.d.ts lost the `export type * from './types'` re-export")
+  if (!/export\s+type\s+\*\s+from\s*['"]\.\/types\.js['"]/.test(declaration)) {
+    problems.push("dist/index.d.ts lost the `export type * from './types.js'` re-export")
   }
 }
 

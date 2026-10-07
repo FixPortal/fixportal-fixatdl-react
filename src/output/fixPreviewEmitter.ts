@@ -1,5 +1,5 @@
-import type { AtdlStrategyDto } from '../types'
-import { parameterWireValue } from '../atdlValue'
+import type { AtdlStrategyDto } from '../types.js'
+import { parameterWireValue } from '../atdlValue.js'
 
 // ---------------------------------------------------------------------------
 // Public types

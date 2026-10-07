@@ -1,12 +1,12 @@
 import { createRef } from 'react'
 import { describe, it, expect, afterEach, vi } from 'vitest'
 import { render, screen, fireEvent, cleanup } from '@testing-library/react'
-import { FormRenderer } from './FormRenderer'
-import type { FormRendererHandle } from './FormRenderer'
+import { FormRenderer } from './FormRenderer.js'
+import type { FormRendererHandle } from './FormRenderer.js'
 import strategyJson from './__fixtures__/twap-strategy.json'
-import type { AtdlStrategyDto, AtdlControlDto } from './types'
-import { flattenControls } from './atdlControls'
-import { controlRegistry } from './controls/controlRegistry'
+import type { AtdlStrategyDto, AtdlControlDto } from './types.js'
+import { flattenControls } from './atdlControls.js'
+import { controlRegistry } from './controls/controlRegistry.js'
 
 afterEach(cleanup)
 

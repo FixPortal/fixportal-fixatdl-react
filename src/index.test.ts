@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import * as api from './index'
+import * as api from './index.js'
 
 // Pins the published runtime surface: nothing else in the repository imports
 // './index', so a renamed, removed, or type-only-ified value export would ship
 // to npm with every other gate green. Type-only exports (PanelRendererProps,
-// FixTag, `export type * from './types'`, ...) produce no runtime keys and are
+// FixTag, `export type * from './types.js'`, ...) produce no runtime keys and are
 // intentionally absent here.
 const expectedExports: Record<string, 'function' | 'object'> = {
   PanelRenderer: 'function',

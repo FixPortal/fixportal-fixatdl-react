@@ -1,7 +1,7 @@
 import { it, expect } from 'vitest'
 import { render, screen } from '@testing-library/react'
-import { controlRegistry } from './controlRegistry'
-import type { AtdlControlDto } from '../types'
+import { controlRegistry } from './controlRegistry.js'
+import type { AtdlControlDto } from '../types.js'
 
 it.each(['CheckBox_t', 'Clock_t', 'EditableDropDownList_t', 'Slider_t'])('%s associates each editor with its own errors', type => {
   const control: AtdlControlDto = { id: 'value', type, label: 'Value', parameterRef: null,

@@ -1,7 +1,7 @@
 import { expect, it } from 'vitest'
-import { parameterFromWire, parameterWireValue } from './atdlValue'
-import { compareDecimals, formatDecimal } from './decimalValue'
-import type { AtdlParameterDto } from './types'
+import { parameterFromWire, parameterWireValue } from './atdlValue.js'
+import { compareDecimals, formatDecimal } from './decimalValue.js'
+import type { AtdlParameterDto } from './types.js'
 
 const parameter: AtdlParameterDto = { name: 'P', fixTag: 9001, type: 'String_t', enumValues: null, min: null, max: null, precision: null, mutableOnCxlRpl: true, useValue: 'optional', defaultValue: null }
 

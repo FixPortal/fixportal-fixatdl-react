@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { stateRuleToText, stateRuleToTree } from './stateRuleToText'
-import type { StateRuleAstNode } from './stateRuleAst'
+import { stateRuleToText, stateRuleToTree } from './stateRuleToText.js'
+import type { StateRuleAstNode } from './stateRuleAst.js'
 
 const cmp = (operator: string, field: string, value: unknown): StateRuleAstNode =>
   ({ kind: 'compare', operator: operator as never, field, value })

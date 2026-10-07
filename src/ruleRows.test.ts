@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { collectRuleRows } from './ruleRows'
-import type { AtdlStrategyDto } from './types'
+import { collectRuleRows } from './ruleRows.js'
+import type { AtdlStrategyDto } from './types.js'
 
 const strategy = {
   name: 'S', description: null, parameters: [],

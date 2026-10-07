@@ -2,12 +2,12 @@ import { describe, it, expect, afterEach } from 'vitest'
 import { render, screen, cleanup, act } from '@testing-library/react'
 import { renderHook } from '@testing-library/react'
 import participate from './__fixtures__/participate-strategy.json'
-import type { AtdlStrategyDto, AtdlPanelChildDto, AtdlControlDto } from './types'
-import { FormRenderer } from './FormRenderer'
-import { useAtdlFormState } from './useAtdlFormState'
-import { controlRegistry } from './controls/controlRegistry'
-import { flattenControls, mapControlValuesToParameters } from './atdlControls'
-import { emitStrategyParametersGrp } from './output/fixPreviewEmitter'
+import type { AtdlStrategyDto, AtdlPanelChildDto, AtdlControlDto } from './types.js'
+import { FormRenderer } from './FormRenderer.js'
+import { useAtdlFormState } from './useAtdlFormState.js'
+import { controlRegistry } from './controls/controlRegistry.js'
+import { flattenControls, mapControlValuesToParameters } from './atdlControls.js'
+import { emitStrategyParametersGrp } from './output/fixPreviewEmitter.js'
 
 afterEach(cleanup)
 

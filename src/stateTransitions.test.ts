@@ -1,8 +1,8 @@
 import { act, renderHook } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import scenarios from '../contracts/state-transitions.json'
-import type { AtdlControlDto, AtdlStateRuleDto, AtdlStrategyDto } from './types'
-import { useAtdlFormState } from './useAtdlFormState'
+import type { AtdlControlDto, AtdlStateRuleDto, AtdlStrategyDto } from './types.js'
+import { useAtdlFormState } from './useAtdlFormState.js'
 
 interface Scenario {
   name: string
