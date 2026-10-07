@@ -1,9 +1,9 @@
 import { useImperativeHandle } from 'react'
 import type { Ref } from 'react'
-import type { AtdlStrategyDto } from './types.js'
+import type { AtdlControlDto, AtdlStrategyDto } from './types.js'
 import { PanelRenderer } from './PanelRenderer.js'
-import { useAtdlFormState } from './useAtdlFormState.js'
-import type { AtdlFormOptions } from './useAtdlFormState.js'
+import { strategyContentKey, useAtdlFormState } from './useAtdlFormState.js'
+import type { AtdlFormOptions, ControlFormState } from './useAtdlFormState.js'
 import { flattenControls } from './atdlControls.js'
 
 // ---------------------------------------------------------------------------
@@ -46,11 +46,30 @@ interface FormRendererInnerProps extends Omit<FormRendererProps, 'ref'> {
  * (resetting state) when the strategy changes. A component cannot key itself,
  * so the outer shell applies the key to its child.
  */
+function parameterName(control: AtdlControlDto): string | null {
+  return control.parameterRef ?? control.parameter?.name ?? null
+}
+
+/** Hidden controls repeat a visible sibling's error when they share its parameter. */
+function hiddenSummaryErrors(strategy: AtdlStrategyDto, controlState: Record<string, ControlFormState>): string[] {
+  const controls = flattenControls(strategy)
+  const visibleParameters = new Set(controls.flatMap(control => {
+    const visible = control.type !== 'HiddenField_t' && controlState[control.id]?.visible
+    const name = parameterName(control)
+    return visible && name ? [name] : []
+  }))
+  return controls.flatMap(control => {
+    const state = controlState[control.id]
+    const hidden = control.type === 'HiddenField_t' || !state?.visible
+    const name = parameterName(control)
+    if (!hidden || (name != null && visibleParameters.has(name))) return []
+    return state?.errors.map(error => `${control.label ?? control.id}: ${error}`) ?? []
+  })
+}
+
 function FormRendererInner({ strategy, forwardedRef, options, highlightedControlId, onHighlightControl }: FormRendererInnerProps) {
   const { values, setValue, controlState, hasErrors, strategyErrors } = useAtdlFormState(strategy, options)
-  const hiddenErrors = flattenControls(strategy).flatMap(control =>
-    control.type === 'HiddenField_t' || !controlState[control.id]?.visible ? controlState[control.id]?.errors.map(error => `${control.label ?? control.id}: ${error}`) ?? [] : [])
-  const summaryErrors = [...strategyErrors, ...hiddenErrors]
+  const summaryErrors = [...strategyErrors, ...hiddenSummaryErrors(strategy, controlState)]
 
   // WHY [values] dependency: the closure must capture the latest values map
   // so getValues() always returns current state, not a stale snapshot from
@@ -77,7 +96,7 @@ function FormRendererInner({ strategy, forwardedRef, options, highlightedControl
 }
 
 export function FormRenderer({ strategy, ref, options, highlightedControlId, onHighlightControl }: FormRendererProps) {
-  const strategyKey = JSON.stringify(strategy)
+  const strategyKey = strategyContentKey(strategy)
   return (
     <FormRendererInner
       key={strategyKey}

@@ -58,6 +58,13 @@ it('rejects an unknown multi-value wire token, naming the parameter and value', 
   expect(() => parameterFromWire(definition, 'A UNKNOWN')).toThrow('Unknown enumeration wire value for P: A UNKNOWN')
 })
 
+it.each(['MultipleStringValue_t', 'MultipleCharValue_t'])('translates known tokens in a mixed multi-value string and does not invert it: %s', type => {
+  const definition = { ...parameter, type, invertOnWire: true, enumValues: [{ enumId: 'Buy', wireValue: '1' }, { enumId: 'Sell', wireValue: '2' }] }
+  expect(parameterWireValue(definition, 'Buy BOGUS')).toBe('1 BOGUS')
+  // Both tokens are known, so inversion still applies: the complement of a full selection is empty.
+  expect(parameterWireValue(definition, 'Buy Sell')).toBeNull()
+})
+
 it('decodes a non-inverted multi-value wire string to its enum ids', () => {
   const definition = { ...parameter, type: 'MultipleStringValue_t', enumValues: [{ enumId: 'a', wireValue: 'A' }, { enumId: 'b', wireValue: 'B' }, { enumId: 'c', wireValue: 'C' }] }
   expect(parameterFromWire(definition, 'A C')).toEqual(['a', 'c'])

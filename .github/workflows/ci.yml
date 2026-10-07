@@ -91,8 +91,9 @@ jobs:
           name: fixatdl-react-package
           path: '*.tgz'
           if-no-files-found: error
-  # The package promises consumers Node >= 22 (package.json engines) but the main
-  # job runs Node 24 only; this leg tests the floor so the promise is covered.
+  # The package promises consumers Node >= 22. The main job runs Node 24 and is
+  # the one that builds dist, checks consumer types and smoke-tests the tarball.
+  # This leg runs typecheck and unit tests on the Node 22 floor only.
   package-node22:
     name: React package (Node 22 floor)
     runs-on: ubuntu-latest

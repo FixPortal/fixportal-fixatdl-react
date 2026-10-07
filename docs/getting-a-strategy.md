@@ -18,7 +18,7 @@ FIXatdl `Edit` trees into the `stateRules` / `strategyEdits` this package
 evaluates. It is the same code FixPortal's own services use.
 
 ```shell
-dotnet add package FixPortal.FixAtdl.Contracts
+dotnet add package FixPortal.FixAtdl.Contracts --version 1.3.0
 ```
 
 Both packages target `net10.0`, so the host project must too. On an older
@@ -39,8 +39,9 @@ AtdlStrategyDto pov = contract.Strategies.Single(s => s.Name == "POV");
 string json = JsonSerializer.Serialize(pov, AtdlContractJson.Options);
 ```
 
-Serialize with `AtdlContractJson.Options` (camelCase, null members omitted):
-this package's optional fields expect absent members, not `null`.
+Serialize with `AtdlContractJson.Options` (camelCase, null members omitted).
+Contracts 1.3.0 omits null members. This package treats an omitted member and
+an explicit `null` as the same value.
 
 Two details:
 
@@ -55,11 +56,14 @@ Two details:
 The output of exactly this snippet, for the `pov.xml` fixture in the core
 repository, is committed here as
 [`src/__fixtures__/contracts-pov-strategy.json`](https://github.com/FixPortal/fixportal-fixatdl-react/blob/main/src/__fixtures__/contracts-pov-strategy.json)
-and rendered by `src/contractsPackageSample.test.tsx`. After every build,
-`scripts/assert-consumer-types.mjs` also compiles that JSON, uncast, against
-the built `AtdlStrategyDto` declarations under both `NodeNext` and `bundler`
-module resolution. A change on either side that breaks rendering or the types
-fails this repository's CI.
+and rendered by `src/contractsPackageSample.test.tsx`. That file is the
+output of Contracts 1.3.0, the version on the install line above. After every
+build, `scripts/assert-consumer-types.mjs` compiles that committed JSON,
+uncast, against the built `AtdlStrategyDto` declarations under both `NodeNext`
+and `bundler` module resolution. The render test and that check fail when this
+repository and the pinned 1.3.0 output disagree. They do not build a newer
+Contracts package. When Contracts changes, regenerate the fixture from that
+package's output and move the version pin with it.
 
 ## Hosts that are not .NET
 
@@ -120,10 +124,12 @@ panel children carry the discriminator explicitly:
 ```
 
 A bound control must carry `parameter`, the resolved inline copy of the
-matching entry in `parameters`. The form reads requiredness, `min` / `max`,
-the default and amendment mutability from `control.parameter` only; it does
-not look them up through `parameterRef`. A control whose `parameter` is
-missing or `null` still renders, but none of those constraints are enforced.
+matching entry in `parameters`. The form reads requiredness, `min` / `max`
+and amendment mutability from `control.parameter` only; it does not look them
+up through `parameterRef`. The initial value is `control.initValue`, then
+`parameter.defaultValue`, then `false` for a checkbox or radio. A control
+whose `parameter` is missing or `null` still renders, but none of the
+parameter constraints are enforced.
 `FixPortal.FixAtdl.Contracts` inlines it for every bound control and emits all
 control-specific fields. Validate the order on the server as well: the form is
 a convenience, not the authority.
@@ -177,7 +183,7 @@ state to parameter values.
 | `precision` | decimal precision | |
 | `mutableOnCxlRpl` | `MutableOnCxlRpl` | `false` locks the control when `isAmendment`. |
 | `useValue` | `Use_t` | `"required"` / `"optional"` / `null`. |
-| `defaultValue` | default / init | |
+| `defaultValue` | parameter default | Used only when the control has no `initValue`. A checkbox or radio with neither starts unchecked. |
 | `trueWireValue` / `falseWireValue` | Boolean mappings | |
 | `invertOnWire` | inverted list | |
 | `constValue` | constant parameter | **Wins** over filled form values in the preview emitter. |

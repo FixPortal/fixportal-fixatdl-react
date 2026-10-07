@@ -192,6 +192,7 @@ node scripts/assert-public-dts.mjs
 node scripts/assert-consumer-types.mjs
 node scripts/assert-no-side-effects.mjs
 node scripts/assert-styles.mjs
+npm run typecheck --workspace @fix-portal/fixatdl-react-workbench
 npm run build --workspace @fix-portal/fixatdl-react-workbench
 npx playwright install chromium
 npm run browser:smoke

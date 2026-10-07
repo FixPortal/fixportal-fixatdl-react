@@ -14,6 +14,20 @@ with the pre-release history.
 
 ## [Unreleased]
 
+### Fixed
+
+- A text or hidden field bound to `MultipleStringValue_t` or
+  `MultipleCharValue_t` validates each space-separated token. A value made of
+  declared enum ids is accepted, and the preview emits each token's wire
+  value. An editable dropdown may still contain free text: known tokens are
+  translated, unknown tokens pass through, and `invertOnWire` is not applied
+  while any token is unknown.
+- The error summary no longer repeats a visible control's error for a hidden
+  control bound to the same parameter.
+- Replacing the strategy object with one that differs only by property order,
+  or by writing `null` for a member that was omitted, no longer resets the
+  form.
+
 ## [0.4.0] - 2026-10-07
 
 ### Changed
@@ -35,8 +49,10 @@ with the pre-release history.
   a `null` target already was.
 - Documentation: in `getting-a-strategy.md`, the non-.NET DTO example now
   inlines the bound control's `parameter`. The form reads requiredness, bounds,
-  defaults and amendment mutability only from `control.parameter`, so the old
-  example, which left it `null`, rendered a form that enforced none of them.
+  requiredness, bounds and amendment mutability from `control.parameter`. The
+  initial value is the control's `initValue`, then `parameter.defaultValue`,
+  then `false` for a checkbox or radio. The old example left `parameter`
+  `null`, so the form enforced none of those constraints.
   The page also states that the Contracts packages need .NET 10, and the
   dataflow diagram shows `FixPortal.FixAtdl.Contracts` doing the mapping.
 

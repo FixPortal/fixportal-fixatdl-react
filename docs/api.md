@@ -82,9 +82,9 @@ itself.
 
 | Export | What it is |
 |---|---|
-| `AtdlStrategyDto` | `name`, `description`, `parameters`, `panel`, `sourceXml`, optional `strategyEdits`. |
-| `AtdlParameterDto` | `name`, `fixTag`, `type`, `enumValues`, `min`/`max`, `precision`, `mutableOnCxlRpl`, `useValue`, `defaultValue`, plus optional `trueWireValue`, `falseWireValue`, `invertOnWire`, `constValue`, `minLength`, `maxLength`, `multiplyBy100`, `localMktTz`. |
-| `AtdlControlDto` | `id`, `type`, `label`, `parameterRef`, `parameter`, `listItems`, `initValue`, `stateRules`, `tooltip`, plus optional `checkedEnumRef`, `uncheckedEnumRef`, `radioGroup`, increments, `initPolicy`, `initFixField`, `initValueMode`, `localMktTz`. |
+| `AtdlStrategyDto` | Required: `name`, `parameters`, `panel`, `sourceXml`. Optional: `description`, `strategyEdits`. |
+| `AtdlParameterDto` | Required: `name`, `type`, `mutableOnCxlRpl`. Optional: `fixTag`, `enumValues`, `min`/`max`, `precision`, `useValue`, `defaultValue`, `trueWireValue`, `falseWireValue`, `invertOnWire`, `constValue`, `minLength`, `maxLength`, `multiplyBy100`, `localMktTz`. |
+| `AtdlControlDto` | Required: `id`, `type`, `stateRules`. Optional: `label`, `parameterRef`, `parameter`, `listItems`, `initValue`, `tooltip`, `checkedEnumRef`, `uncheckedEnumRef`, `radioGroup`, increments, `initPolicy`, `initFixField`, `initValueMode`, `localMktTz`. |
 | `AtdlPanelDto`, `AtdlPanelChildDto` | Recursive panel tree. Children are `{ kind: 'panel' \| 'control', … }`. |
 | `AtdlEnumPairDto`, `AtdlListItemDto` | Enum id ↔ wire value and list item ↔ display string. |
 | `AtdlStrategyEditDto`, `AtdlStateRuleDto`, `StateRuleAstNodeDto` | Strategy-level edits and control state rules as received on the wire. Field-level mapping: [getting-a-strategy.md](getting-a-strategy.md). |
