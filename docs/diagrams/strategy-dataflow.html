@@ -54,7 +54,7 @@
 
     <svg viewBox="0 72 960 476" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="reactflow-title reactflow-desc">
       <title id="reactflow-title">From broker XML to a rendered form</title>
-      <desc id="reactflow-desc">On the server the core .NET library parses broker FIXatdl XML into Strategy_t, which host-owned backend mapping code turns into the AtdlStrategyDto JSON contract; the @fix-portal/fixatdl-react package renders that DTO as a form and emits the 957 to 960 group as tag tuples. The host remains responsible for final validation, FIX message assembly and wire serialization. This package never parses XML.</desc>
+      <desc id="reactflow-desc">On the server the core .NET library parses broker FIXatdl XML into Strategy_t, which the FixPortal.FixAtdl.Contracts package maps into the AtdlStrategyDto JSON contract that the host serves; the @fix-portal/fixatdl-react package renders that DTO as a form and emits the 957 to 960 group as tag tuples. The host remains responsible for final validation, FIX message assembly and wire serialization. This package never parses XML.</desc>
       <defs>
         <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#5b6b85"/></marker>
         <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#0f766e"/></marker>
@@ -116,12 +116,12 @@
       <text x="328" y="216" fill="#1f2937" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">FixPortal.FixAtdl</text>
       <text x="328" y="232" fill="#5b6b85" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">the only XML parser</text>
 
-      <!-- N3 host mapper -->
-      <rect x="464" y="176" width="176" height="64" rx="6" fill="#faf5ff"/>
-      <rect x="464" y="176" width="176" height="64" rx="6" fill="#f3e8ff" stroke="#7e22ce" stroke-width="1.2"/>
-      <rect x="472" y="184" width="36" height="12" rx="2" fill="transparent" stroke="rgba(126,34,206,0.55)" stroke-width="0.8"/>
-      <text x="490" y="193" fill="#7e22ce" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">HOST</text>
-      <text x="552" y="212" fill="#1f2937" font-size="12" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">Host backend mapper</text>
+      <!-- N3 Contracts mapper -->
+      <rect x="464" y="176" width="176" height="64" rx="6" fill="#eef2ff"/>
+      <rect x="464" y="176" width="176" height="64" rx="6" fill="#dbeafe" stroke="#1e3a8a" stroke-width="1.2"/>
+      <rect x="472" y="184" width="44" height="12" rx="2" fill="transparent" stroke="rgba(30,58,138,0.55)" stroke-width="0.8"/>
+      <text x="494" y="193" fill="#1e3a8a" font-size="7" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">NUGET</text>
+      <text x="552" y="216" fill="#1f2937" font-size="11" font-weight="600" font-family="'Geist', sans-serif" text-anchor="middle">FixPortal.FixAtdl.Contracts</text>
       <text x="552" y="232" fill="#5b6b85" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle">Strategy_t → AtdlStrategyDto</text>
 
       <!-- N4 the DTO contract -->
