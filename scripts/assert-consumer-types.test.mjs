@@ -18,6 +18,7 @@ function fixture(importSpecifier) {
 }
 
 describe('consumer declaration resolution', () => {
+  // A cold TypeScript compile on a busy CI runner has exceeded the 5s default.
   it('reports an extensionless relative import under NodeNext', () => {
     const root = fixture('./types')
     try {
@@ -26,7 +27,7 @@ describe('consumer declaration resolution', () => {
     } finally {
       rmSync(root, { recursive: true, force: true })
     }
-  })
+  }, 30_000)
 
   it('accepts the same import once it ends in .js', () => {
     const root = fixture('./types.js')
@@ -35,5 +36,5 @@ describe('consumer declaration resolution', () => {
     } finally {
       rmSync(root, { recursive: true, force: true })
     }
-  })
+  }, 30_000)
 })
