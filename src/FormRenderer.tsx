@@ -69,8 +69,9 @@ function hiddenSummaryErrors(strategy: AtdlStrategyDto, controlState: Record<str
     const hidden = control.type === 'HiddenField_t' || !state?.visible
     if (!hidden) return []
     const name = parameterName(control)
+    if (!state) return []
     const visibleErrors = name == null ? undefined : visibleErrorsByParameter.get(name)
-    return (state?.errors ?? []).filter(error => !visibleErrors?.has(error)).map(error => `${control.label ?? control.id}: ${error}`)
+    return state.errors.filter(error => !visibleErrors?.has(error)).map(error => `${control.label ?? control.id}: ${error}`)
   })
 }
 
