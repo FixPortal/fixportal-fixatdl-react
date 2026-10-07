@@ -9,7 +9,7 @@ afterEach(cleanup)
 
 /**
  * `contracts-pov-strategy.json` is the unedited output of the PUBLISHED .NET package
- * FixPortal.FixAtdl.Contracts 1.3.0 (`AtdlDtoMapper.Map` + `AtdlContractJson.Options`)
+ * FixPortal.FixAtdl.Contracts 1.4.0 (`AtdlDtoMapper.Map` + `AtdlContractJson.Options`)
  * for the POV strategy in fixportal-fixatdl's `tests/FixPortal.FixAtdl.Tests/Fixtures/pov.xml`,
  * exactly as `docs/getting-a-strategy.md` tells an outside host to produce it. It pins the
  * documented OSS host path end to end: if the package and this renderer drift apart, this

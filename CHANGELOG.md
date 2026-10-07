@@ -14,8 +14,16 @@ with the pre-release history.
 
 ## [Unreleased]
 
+## [0.4.1] - 2026-10-07
+
 ### Fixed
 
+- `AND` and `OR` state rules stop at the first operand that decides the result,
+  as `FixPortal.FixAtdl.Contracts` 1.4.0's evaluator does. An invalid operand
+  after it, such as a `Data_t` comparison, no longer makes the whole rule
+  unevaluable. The shared state-rule corpus now includes both cases.
+- Documentation: the Contracts install line and the fixture provenance move to
+  1.4.0. Its output for the documented POV strategy is identical to 1.3.0's.
 - A text or hidden field bound to `MultipleStringValue_t` or
   `MultipleCharValue_t` validates each space-separated token. A value made of
   declared enum ids is accepted, and the preview emits each token's wire
@@ -174,7 +182,8 @@ First public release of the extracted package. React FIXatdl strategy forms:
 `FormRenderer`, `PanelRenderer`, the `useAtdlFormState` hook, the 15-control
 registry, state-rule evaluation and the StrategyParametersGrp preview emitter.
 
-[Unreleased]: https://github.com/FixPortal/fixportal-fixatdl-react/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/FixPortal/fixportal-fixatdl-react/compare/v0.4.1...HEAD
+[0.4.1]: https://github.com/FixPortal/fixportal-fixatdl-react/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/FixPortal/fixportal-fixatdl-react/compare/v0.3.3...v0.4.0
 [0.3.3]: https://github.com/FixPortal/fixportal-fixatdl-react/releases/tag/v0.3.3
 [0.3.2]: https://github.com/FixPortal/fixportal-fixatdl-react/releases/tag/v0.3.2
