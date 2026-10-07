@@ -1,6 +1,6 @@
 {
   "name": "@fix-portal/fixatdl-react",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "React FIXatdl strategy forms rendered from the FixPortal.FixAtdl.Contracts JSON contract",
   "type": "module",
   "license": "Apache-2.0",

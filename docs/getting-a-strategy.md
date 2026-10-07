@@ -18,7 +18,7 @@ FIXatdl `Edit` trees into the `stateRules` / `strategyEdits` this package
 evaluates. It is the same code FixPortal's own services use.
 
 ```shell
-dotnet add package FixPortal.FixAtdl.Contracts --version 1.3.0
+dotnet add package FixPortal.FixAtdl.Contracts --version 1.4.0
 ```
 
 Both packages target `net10.0`, so the host project must too. On an older
@@ -40,7 +40,7 @@ string json = JsonSerializer.Serialize(pov, AtdlContractJson.Options);
 ```
 
 Serialize with `AtdlContractJson.Options` (camelCase, null members omitted).
-Contracts 1.3.0 omits null members. This package treats an omitted member and
+Contracts 1.4.0 omits null members. This package treats an omitted member and
 an explicit `null` as the same value.
 
 Two details:
@@ -57,11 +57,11 @@ The output of exactly this snippet, for the `pov.xml` fixture in the core
 repository, is committed here as
 [`src/__fixtures__/contracts-pov-strategy.json`](https://github.com/FixPortal/fixportal-fixatdl-react/blob/main/src/__fixtures__/contracts-pov-strategy.json)
 and rendered by `src/contractsPackageSample.test.tsx`. That file is the
-output of Contracts 1.3.0, the version on the install line above. After every
+output of Contracts 1.4.0, the version on the install line above. After every
 build, `scripts/assert-consumer-types.mjs` compiles that committed JSON,
 uncast, against the built `AtdlStrategyDto` declarations under both `NodeNext`
 and `bundler` module resolution. The render test and that check fail when this
-repository and the pinned 1.3.0 output disagree. They do not build a newer
+repository and the pinned 1.4.0 output disagree. They do not build a newer
 Contracts package. When Contracts changes, regenerate the fixture from that
 package's output and move the version pin with it.
 
