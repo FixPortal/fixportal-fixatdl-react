@@ -25,15 +25,18 @@ function evalNode(node: StateRuleAstNode, state: Record<string, unknown>, depth:
   if (!node || depth > MAX_STATE_RULE_DEPTH) throw new InvalidRule()
   if (node.kind === 'compare') return evalCompare(node, state)
   if (!Array.isArray(node.children)) throw new InvalidRule()
-  // Evaluate every operand so malformed data cannot hide behind short circuiting.
-  const children = node.children.map(child => evalNode(child, state, depth + 1))
+  const children = node.children
+  const evalChild = (child: StateRuleAstNode) => evalNode(child, state, depth + 1)
   switch (node.kind) {
-    case 'and': return children.every(Boolean)
-    case 'or': return children.some(Boolean)
-    case 'xor': return children.filter(Boolean).length === 1
+    // AND and OR stop at the first operand that decides the result, as the core evaluator
+    // does: an invalid operand after it (a Data_t compare) is never evaluated. Pinned by the
+    // shared corpus cases and_/or_short_circuit_skips_invalid_data_operand.
+    case 'and': return children.every(evalChild)
+    case 'or': return children.some(evalChild)
+    case 'xor': return children.map(evalChild).filter(Boolean).length === 1
     case 'not':
       if (children.length !== 1) throw new InvalidRule()
-      return !children[0]
+      return !evalChild(children[0])
     default: throw new InvalidRule()
   }
 }
