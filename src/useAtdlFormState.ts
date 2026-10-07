@@ -52,7 +52,7 @@ function canonicalizeStrategy(value: unknown): unknown {
   if (value !== null && typeof value === 'object') {
     const source = value as Record<string, unknown>
     const keys = Object.keys(source).filter(key => source[key] !== null && source[key] !== undefined).sort()
-    const result: Record<string, unknown> = {}
+    const result: Record<string, unknown> = Object.create(null)
     for (const key of keys) result[key] = canonicalizeStrategy(source[key])
     return result
   }
