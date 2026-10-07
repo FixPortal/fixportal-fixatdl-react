@@ -33,6 +33,17 @@ describe('StateRuleEvaluator (shared C# corpus)', () => {
   }
 })
 
+// evaluateStateRule reads an unevaluable rule (null) as false, so the corpus loop above
+// cannot tell a short-circuited AND from one that evaluated the invalid Data_t operand and
+// failed. tryEvaluateStateRule keeps null distinct, so these pin the short circuit itself.
+it.each(['and_short_circuit_skips_invalid_data_operand', 'or_short_circuit_skips_invalid_data_operand'])(
+  '%s decides without evaluating the invalid operand',
+  name => {
+    const c = corpus.find(entry => entry.name === name)!
+    expect(tryEvaluateStateRule(c.ast as unknown as StateRuleAstNode, c.formState)).toBe(c.expected)
+  },
+)
+
 describe('StateRuleEvaluator depth guard', () => {
   // The inner compare is deliberately one that evaluates TRUE, so a test asserting
   // false is asserting the guard fired - not merely that the rule happened to be
