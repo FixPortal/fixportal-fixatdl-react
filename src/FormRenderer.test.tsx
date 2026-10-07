@@ -64,6 +64,17 @@ describe('FormRenderer', () => {
     expect(screen.getByText('Must be a declared enumeration value.')).toBeInTheDocument()
   })
 
+  it('shows a hidden enumeration error when the editable dropdown accepts the same text', () => {
+    const parameter = { ...strategy.parameters[0], name: 'Venues', enumValues: [{ enumId: 'a', wireValue: 'A' }] }
+    const base = flattenControls(strategy)[0]
+    const child = (id: string, type: string, label: string) => ({ ...base, id, type, label, parameter, parameterRef: parameter.name, initValue: 'BOGUS', stateRules: [], kind: 'control' as const })
+    const document = { ...strategy, parameters: [parameter], panel: { ...strategy.panel, children: [child('shown', 'EditableDropDownList_t', 'Shown'), child('hidden', 'HiddenField_t', 'Hidden copy')] } }
+    const ref = createRef<FormRendererHandle>()
+    render(<FormRenderer ref={ref} strategy={document} />)
+    expect(screen.getByRole('alert')).toHaveTextContent('Hidden copy: Must be a declared enumeration value.')
+    expect(ref.current!.isValid()).toBe(false)
+  })
+
   it('keeps focus and an open panel when a replacement strategy has the same content', () => {
     const panel = { title: 'Section', border: 'None', orientation: 'Vertical', collapsible: true, collapsed: true, children: [] as AtdlStrategyDto['panel']['children'] }
     const control = { kind: 'control' as const, id: 'name', type: 'TextField_t', label: 'Name', parameterRef: null, parameter: null, listItems: null, initValue: 'seed', stateRules: [], tooltip: null }
