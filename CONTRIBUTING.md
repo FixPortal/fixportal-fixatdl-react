@@ -15,6 +15,11 @@ there first. Preserve accessibility and host-owned styling. Add a regression for
 changes and identify any public API break in the PR. Changes use Apache-2.0 and
 Conventional Commits; PRs are merged by rebase.
 
+Some files under `.github/` are shared CI assets synced from FixPortal's
+internal tooling (listed in `.github/canonical-assets.json`); CI rejects local
+edits to them. If one needs changing, say so in an issue or PR description and
+a maintainer will make the change upstream.
+
 Use GitHub Issues for public bugs and feature requests. Remove credentials,
 broker data, and other confidential material from reports and fixtures. Report
 suspected vulnerabilities privately through GitHub Security Advisories, never
