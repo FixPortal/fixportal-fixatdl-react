@@ -75,6 +75,9 @@ describe('strategyContentKey', () => {
     expect(strategyContentKey(left)).toBe(strategyContentKey(right))
     expect(strategyContentKey({ ...left, name: 'Other' })).not.toBe(strategyContentKey(left))
     expect(strategyContentKey({ flag: false })).not.toBe(strategyContentKey({}))
+    const withProto = JSON.parse('{"name":"S","__proto__":{"polluted":true}}')
+    expect(strategyContentKey(withProto)).not.toBe(strategyContentKey({ name: 'S' }))
+    expect(strategyContentKey(withProto)).toContain('__proto__')
   })
 })
 

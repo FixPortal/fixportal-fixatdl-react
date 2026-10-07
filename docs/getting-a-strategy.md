@@ -126,8 +126,11 @@ panel children carry the discriminator explicitly:
 A bound control must carry `parameter`, the resolved inline copy of the
 matching entry in `parameters`. The form reads requiredness, `min` / `max`
 and amendment mutability from `control.parameter` only; it does not look them
-up through `parameterRef`. The initial value is `control.initValue`, then
-`parameter.defaultValue`, then `false` for a checkbox or radio. A control
+up through `parameterRef`. An explicit seed wins over the document:
+`parameter.constValue`, then `options.initialValues`, then
+`options.initialFixValues`. When none of those provides a value, the initial
+value is `control.initValue`, then `parameter.defaultValue`, then `false` for
+a checkbox or radio. A control
 whose `parameter` is missing or `null` still renders, but none of the
 parameter constraints are enforced.
 `FixPortal.FixAtdl.Contracts` inlines it for every bound control and emits all

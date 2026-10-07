@@ -48,8 +48,8 @@ with the pre-release history.
 - A `value` state rule with no `targetStringValue` is now ignored, as one with
   a `null` target already was.
 - Documentation: in `getting-a-strategy.md`, the non-.NET DTO example now
-  inlines the bound control's `parameter`. The form reads requiredness, bounds,
-  requiredness, bounds and amendment mutability from `control.parameter`. The
+  inlines the bound control's `parameter`. The form reads requiredness, bounds
+  and amendment mutability from `control.parameter`. The
   initial value is the control's `initValue`, then `parameter.defaultValue`,
   then `false` for a checkbox or radio. The old example left `parameter`
   `null`, so the form enforced none of those constraints.
