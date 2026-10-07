@@ -14,6 +14,8 @@ with the pre-release history.
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-10-07
+
 ### Changed
 
 - **Type change:** in `AtdlStrategyDto` and its member types, every member
@@ -155,6 +157,7 @@ First public release of the extracted package. React FIXatdl strategy forms:
 `FormRenderer`, `PanelRenderer`, the `useAtdlFormState` hook, the 15-control
 registry, state-rule evaluation and the StrategyParametersGrp preview emitter.
 
-[Unreleased]: https://github.com/FixPortal/fixportal-fixatdl-react/compare/v0.3.3...HEAD
+[Unreleased]: https://github.com/FixPortal/fixportal-fixatdl-react/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/FixPortal/fixportal-fixatdl-react/compare/v0.3.3...v0.4.0
 [0.3.3]: https://github.com/FixPortal/fixportal-fixatdl-react/releases/tag/v0.3.3
 [0.3.2]: https://github.com/FixPortal/fixportal-fixatdl-react/releases/tag/v0.3.2
