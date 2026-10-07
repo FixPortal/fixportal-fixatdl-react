@@ -50,20 +50,27 @@ function parameterName(control: AtdlControlDto): string | null {
   return control.parameterRef ?? control.parameter?.name ?? null
 }
 
-/** Hidden controls repeat a visible sibling's error when they share its parameter. */
+/** A hidden control repeats a visible sibling's message when they share a parameter.
+ * An error only the hidden control has still belongs in the summary: an editable
+ * dropdown accepts free text, and the hidden copy of that parameter does not. */
 function hiddenSummaryErrors(strategy: AtdlStrategyDto, controlState: Record<string, ControlFormState>): string[] {
   const controls = flattenControls(strategy)
-  const visibleParameters = new Set(controls.flatMap(control => {
-    const visible = control.type !== 'HiddenField_t' && controlState[control.id]?.visible
+  const visibleErrorsByParameter = new Map<string, Set<string>>()
+  for (const control of controls) {
+    const state = controlState[control.id]
     const name = parameterName(control)
-    return visible && name ? [name] : []
-  }))
+    if (control.type === 'HiddenField_t' || !state?.visible || !name) continue
+    const errors = visibleErrorsByParameter.get(name) ?? new Set<string>()
+    for (const error of state.errors) errors.add(error)
+    visibleErrorsByParameter.set(name, errors)
+  }
   return controls.flatMap(control => {
     const state = controlState[control.id]
     const hidden = control.type === 'HiddenField_t' || !state?.visible
+    if (!hidden) return []
     const name = parameterName(control)
-    if (!hidden || (name != null && visibleParameters.has(name))) return []
-    return state?.errors.map(error => `${control.label ?? control.id}: ${error}`) ?? []
+    const visibleErrors = name == null ? undefined : visibleErrorsByParameter.get(name)
+    return (state?.errors ?? []).filter(error => !visibleErrors?.has(error)).map(error => `${control.label ?? control.id}: ${error}`)
   })
 }
 

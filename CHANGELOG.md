@@ -23,7 +23,8 @@ with the pre-release history.
   translated, unknown tokens pass through, and `invertOnWire` is not applied
   while any token is unknown.
 - The error summary no longer repeats a visible control's error for a hidden
-  control bound to the same parameter.
+  control bound to the same parameter. An error that only the hidden control
+  reports still appears.
 - Replacing the strategy object with one that differs only by property order,
   or by writing `null` for a member that was omitted, no longer resets the
   form.
