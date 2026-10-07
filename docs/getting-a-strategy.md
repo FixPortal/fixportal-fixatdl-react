@@ -21,6 +21,9 @@ evaluates. It is the same code FixPortal's own services use.
 dotnet add package FixPortal.FixAtdl.Contracts
 ```
 
+Both packages target `net10.0`, so the host project must too. On an older
+target framework the restore fails with `NU1202`.
+
 ```csharp
 using System.Text.Json;
 using FixPortal.FixAtdl.Contracts;
@@ -52,8 +55,11 @@ Two details:
 The output of exactly this snippet, for the `pov.xml` fixture in the core
 repository, is committed here as
 [`src/__fixtures__/contracts-pov-strategy.json`](https://github.com/FixPortal/fixportal-fixatdl-react/blob/main/src/__fixtures__/contracts-pov-strategy.json)
-and rendered by `src/contractsPackageSample.test.tsx`, so the two packages
-cannot drift apart unnoticed.
+and rendered by `src/contractsPackageSample.test.tsx`. After every build,
+`scripts/assert-consumer-types.mjs` also compiles that JSON, uncast, against
+the built `AtdlStrategyDto` declarations under both `NodeNext` and `bundler`
+module resolution. A change on either side that breaks rendering or the types
+fails this repository's CI.
 
 ## Hosts that are not .NET
 
@@ -92,7 +98,15 @@ panel children carry the discriminator explicitly:
       "type": "SingleSpinner_t",
       "label": "Order quantity",
       "parameterRef": "OrderQty",
-      "parameter": null,
+      "parameter": {
+        "name": "OrderQty",
+        "fixTag": 38,
+        "type": "Int_t",
+        "min": 1,
+        "max": 1000000,
+        "mutableOnCxlRpl": true,
+        "useValue": "required"
+      },
       "listItems": null,
       "initValue": null,
       "stateRules": [],
@@ -105,11 +119,18 @@ panel children carry the discriminator explicitly:
 }
 ```
 
-In a mapped payload, `parameter` is normally the resolved inline copy of the
-matching entry in `parameters`; the example leaves it `null` only to show that
-the top-level parameter list is the source of truth for the DTO contract.
-`FixPortal.FixAtdl.Contracts` inlines it for controls and emits all
-control-specific fields.
+A bound control must carry `parameter`, the resolved inline copy of the
+matching entry in `parameters`. The form reads requiredness, `min` / `max`,
+the default and amendment mutability from `control.parameter` only; it does
+not look them up through `parameterRef`. A control whose `parameter` is
+missing or `null` still renders, but none of those constraints are enforced.
+`FixPortal.FixAtdl.Contracts` inlines it for every bound control and emits all
+control-specific fields. Validate the order on the server as well: the form is
+a convenience, not the authority.
+
+Any nullable member may be sent as `null` or omitted. The top-level parameter
+above spells its nulls out, the inline copy omits them, and
+`FixPortal.FixAtdl.Contracts` always omits them.
 
 ## Rendering it
 
@@ -125,7 +146,7 @@ export function StrategyEditor({ strategy }: { strategy: AtdlStrategyDto }) {
 
 ## Pipeline
 
-![From broker XML to a rendered form: the core .NET library parses the XML on the server, host-owned backend mapping code turns Strategy_t into the AtdlStrategyDto JSON contract, and the @fix-portal/fixatdl-react package renders it and emits 957-960 tag tuples](images/strategy-dataflow.png)
+![From broker XML to a rendered form: the core .NET library parses the XML on the server, FixPortal.FixAtdl.Contracts maps Strategy_t into the AtdlStrategyDto JSON contract the host serves, and the @fix-portal/fixatdl-react package renders it and emits 957-960 tag tuples](images/strategy-dataflow.png)
 
 <sub>Source: [`docs/diagrams/strategy-dataflow.html`](diagrams/strategy-dataflow.html) — open in a browser to edit, then re-export.</sub>
 
@@ -138,7 +159,7 @@ state to parameter values.
 | Field | Required | Maps from |
 |---|---|---|
 | `name` | yes | `Strategy_t.Name` |
-| `description` | yes, nullable | `Strategy_t.Description` text |
+| `description` | no | `Strategy_t.Description` text |
 | `parameters` | yes | `Strategy_t.Parameters` |
 | `panel` | yes | `Strategy_t.StrategyLayout.StrategyPanel` |
 | `sourceXml` | yes | Original strategy XML fragment (identity; state resets when it changes) |
