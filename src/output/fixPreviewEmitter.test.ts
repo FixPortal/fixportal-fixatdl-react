@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { emitStrategyParametersGrp, fixTypeCodeName } from './fixPreviewEmitter'
-import type { AtdlStrategyDto, AtdlParameterDto } from '../types'
+import { emitStrategyParametersGrp, fixTypeCodeName } from './fixPreviewEmitter.js'
+import type { AtdlStrategyDto, AtdlParameterDto } from '../types.js'
 import strategyJson from '../__fixtures__/twap-strategy.json'
 
 // ---------------------------------------------------------------------------

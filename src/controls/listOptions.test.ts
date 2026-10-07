@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { listOptionsFor } from './listOptions'
+import { listOptionsFor } from './listOptions.js'
 
 describe('listOptionsFor', () => {
   it('prefers control list items and preserves their labels', () => {

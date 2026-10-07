@@ -5,10 +5,10 @@
  * emptied, and the FIX preview emitter writes a spurious empty 958/959/960
  * triplet. Kept in one place so validation and emission agree.
  */
-import type { AtdlControlDto, AtdlParameterDto } from './types'
-import { formatDecimal } from './decimalValue'
-import { clockWireValue } from './atdlClock'
-import { parseTemporal, normalizeTenor, normalizeMonthYear, normalizeTzTemporal } from './temporalValue'
+import type { AtdlControlDto, AtdlParameterDto } from './types.js'
+import { formatDecimal } from './decimalValue.js'
+import { clockWireValue } from './atdlClock.js'
+import { parseTemporal, normalizeTenor, normalizeMonthYear, normalizeTzTemporal } from './temporalValue.js'
 
 export function isUnfilledAtdlValue(value: unknown): boolean {
   return (

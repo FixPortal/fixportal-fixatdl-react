@@ -1,7 +1,7 @@
 import { useId } from 'react'
-import type { ControlProps } from './controlRegistry'
-import { addDecimals, compareDecimals, decimalInputValue, formatDecimal } from '../decimalValue'
-import { isUnfilledAtdlValue } from '../atdlValue'
+import type { ControlProps } from './controlRegistry.js'
+import { addDecimals, compareDecimals, decimalInputValue, formatDecimal } from '../decimalValue.js'
+import { isUnfilledAtdlValue } from '../atdlValue.js'
 
 /**
  * Renders FIXatdl Slider_t as an <input type="range"> with a live value pip.

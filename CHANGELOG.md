@@ -14,6 +14,30 @@ with the pre-release history.
 
 ## [Unreleased]
 
+### Changed
+
+- **Type change:** in `AtdlStrategyDto` and its member types, every member
+  that is nullable in C# is now optional (`?: T | null`). This matches
+  `FixPortal.FixAtdl.Contracts`, which omits null members from the JSON, so its
+  output now type-checks without a cast. Code that reads these members, such as
+  `control.parameter`, `parameter.min` or `node.children`, may need to handle
+  `undefined` as well as `null`. At runtime they were already absent.
+
+### Fixed
+
+- The published declarations now resolve under `moduleResolution: NodeNext`.
+  Relative specifiers in `dist/*.d.ts` carry explicit `.js` extensions. Before
+  this, `import type { AtdlStrategyDto } from '@fix-portal/fixatdl-react'`
+  failed with TS2305 outside bundler resolution.
+- A `value` state rule with no `targetStringValue` is now ignored, as one with
+  a `null` target already was.
+- Documentation: in `getting-a-strategy.md`, the non-.NET DTO example now
+  inlines the bound control's `parameter`. The form reads requiredness, bounds,
+  defaults and amendment mutability only from `control.parameter`, so the old
+  example, which left it `null`, rendered a form that enforced none of them.
+  The page also states that the Contracts packages need .NET 10, and the
+  dataflow diagram shows `FixPortal.FixAtdl.Contracts` doing the mapping.
+
 ## [0.3.3] - 2026-10-07
 
 ### Changed

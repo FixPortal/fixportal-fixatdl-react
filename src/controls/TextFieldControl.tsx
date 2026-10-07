@@ -1,5 +1,5 @@
 import { useId } from 'react'
-import type { ControlProps } from './controlRegistry'
+import type { ControlProps } from './controlRegistry.js'
 
 /**
  * Renders a FIXatdl TextField_t as a plain text <input>.

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { compareMonthYear, compareTenor, normalizeMonthYear, normalizeTenor, normalizeTzTemporal } from './temporalValue'
+import { compareMonthYear, compareTenor, normalizeMonthYear, normalizeTenor, normalizeTzTemporal } from './temporalValue.js'
 
 describe('core domain value parsing', () => {
   it.each(['D0', 'D-1', 'Q2', 'D2147483648', 'd2', '2D'])('rejects invalid tenor %s', value => {

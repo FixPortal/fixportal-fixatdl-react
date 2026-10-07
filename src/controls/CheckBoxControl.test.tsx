@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import { render, screen, fireEvent, cleanup } from '@testing-library/react'
-import { CheckBoxControl } from './CheckBoxControl'
-import type { AtdlControlDto } from '../types'
-import type { ControlFormState } from '../useAtdlFormState'
+import { CheckBoxControl } from './CheckBoxControl.js'
+import type { AtdlControlDto } from '../types.js'
+import type { ControlFormState } from '../useAtdlFormState.js'
 
 afterEach(cleanup)
 

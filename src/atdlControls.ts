@@ -1,7 +1,7 @@
-import type { AtdlControlDto, AtdlPanelDto, AtdlStrategyDto } from './types'
-import { controlParameterValue, isBinaryControl, isUnfilledAtdlValue, normalizeControlValue } from './atdlValue'
-import { clockRuleValue, createClockValue, clockWireValue } from './atdlClock'
-import { formatDecimal } from './decimalValue'
+import type { AtdlControlDto, AtdlPanelDto, AtdlStrategyDto } from './types.js'
+import { controlParameterValue, isBinaryControl, isUnfilledAtdlValue, normalizeControlValue } from './atdlValue.js'
+import { clockRuleValue, createClockValue, clockWireValue } from './atdlClock.js'
+import { formatDecimal } from './decimalValue.js'
 
 // ---------------------------------------------------------------------------
 // Control-graph utilities shared by the form-state hook and the FIX preview.

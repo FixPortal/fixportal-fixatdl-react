@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { clockDisplayValue, clockRuleValue, clockWireValue, createClockValue, editClockValue } from './atdlClock'
-import type { AtdlControlDto } from './types'
+import { clockDisplayValue, clockRuleValue, clockWireValue, createClockValue, editClockValue } from './atdlClock.js'
+import type { AtdlControlDto } from './types.js'
 
 const control: AtdlControlDto = {
   id: 'clock', type: 'Clock_t', label: null, parameterRef: null, parameter: null,

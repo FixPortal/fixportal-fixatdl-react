@@ -1,4 +1,4 @@
-import type { AtdlEnumPairDto, AtdlListItemDto } from '../types'
+import type { AtdlEnumPairDto, AtdlListItemDto } from '../types.js'
 
 interface ListOptionSource {
   listItems?: AtdlListItemDto[] | null

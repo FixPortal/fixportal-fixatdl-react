@@ -1,8 +1,8 @@
-import type { StateRuleAstNode } from './stateRuleAst'
-import { MAX_STATE_RULE_DEPTH } from './stateRuleAst'
-import { isUnfilledAtdlValue } from './atdlValue'
-import { compareDecimals } from './decimalValue'
-import { compareTemporal, compareTenor, compareMonthYear, compareTzTemporal } from './temporalValue'
+import type { StateRuleAstNode } from './stateRuleAst.js'
+import { MAX_STATE_RULE_DEPTH } from './stateRuleAst.js'
+import { isUnfilledAtdlValue } from './atdlValue.js'
+import { compareDecimals } from './decimalValue.js'
+import { compareTemporal, compareTenor, compareMonthYear, compareTzTemporal } from './temporalValue.js'
 
 class InvalidRule extends Error {}
 

@@ -1,6 +1,6 @@
-import type { AtdlPanelDto, AtdlControlDto, AtdlPanelChildDto } from './types'
-import type { ControlFormState } from './useAtdlFormState'
-import { controlRegistry } from './controls/controlRegistry'
+import type { AtdlPanelDto, AtdlControlDto, AtdlPanelChildDto } from './types.js'
+import type { ControlFormState } from './useAtdlFormState.js'
+import { controlRegistry } from './controls/controlRegistry.js'
 import { createContext, useContext, useId } from 'react'
 
 const FormInstance = createContext<string | null>(null)

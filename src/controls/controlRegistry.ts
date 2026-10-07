@@ -1,6 +1,6 @@
 import type { ComponentType } from 'react'
-import type { AtdlControlDto } from '../types'
-import type { ControlFormState } from '../useAtdlFormState'
+import type { AtdlControlDto } from '../types.js'
+import type { ControlFormState } from '../useAtdlFormState.js'
 
 // ---------------------------------------------------------------------------
 // Shared prop contract for all control renderers
@@ -25,17 +25,17 @@ export interface ControlProps {
 
 // WHY: imported lazily via the index to avoid circular deps; each component
 // module imports controlRegistry's *types* only, not the registry object.
-import { TextFieldControl } from './TextFieldControl'
-import { NumericFieldControl } from './NumericFieldControl'
-import { DropDownControl } from './DropDownControl'
-import { CheckBoxControl } from './CheckBoxControl'
-import { RadioListControl } from './RadioListControl'
-import { LabelControl } from './LabelControl'
-import { EditableDropDownControl } from './EditableDropDownControl'
-import { ClockControl } from './ClockControl'
-import { SliderControl } from './SliderControl'
-import { MultiSelectControl } from './MultiSelectControl'
-import { CheckBoxListControl } from './CheckBoxListControl'
+import { TextFieldControl } from './TextFieldControl.js'
+import { NumericFieldControl } from './NumericFieldControl.js'
+import { DropDownControl } from './DropDownControl.js'
+import { CheckBoxControl } from './CheckBoxControl.js'
+import { RadioListControl } from './RadioListControl.js'
+import { LabelControl } from './LabelControl.js'
+import { EditableDropDownControl } from './EditableDropDownControl.js'
+import { ClockControl } from './ClockControl.js'
+import { SliderControl } from './SliderControl.js'
+import { MultiSelectControl } from './MultiSelectControl.js'
+import { CheckBoxListControl } from './CheckBoxListControl.js'
 
 export const controlRegistry: Record<string, ComponentType<ControlProps>> = {
   TextField_t: TextFieldControl,

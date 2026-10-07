@@ -21,7 +21,7 @@ function publicExportNames() {
     }
   }
 
-  if (index.includes("export type * from './types'")) {
+  if (index.includes("export type * from './types.js'")) {
     for (const match of read('src/types.ts').matchAll(/^export (?:interface|type)\s+(\w+)/gm)) {
       names.add(match[1])
     }
@@ -81,7 +81,7 @@ export function checkDocumentation() {
   const exportLines = read('src/index.ts').split(/\r?\n/).filter(line => /^\s*export\b/.test(line))
   for (const line of exportLines) {
     if (!/^\s*export(?:\s+type)?\s*\{[^}]*\}\s*(?:from\s+['"][^'"]+['"])?\s*;?\s*$/.test(line) &&
-        !/^\s*export\s+type\s+\*\s+from\s+['"]\.\/types['"]\s*;?\s*$/.test(line)) {
+        !/^\s*export\s+type\s+\*\s+from\s+['"]\.\/types\.js['"]\s*;?\s*$/.test(line)) {
       problems.push(`scripts/assert-docs.mjs cannot parse public export: ${line.trim()}`)
     }
   }

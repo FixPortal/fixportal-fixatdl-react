@@ -1,10 +1,10 @@
 import { describe, it, expect, vi } from 'vitest'
 import { StrictMode } from 'react'
 import { renderHook, act } from '@testing-library/react'
-import { useAtdlFormState } from './useAtdlFormState'
-import type { AtdlStrategyDto, AtdlControlDto, AtdlParameterDto, AtdlStateRuleDto } from './types'
-import type { StateRuleAstNodeDto } from './types'
-import { mapControlValuesToParameters } from './atdlControls'
+import { useAtdlFormState } from './useAtdlFormState.js'
+import type { AtdlStrategyDto, AtdlControlDto, AtdlParameterDto, AtdlStateRuleDto } from './types.js'
+import type { StateRuleAstNodeDto } from './types.js'
+import { mapControlValuesToParameters } from './atdlControls.js'
 
 // ---------------------------------------------------------------------------
 // Fixture helpers

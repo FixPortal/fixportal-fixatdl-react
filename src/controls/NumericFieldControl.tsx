@@ -1,6 +1,6 @@
 import { useId } from 'react'
-import type { ControlProps } from './controlRegistry'
-import { compareDecimals, decimalInputValue, addDecimals, formatDecimal } from '../decimalValue'
+import type { ControlProps } from './controlRegistry.js'
+import { compareDecimals, decimalInputValue, addDecimals, formatDecimal } from '../decimalValue.js'
 
 /**
  * Renders FIXatdl DoubleSpinner_t and SingleSpinner_t as a numeric <input>.

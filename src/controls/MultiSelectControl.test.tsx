@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import { render, screen, fireEvent, cleanup } from '@testing-library/react'
-import { MultiSelectControl } from './MultiSelectControl'
-import type { AtdlControlDto, AtdlListItemDto } from '../types'
-import type { ControlFormState } from '../useAtdlFormState'
+import { MultiSelectControl } from './MultiSelectControl.js'
+import type { AtdlControlDto, AtdlListItemDto } from '../types.js'
+import type { ControlFormState } from '../useAtdlFormState.js'
 
 afterEach(cleanup)
 

@@ -1,6 +1,6 @@
 import { useId } from 'react'
-import type { ControlProps } from './controlRegistry'
-import { clockDisplayValue } from '../atdlClock'
+import type { ControlProps } from './controlRegistry.js'
+import { clockDisplayValue } from '../atdlClock.js'
 
 /** Renders market-local clock time; the form preserves its UTC instant through the clock boundary. */
 export function ClockControl({ control, value, onChange, state }: ControlProps) {
