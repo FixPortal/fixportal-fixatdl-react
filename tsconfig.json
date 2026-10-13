@@ -13,6 +13,10 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
+    "noImplicitOverride": true,
+    "erasableSyntaxOnly": true,
+    "isolatedModules": true,
+    "moduleDetection": "force",
     "types": ["vite/client", "@testing-library/jest-dom", "node"]
   },
   "include": ["src", "*.config.ts"]
