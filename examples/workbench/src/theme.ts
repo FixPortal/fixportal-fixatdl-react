@@ -27,7 +27,7 @@ function seedTheme(): Theme {
 export function useTheme(): [Theme, (next: Theme) => void] {
   const [theme, setTheme] = useState<Theme>(seedTheme)
   useEffect(() => {
-    document.documentElement.dataset.theme = theme
+    document.documentElement.dataset['theme'] = theme
   }, [theme])
   return [theme, setTheme]
 }
