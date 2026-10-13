@@ -15,22 +15,27 @@ describe('workbench smoke server path handling', () => {
     expect(resolveStaticFile(dist, '/../../secret.txt')).toBeNull()
   })
 
-  it.each(['/%E0%A4%A', '/%2e%2e/secret.txt', '/..%2fsecret.txt'])('rejects malformed or encoded traversal %s', pathname => {
-    expect(resolveStaticFile(dist, pathname)).toBeNull()
-  })
+  it.each(['/%E0%A4%A', '/%2e%2e/secret.txt', '/..%2fsecret.txt'])(
+    'rejects malformed or encoded traversal %s',
+    (pathname) => {
+      expect(resolveStaticFile(dist, pathname)).toBeNull()
+    },
+  )
 
   it('answers 403 for a rejected path and keeps serving', async () => {
     const root = mkdtempSync(resolve(tmpdir(), 'fixatdl-smoke-'))
     writeFileSync(resolve(root, 'index.html'), 'ok')
     const server = createStaticServer(root)
-    await new Promise(resolveListen => server.listen(0, '127.0.0.1', resolveListen))
+    await new Promise((resolveListen) => server.listen(0, '127.0.0.1', resolveListen))
     const address = server.address()
     if (!address || typeof address === 'string') throw new Error('Expected an HTTP address')
     try {
       expect((await fetch(`http://127.0.0.1:${address.port}/%E0%A4%A`)).status).toBe(403)
       expect((await fetch(`http://127.0.0.1:${address.port}/index.html`)).status).toBe(200)
     } finally {
-      await new Promise((resolveClose, reject) => server.close(error => error ? reject(error) : resolveClose()))
+      await new Promise((resolveClose, reject) =>
+        server.close((error) => (error ? reject(error) : resolveClose())),
+      )
       rmSync(root, { recursive: true, force: true })
     }
   })
