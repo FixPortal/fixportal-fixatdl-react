@@ -67,7 +67,9 @@ export function NumericFieldControl({ control, value, onChange, state }: Control
         id={inputId}
         type="number"
         value={value == null ? '' : String(value)}
-        onChange={(e) => onChange(decimalInputValue(e.target.value))}
+        onChange={(e) => {
+          onChange(decimalInputValue(e.target.value))
+        }}
         step={step}
         min={min}
         max={max}
@@ -87,7 +89,9 @@ export function NumericFieldControl({ control, value, onChange, state }: Control
             className={outerStepButton}
             disabled={!state.enabled}
             aria-label={`Decrease ${control.label ?? control.id} by ${control.outerIncrement}`}
-            onClick={() => outerStep(-1)}
+            onClick={() => {
+              outerStep(-1)
+            }}
           >
             −{control.outerIncrement}
           </button>
@@ -96,7 +100,9 @@ export function NumericFieldControl({ control, value, onChange, state }: Control
             className={outerStepButton}
             disabled={!state.enabled}
             aria-label={`Increase ${control.label ?? control.id} by ${control.outerIncrement}`}
-            onClick={() => outerStep(1)}
+            onClick={() => {
+              outerStep(1)
+            }}
           >
             +{control.outerIncrement}
           </button>

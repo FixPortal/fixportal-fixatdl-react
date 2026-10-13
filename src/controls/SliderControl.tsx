@@ -42,8 +42,9 @@ export function SliderControl({ control, value, onChange, state }: ControlProps)
     : current
   let ariaLabel = control.label == null ? control.id : undefined
   if (state.required) ariaLabel = `${control.label ?? control.id} (Required)`
-  const choose = (position: string) =>
+  const choose = (position: string) => {
     onChange(discrete ? items[Number(position)]?.enumId : decimalInputValue(position))
+  }
 
   const borderClass = hasError ? 'border-bad-border' : 'border-border-base'
 
@@ -74,7 +75,9 @@ export function SliderControl({ control, value, onChange, state }: ControlProps)
           max={max}
           value={current}
           step={discrete ? 1 : (control.increment ?? 'any')}
-          onChange={(e) => choose(e.target.value)}
+          onChange={(e) => {
+            choose(e.target.value)
+          }}
           disabled={!state.enabled}
           aria-disabled={!state.enabled}
           aria-label={ariaLabel}
@@ -88,7 +91,13 @@ export function SliderControl({ control, value, onChange, state }: ControlProps)
           {unset ? 'Not selected' : display}
         </span>
         {unset && (
-          <button type="button" disabled={!state.enabled} onClick={() => choose(current)}>
+          <button
+            type="button"
+            disabled={!state.enabled}
+            onClick={() => {
+              choose(current)
+            }}
+          >
             Use {display}
           </button>
         )}

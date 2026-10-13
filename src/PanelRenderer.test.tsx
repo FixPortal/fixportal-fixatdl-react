@@ -67,7 +67,9 @@ const radioPanel = {
 
 describe('PanelRenderer why? chip', () => {
   it('keeps explanation buttons from submitting a host form through text attributes', () => {
-    const submit = vi.fn((event: { preventDefault(): void }) => event.preventDefault())
+    const submit = vi.fn((event: { preventDefault(): void }) => {
+      event.preventDefault()
+    })
     render(
       <form onSubmit={submit}>
         <PanelRenderer

@@ -86,9 +86,13 @@ describe('participate sample strategy', () => {
   it('disables the slice cap while urgency is High (enabled state rule)', () => {
     const { result } = sampleState()
     expect(result.current.controlState.ctrl_max_slice.enabled).toBe(true)
-    act(() => result.current.setValue('ctrl_urgency', 'High'))
+    act(() => {
+      result.current.setValue('ctrl_urgency', 'High')
+    })
     expect(result.current.controlState.ctrl_max_slice.enabled).toBe(false)
-    act(() => result.current.setValue('ctrl_urgency', 'Low'))
+    act(() => {
+      result.current.setValue('ctrl_urgency', 'Low')
+    })
     expect(result.current.controlState.ctrl_max_slice.enabled).toBe(true)
   })
 
@@ -98,37 +102,53 @@ describe('participate sample strategy', () => {
     // at rest - otherwise the one control type the README screenshot cannot show is
     // the one the form hides by default.
     expect(result.current.controlState.ctrl_start_time.visible).toBe(true)
-    act(() => result.current.setValue('ctrl_benchmark', 'Arrival'))
+    act(() => {
+      result.current.setValue('ctrl_benchmark', 'Arrival')
+    })
     expect(result.current.controlState.ctrl_start_time.visible).toBe(false)
-    act(() => result.current.setValue('ctrl_benchmark', 'Scheduled'))
+    act(() => {
+      result.current.setValue('ctrl_benchmark', 'Scheduled')
+    })
     expect(result.current.controlState.ctrl_start_time.visible).toBe(true)
   })
 
   it('clears and restores the minimum fill around the dark-liquidity toggle (NULL value rule)', () => {
     const { result } = sampleState()
     expect(result.current.values.ctrl_min_fill_pct).toBe(25)
-    act(() => result.current.setValue('ctrl_allow_dark', false))
+    act(() => {
+      result.current.setValue('ctrl_allow_dark', false)
+    })
     expect(result.current.values.ctrl_min_fill_pct).toBeNull()
-    act(() => result.current.setValue('ctrl_allow_dark', true))
+    act(() => {
+      result.current.setValue('ctrl_allow_dark', true)
+    })
     expect(result.current.values.ctrl_min_fill_pct).toBe(25)
   })
 
   it('keeps the two capacity radios mutually exclusive on one parameter', () => {
     const { result } = sampleState()
-    act(() => result.current.setValue('ctrl_capacity_principal', true))
+    act(() => {
+      result.current.setValue('ctrl_capacity_principal', true)
+    })
     expect(result.current.values.ctrl_capacity_agency).toBe(false)
     expect(mapControlValuesToParameters(sample, result.current.values).Capacity).toBe('Principal')
   })
 
   it('surfaces the StrategyEdit only for the combination it forbids', () => {
     const { result } = sampleState()
-    act(() => result.current.setValue('ctrl_urgency', 'High'))
+    act(() => {
+      result.current.setValue('ctrl_urgency', 'High')
+    })
     expect(result.current.strategyErrors).toEqual([])
-    act(() => result.current.setValue('ctrl_price_protection', 'None'))
+    act(() => {
+      result.current.setValue('ctrl_price_protection', 'None')
+    })
     expect(result.current.strategyErrors).toEqual([
       'High urgency requires a price protection level other than None.',
     ])
-    act(() => result.current.setValue('ctrl_urgency', 'Low'))
+    act(() => {
+      result.current.setValue('ctrl_urgency', 'Low')
+    })
     expect(result.current.strategyErrors).toEqual([])
   })
 
@@ -169,9 +189,13 @@ describe('participate sample strategy', () => {
     const { result } = sampleState()
     // The parameter declares max 0.5; the spinner works in percent, so 50 is the
     // ceiling the user sees and 60 is over it while 40 is not.
-    act(() => result.current.setValue('ctrl_participation', 40))
+    act(() => {
+      result.current.setValue('ctrl_participation', 40)
+    })
     expect(result.current.controlState.ctrl_participation.errors).toEqual([])
-    act(() => result.current.setValue('ctrl_participation', 60))
+    act(() => {
+      result.current.setValue('ctrl_participation', 60)
+    })
     expect(result.current.controlState.ctrl_participation.errors).toContain('Must be ≤ 50.')
   })
 })

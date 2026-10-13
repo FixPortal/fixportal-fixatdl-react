@@ -18,7 +18,9 @@ export function CheckBoxControl({ control, value, onChange, state, radioGroupNam
           type={control.type === 'RadioButton_t' ? 'radio' : 'checkbox'}
           name={control.type === 'RadioButton_t' ? radioGroupName : undefined}
           checked={value === true || value === 'true' || value === 'Y'}
-          onChange={(e) => onChange(e.target.checked)}
+          onChange={(e) => {
+            onChange(e.target.checked)
+          }}
           disabled={!state.enabled}
           aria-disabled={!state.enabled}
           aria-label={control.label == null ? control.id : undefined}

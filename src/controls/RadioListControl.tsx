@@ -41,7 +41,9 @@ export function RadioListControl({ control, value, onChange, state }: ControlPro
               name={errorId}
               value={opt.enumId}
               checked={value === opt.enumId}
-              onChange={() => onChange(opt.enumId)}
+              onChange={() => {
+                onChange(opt.enumId)
+              }}
               disabled={!state.enabled}
               aria-disabled={!state.enabled}
               className="accent-brand disabled:opacity-50 disabled:cursor-not-allowed"

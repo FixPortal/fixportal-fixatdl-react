@@ -94,7 +94,7 @@ export function useAtdlFormState(
   const { values: validatedExternalValues, errors: externalErrors } = validateExternalValues(
     options.externalValues,
   )
-  const contextKey = `${JSON.stringify(validatedExternalValues)}`
+  const contextKey = JSON.stringify(validatedExternalValues)
   const externalValues = useMemo(
     () => JSON.parse(contextKey) as Record<string, unknown>,
     [contextKey],
@@ -438,7 +438,9 @@ function validateStrategy(
         if (field?.startsWith('FIX_') && !Object.hasOwn(externalValues, field)) missing.add(field)
       }
     } else if (Array.isArray(node.children))
-      node.children.forEach((child) => collectMissing(child, depth + 1))
+      node.children.forEach((child) => {
+        collectMissing(child, depth + 1)
+      })
   }
   for (const edit of strategy.strategyEdits ?? [])
     collectMissing(edit.expression as StateRuleAstNode)

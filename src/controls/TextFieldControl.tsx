@@ -38,7 +38,9 @@ export function TextFieldControl({ control, value, onChange, state }: ControlPro
         id={inputId}
         type="text"
         value={String(value ?? '')}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={(e) => {
+          onChange(e.target.value)
+        }}
         disabled={!state.enabled}
         aria-disabled={!state.enabled}
         // Bind the visible label via htmlFor; fall back to an explicit name only

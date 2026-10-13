@@ -10,9 +10,9 @@ import { useAtdlFormState } from './useAtdlFormState.js'
  * drops required/min/max enforcement. This pins that the documented DTO, exactly as
  * written, enforces the constraints it declares.
  */
-const json = docs
-  .slice(docs.indexOf('## Hosts that are not .NET'))
-  .match(/```json\n([\s\S]*?)\n```/)?.[1]
+const json = /```json\n([\s\S]*?)\n```/.exec(
+  docs.slice(docs.indexOf('## Hosts that are not .NET')),
+)?.[1]
 const strategy = JSON.parse(json ?? 'null') as AtdlStrategyDto
 
 describe('docs/getting-a-strategy.md non-.NET DTO example', () => {
@@ -23,7 +23,9 @@ describe('docs/getting-a-strategy.md non-.NET DTO example', () => {
     { value: '500', error: false },
   ])('OrderQty $value -> error $error', ({ value, error }) => {
     const { result } = renderHook(() => useAtdlFormState(strategy))
-    act(() => result.current.setValue('orderQty', value))
+    act(() => {
+      result.current.setValue('orderQty', value)
+    })
     expect(result.current.controlState.orderQty.required).toBe(true)
     expect(result.current.hasErrors).toBe(error)
   })

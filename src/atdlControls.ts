@@ -24,9 +24,9 @@ function walkPanel(panel: AtdlPanelDto, out: AtdlControlDto[]): void {
     if ('children' in child) {
       // WHY: AtdlPanelChildDto is a discriminated union; 'children' is the panel
       // discriminator property (only AtdlPanelDto carries it).
-      walkPanel(child as AtdlPanelDto, out)
+      walkPanel(child, out)
     } else {
-      out.push(child as AtdlControlDto)
+      out.push(child)
     }
   }
 }

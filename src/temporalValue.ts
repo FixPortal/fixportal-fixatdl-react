@@ -126,7 +126,7 @@ function tzOffsetMinutes(value: string): number | null {
   const hour = Number(value.slice(1, 3))
   const minute = Number(value.slice(4) || 0)
   if (hour > 14 || minute > 59 || (hour === 14 && minute !== 0)) return null
-  return (hour * 60 + minute) * (value[0] === '-' ? -1 : 1)
+  return (hour * 60 + minute) * (value.startsWith('-') ? -1 : 1)
 }
 
 export function compareTzTemporal(left: unknown, right: unknown): number | null {

@@ -157,7 +157,12 @@ export function App() {
               ))}
             </ul>
             {highlightedControlId != null && (
-              <button type="button" onClick={() => setHighlightedControlId(null)}>
+              <button
+                type="button"
+                onClick={() => {
+                  setHighlightedControlId(null)
+                }}
+              >
                 Clear highlight
               </button>
             )}

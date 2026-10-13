@@ -127,9 +127,13 @@ describe('useAtdlFormState', () => {
       ),
     )
     const { result } = renderHook(() => useAtdlFormState(strategy))
-    act(() => result.current.setValue('a', true))
+    act(() => {
+      result.current.setValue('a', true)
+    })
     expect(result.current.values).toEqual({ a: true, b: false })
-    act(() => result.current.setValue('b', true))
+    act(() => {
+      result.current.setValue('b', true)
+    })
     expect(result.current.values).toEqual({ a: false, b: true })
   })
 
@@ -152,7 +156,9 @@ describe('useAtdlFormState', () => {
       }),
     ])
     const { result } = renderHook(() => useAtdlFormState(strategy))
-    act(() => result.current.setValue('sell', true))
+    act(() => {
+      result.current.setValue('sell', true)
+    })
     expect(result.current.controlState.sell.errors).toContain(
       'Must be a declared enumeration value.',
     )
@@ -165,7 +171,9 @@ describe('useAtdlFormState', () => {
     expect(Object.hasOwn(result.current.values, id)).toBe(true)
     expect(result.current.values[id]).toBe('safe')
     expect(Object.hasOwn(result.current.controlState, id)).toBe(true)
-    act(() => result.current.setValue(id, 'updated'))
+    act(() => {
+      result.current.setValue(id, 'updated')
+    })
     expect(Object.hasOwn(result.current.values, id)).toBe(true)
     expect(result.current.values[id]).toBe('updated')
   })
@@ -175,10 +183,12 @@ describe('useAtdlFormState', () => {
     const strategy = makeStrategy([makeControl({ id: '__proto__', parameter })])
     const { result } = renderHook(() => useAtdlFormState(strategy))
     expect(Object.hasOwn(result.current.values, '__proto__')).toBe(false)
-    expect(result.current.controlState['__proto__'].errors).toContain('This field is required.')
-    act(() => result.current.setValue('__proto__', 'entered'))
-    expect(result.current.values['__proto__']).toBe('entered')
-    expect(result.current.controlState['__proto__'].errors).toEqual([])
+    expect(result.current.controlState.__proto__.errors).toContain('This field is required.')
+    act(() => {
+      result.current.setValue('__proto__', 'entered')
+    })
+    expect(result.current.values.__proto__).toBe('entered')
+    expect(result.current.controlState.__proto__.errors).toEqual([])
   })
 
   it('retains input conversion errors for a __proto__ control id', () => {
@@ -196,8 +206,10 @@ describe('useAtdlFormState', () => {
     const { result } = renderHook(() => useAtdlFormState(strategy, { initialValues }))
     const circular: unknown[] = []
     circular.push(circular)
-    act(() => result.current.setValue('__proto__', circular))
-    expect(result.current.controlState['__proto__'].errors.join(' ')).toContain('circular')
+    act(() => {
+      result.current.setValue('__proto__', circular)
+    })
+    expect(result.current.controlState.__proto__.errors.join(' ')).toContain('circular')
   })
 
   it('allows partial typing beside a linked clock and synchronizes the completed timestamp', () => {
@@ -207,10 +219,14 @@ describe('useAtdlFormState', () => {
       makeControl({ id: 'clock', type: 'Clock_t', parameter, localMktTz: 'UTC' }),
     ])
     const { result } = renderHook(() => useAtdlFormState(strategy))
-    act(() => result.current.setValue('text', '2'))
+    act(() => {
+      result.current.setValue('text', '2')
+    })
     expect(result.current.values.text).toBe('2')
     expect(result.current.hasErrors).toBe(true)
-    act(() => result.current.setValue('text', '20260912-13:00:00'))
+    act(() => {
+      result.current.setValue('text', '20260912-13:00:00')
+    })
     expect(result.current.values.clock).toMatchObject({ instant: '20260912-13:00:00' })
     expect(result.current.hasErrors).toBe(false)
   })
@@ -234,14 +250,24 @@ describe('useAtdlFormState', () => {
         }),
       ])
       const { result } = renderHook(() => useAtdlFormState(strategy))
-      act(() => result.current.setValue('trigger', 'on'))
+      act(() => {
+        result.current.setValue('trigger', 'on')
+      })
       expect(result.current.values.target).toBeNull()
-      act(() => result.current.setValue('trigger', 'off'))
+      act(() => {
+        result.current.setValue('trigger', 'off')
+      })
       expect(Object.hasOwn(result.current.values, 'target')).toBe(initValue !== undefined)
       expect(result.current.values.target).toBe(initValue)
-      act(() => result.current.setValue('trigger', 'on'))
-      act(() => result.current.setValue('target', 'edited'))
-      act(() => result.current.setValue('trigger', 'off'))
+      act(() => {
+        result.current.setValue('trigger', 'on')
+      })
+      act(() => {
+        result.current.setValue('target', 'edited')
+      })
+      act(() => {
+        result.current.setValue('trigger', 'off')
+      })
       expect(result.current.values.target).toBe('edited')
     },
   )
@@ -446,7 +472,7 @@ describe('useAtdlFormState', () => {
 
     const { result } = renderHook(() => useAtdlFormState(strategy))
 
-    expect(result.current.values['ctrl1']).toBe('hello')
+    expect(result.current.values.ctrl1).toBe('hello')
   })
 
   it('seeds values from parameter defaultValue when initValue is absent', () => {
@@ -456,7 +482,7 @@ describe('useAtdlFormState', () => {
 
     const { result } = renderHook(() => useAtdlFormState(strategy))
 
-    expect(result.current.values['ctrl2']).toBe('42')
+    expect(result.current.values.ctrl2).toBe('42')
   })
 
   it('updates values on setValue and triggers controlState recompute', () => {
@@ -465,18 +491,18 @@ describe('useAtdlFormState', () => {
 
     const { result } = renderHook(() => useAtdlFormState(strategy))
 
-    expect(result.current.values['ctrl1']).toBeUndefined()
+    expect(result.current.values.ctrl1).toBeUndefined()
 
     // controlState is re-derived - the object reference changes on each set.
     // A stale object is also "defined", so capture and compare the reference.
-    const stateBefore = result.current.controlState['ctrl1']
+    const stateBefore = result.current.controlState.ctrl1
 
     act(() => {
       result.current.setValue('ctrl1', 'newVal')
     })
 
-    expect(result.current.values['ctrl1']).toBe('newVal')
-    expect(result.current.controlState['ctrl1']).not.toBe(stateBefore)
+    expect(result.current.values.ctrl1).toBe('newVal')
+    expect(result.current.controlState.ctrl1).not.toBe(stateBefore)
   })
 
   it('disables a control when its StateRule effect=enabled evaluates with targetValue=false', () => {
@@ -494,14 +520,14 @@ describe('useAtdlFormState', () => {
 
     const { result } = renderHook(() => useAtdlFormState(strategy))
 
-    expect(result.current.controlState['subject'].enabled).toBe(false)
+    expect(result.current.controlState.subject.enabled).toBe(false)
 
     // After changing the trigger to a non-matching value the rule no longer fires.
     act(() => {
       result.current.setValue('trigger', 'other')
     })
 
-    expect(result.current.controlState['subject'].enabled).toBe(true)
+    expect(result.current.controlState.subject.enabled).toBe(true)
   })
 
   it('hides a control when its StateRule effect=visible fires with targetValue=false', () => {
@@ -517,13 +543,13 @@ describe('useAtdlFormState', () => {
 
     const { result } = renderHook(() => useAtdlFormState(strategy))
 
-    expect(result.current.controlState['hideable'].visible).toBe(false)
+    expect(result.current.controlState.hideable.visible).toBe(false)
 
     act(() => {
       result.current.setValue('show_flag', 'show')
     })
 
-    expect(result.current.controlState['hideable'].visible).toBe(true)
+    expect(result.current.controlState.hideable.visible).toBe(true)
   })
 
   it('marks a control required from the parameter useValue, and surfaces an empty-value error', () => {
@@ -536,14 +562,14 @@ describe('useAtdlFormState', () => {
 
     const { result } = renderHook(() => useAtdlFormState(strategy))
 
-    expect(result.current.controlState['qty'].required).toBe(true)
-    expect(result.current.controlState['qty'].errors).toContain('This field is required.')
+    expect(result.current.controlState.qty.required).toBe(true)
+    expect(result.current.controlState.qty.errors).toContain('This field is required.')
 
     act(() => {
       result.current.setValue('qty', '100')
     })
 
-    expect(result.current.controlState['qty'].errors).not.toContain('This field is required.')
+    expect(result.current.controlState.qty.errors).not.toContain('This field is required.')
   })
 
   // -------------------------------------------------------------------------
@@ -573,7 +599,7 @@ describe('useAtdlFormState', () => {
     const { result } = renderHook(() => useAtdlFormState(strategy))
 
     // The rule holds against the seeded values, so it overrides price's own initValue.
-    expect(result.current.values['price']).toBe('0')
+    expect(result.current.values.price).toBe('0')
   })
 
   it('fires a value StateRule when its expression transitions to true', () => {
@@ -587,13 +613,13 @@ describe('useAtdlFormState', () => {
 
     const { result } = renderHook(() => useAtdlFormState(strategy))
 
-    expect(result.current.values['price']).toBe('99')
+    expect(result.current.values.price).toBe('99')
 
     act(() => {
       result.current.setValue('ord_type', 'Market')
     })
 
-    expect(result.current.values['price']).toBe('0')
+    expect(result.current.values.price).toBe('0')
   })
 
   it('does not re-apply a value StateRule while its expression stays true, so the user can type over it', () => {
@@ -608,14 +634,14 @@ describe('useAtdlFormState', () => {
 
     const { result } = renderHook(() => useAtdlFormState(strategy))
 
-    expect(result.current.values['price']).toBe('0')
+    expect(result.current.values.price).toBe('0')
 
     act(() => {
       result.current.setValue('price', '123')
     })
 
     // The expression is still true, but it did not transition - the user's edit stands.
-    expect(result.current.values['price']).toBe('123')
+    expect(result.current.values.price).toBe('123')
   })
 
   it('runs per-control regex validation and reports the failure on controlState[id].errors', () => {
@@ -631,14 +657,14 @@ describe('useAtdlFormState', () => {
       result.current.setValue('qty', 'abc')
     })
 
-    expect(result.current.controlState['qty'].errors).toContain('Must be a whole number.')
+    expect(result.current.controlState.qty.errors).toContain('Must be a whole number.')
 
     // A valid integer string clears the error.
     act(() => {
       result.current.setValue('qty', '42')
     })
 
-    expect(result.current.controlState['qty'].errors).toHaveLength(0)
+    expect(result.current.controlState.qty.errors).toHaveLength(0)
   })
 
   // -------------------------------------------------------------------------
@@ -656,12 +682,12 @@ describe('useAtdlFormState', () => {
     act(() => {
       result.current.setValue('qty', '5')
     })
-    expect(result.current.controlState['qty'].errors).toContain('Must be ≥ 10.')
+    expect(result.current.controlState.qty.errors).toContain('Must be ≥ 10.')
 
     act(() => {
       result.current.setValue('qty', '50')
     })
-    expect(result.current.controlState['qty'].errors).toHaveLength(0)
+    expect(result.current.controlState.qty.errors).toHaveLength(0)
   })
 
   it('reports an above-max error', () => {
@@ -674,7 +700,7 @@ describe('useAtdlFormState', () => {
     act(() => {
       result.current.setValue('qty', '500')
     })
-    expect(result.current.controlState['qty'].errors).toContain('Must be ≤ 100.')
+    expect(result.current.controlState.qty.errors).toContain('Must be ≤ 100.')
   })
 
   it('does not range-check when min/max are both null (the un-bounded default)', () => {
@@ -687,7 +713,7 @@ describe('useAtdlFormState', () => {
     act(() => {
       result.current.setValue('qty', '999999')
     })
-    expect(result.current.controlState['qty'].errors).toHaveLength(0)
+    expect(result.current.controlState.qty.errors).toHaveLength(0)
   })
 
   it('preserves earlier field updates when multiple setValue calls batch together', () => {
@@ -703,8 +729,8 @@ describe('useAtdlFormState', () => {
       result.current.setValue('price', '1.50')
     })
 
-    expect(result.current.values['qty']).toBe('150')
-    expect(result.current.values['price']).toBe('1.50')
+    expect(result.current.values.qty).toBe('150')
+    expect(result.current.values.price).toBe('1.50')
   })
 })
 
@@ -715,14 +741,18 @@ it.each([
 ] as const)('rejects invalid integer value %s from a control', (value, expectedError) => {
   const control = makeControl({ parameter: makeParam({ type: 'Int_t' }) })
   const { result } = renderHook(() => useAtdlFormState(makeStrategy([control])))
-  act(() => result.current.setValue('ctrl1', value))
+  act(() => {
+    result.current.setValue('ctrl1', value)
+  })
   expect(result.current.controlState.ctrl1.errors).toContain(expectedError)
 })
 
 it('accepts finite numeric prices whose string representation uses an exponent', () => {
   const control = makeControl({ parameter: makeParam({ type: 'Price_t' }) })
   const { result } = renderHook(() => useAtdlFormState(makeStrategy([control])))
-  act(() => result.current.setValue('ctrl1', 1e-7))
+  act(() => {
+    result.current.setValue('ctrl1', 1e-7)
+  })
   expect(result.current.controlState.ctrl1.errors).toEqual([])
 })
 
@@ -751,7 +781,9 @@ it('validates StrategyEdits against parameter wire values and field2', () => {
   const { result } = renderHook(() => useAtdlFormState(strategy))
   expect(result.current.strategyErrors).toContain('Start must precede End.')
   expect(result.current.hasErrors).toBe(true)
-  act(() => result.current.setValue('end', '15'))
+  act(() => {
+    result.current.setValue('end', '15')
+  })
   expect(result.current.hasErrors).toBe(false)
 })
 
@@ -782,10 +814,14 @@ it('maps grouped radios to one enum parameter in either direction', () => {
   ])
   const { result } = renderHook(() => useAtdlFormState(strategy))
   expect(mapControlValuesToParameters(strategy, result.current.values)).toEqual({ P1: 'buy' })
-  act(() => result.current.setValue('sell', true))
+  act(() => {
+    result.current.setValue('sell', true)
+  })
   expect(result.current.values).toEqual({ buy: false, sell: true })
   expect(mapControlValuesToParameters(strategy, result.current.values)).toEqual({ P1: 'sell' })
-  act(() => result.current.setValue('buy', true))
+  act(() => {
+    result.current.setValue('buy', true)
+  })
   expect(result.current.values).toEqual({ buy: true, sell: false })
 })
 
@@ -831,7 +867,9 @@ it('loads FIX values ahead of defaults and locks immutable amendment parameters'
   )
   expect(result.current.values.ctrl1).toBe('loaded')
   expect(result.current.controlState.ctrl1.enabled).toBe(false)
-  act(() => result.current.setValue('ctrl1', 'changed'))
+  act(() => {
+    result.current.setValue('ctrl1', 'changed')
+  })
   expect(result.current.values.ctrl1).toBe('loaded')
 })
 
@@ -864,7 +902,9 @@ it('validates enum wire numbers instead of the selected enum ID', () => {
   ])
   const { result } = renderHook(() => useAtdlFormState(strategy))
   expect(result.current.hasErrors).toBe(false)
-  act(() => result.current.setValue('ctrl1', 'missing'))
+  act(() => {
+    result.current.setValue('ctrl1', 'missing')
+  })
   expect(result.current.hasErrors).toBe(true)
 })
 
@@ -895,7 +935,9 @@ it('preserves a loaded instant in a DST overlap until the clock is edited', () =
   expect(mapControlValuesToParameters(strategy, result.current.values)).toEqual({
     P1: '20261101-06:30:45',
   })
-  act(() => result.current.setValue('ctrl1', '01:45:00'))
+  act(() => {
+    result.current.setValue('ctrl1', '01:45:00')
+  })
   expect(mapControlValuesToParameters(strategy, result.current.values)).toEqual({
     P1: '20261101-05:45:00',
   })
@@ -955,7 +997,9 @@ it.each([false, true])(
     expect(Number(result.current.values.ctrl1)).toBe(75)
     expect(Number(mapControlValuesToParameters(strategy, result.current.values).P1)).toBe(0.75)
     expect(result.current.hasErrors).toBe(false)
-    act(() => result.current.setValue('ctrl1', 90))
+    act(() => {
+      result.current.setValue('ctrl1', 90)
+    })
     expect(result.current.hasErrors).toBe(true)
   },
 )
@@ -1025,7 +1069,9 @@ it.each([
       'FIX_OrderQty: external FIX values must be strings, finite numbers, booleans, or null.',
     )
     expect(result.current.hasErrors).toBe(true)
-    act(() => result.current.setValue('ctrl1', 'edited'))
+    act(() => {
+      result.current.setValue('ctrl1', 'edited')
+    })
     expect(result.current.values.ctrl1).toBe('edited')
     rerender({ externalValues: { FIX_OrderQty: '12' } })
     expect(result.current.hasErrors).toBe(false)
@@ -1069,7 +1115,9 @@ it('reads the clock once for an edit when StrictMode replays state updaters', ()
     wrapper: StrictMode,
   })
   clock.mockClear()
-  act(() => result.current.setValue('ctrl1', '10:00:00'))
+  act(() => {
+    result.current.setValue('ctrl1', '10:00:00')
+  })
   expect(clock).toHaveBeenCalledTimes(1)
   expect(result.current.values.ctrl1).toMatchObject({ instant: '20260912-10:00:00' })
 })
@@ -1081,7 +1129,9 @@ it('keeps linked percentage controls in whole-percent units', () => {
     makeControl({ id: 'b', parameter, type: 'TextField_t' }),
   ])
   const { result } = renderHook(() => useAtdlFormState(strategy))
-  act(() => result.current.setValue('a', 75))
+  act(() => {
+    result.current.setValue('a', 75)
+  })
   expect(Number(result.current.values.b)).toBe(75)
 })
 
@@ -1094,7 +1144,9 @@ it('converts shared clock instants into each control timezone', () => {
   const { result } = renderHook(() =>
     useAtdlFormState(strategy, { clock: () => new Date('2026-09-12T12:00:00Z') }),
   )
-  act(() => result.current.setValue('london', '10:00:00'))
+  act(() => {
+    result.current.setValue('london', '10:00:00')
+  })
   expect(result.current.values.newYork).toMatchObject({
     instant: '20260912-09:00:00',
     localDateTime: '20260912-05:00:00',
@@ -1107,7 +1159,9 @@ it('resets hook state when the strategy document changes', () => {
   const { result, rerender } = renderHook(({ strategy }) => useAtdlFormState(strategy), {
     initialProps: { strategy: first },
   })
-  act(() => result.current.setValue('ctrl1', 'edited'))
+  act(() => {
+    result.current.setValue('ctrl1', 'edited')
+  })
   rerender({ strategy: second })
   expect(result.current.values.ctrl1).toBe('second')
 })
@@ -1116,7 +1170,9 @@ it('refreshes amendment defaults and visibility after in-place strategy edits', 
   const parameter = makeParam()
   const strategy = makeStrategy([makeControl({ parameter, initValue: 'first' })])
   const { result, rerender } = renderHook(() => useAtdlFormState(strategy, { isAmendment: true }))
-  act(() => result.current.setValue('ctrl1', 'edited'))
+  act(() => {
+    result.current.setValue('ctrl1', 'edited')
+  })
   rerender()
   expect(result.current.values.ctrl1).toBe('edited')
 
@@ -1132,7 +1188,9 @@ it('refreshes amendment defaults and visibility after in-place strategy edits', 
   rerender()
   expect(result.current.values.ctrl1).toBe('second')
   expect(result.current.controlState.ctrl1).toMatchObject({ enabled: false, visible: false })
-  act(() => result.current.setValue('ctrl1', 'blocked'))
+  act(() => {
+    result.current.setValue('ctrl1', 'blocked')
+  })
   expect(result.current.values.ctrl1).toBe('second')
 })
 
@@ -1140,7 +1198,9 @@ it('blocks edits to an amended control after it becomes immutable', () => {
   const parameter = makeParam({ mutableOnCxlRpl: false })
   const strategy = makeStrategy([makeControl({ parameter, initValue: 'value' })])
   const { result } = renderHook(() => useAtdlFormState(strategy, { isAmendment: true }))
-  act(() => result.current.setValue('ctrl1', 'blocked'))
+  act(() => {
+    result.current.setValue('ctrl1', 'blocked')
+  })
   expect(result.current.values.ctrl1).toBe('value')
 })
 
@@ -1150,7 +1210,9 @@ it('allows edits again when an amended control becomes mutable', () => {
   const { result, rerender } = renderHook(() => useAtdlFormState(strategy, { isAmendment: true }))
   parameter.mutableOnCxlRpl = true
   rerender()
-  act(() => result.current.setValue('ctrl1', 'allowed'))
+  act(() => {
+    result.current.setValue('ctrl1', 'allowed')
+  })
   expect(result.current.values.ctrl1).toBe('allowed')
   expect(result.current.controlState.ctrl1).toMatchObject({ enabled: true, visible: true })
 })
@@ -1186,7 +1248,9 @@ it('keeps a failed value-rule conversion invalid across unrelated edits', () => 
     useAtdlFormState(strategy, { clock: () => new Date('2026-09-12T12:00:00Z') }),
   )
   expect(result.current.hasErrors).toBe(true)
-  act(() => result.current.setValue('other', 'changed'))
+  act(() => {
+    result.current.setValue('other', 'changed')
+  })
   expect(result.current.hasErrors).toBe(true)
 })
 
@@ -1239,7 +1303,9 @@ it('rolls back the whole cascade when a later value rule fails', () => {
   expect(result.current.hasErrors).toBe(true)
   expect(result.current.values.first).toBe('original')
   // The failed rule is retried on every settle, and the rollback holds there too.
-  act(() => result.current.setValue('trigger', 'on'))
+  act(() => {
+    result.current.setValue('trigger', 'on')
+  })
   expect(result.current.hasErrors).toBe(true)
   expect(result.current.values.first).toBe('original')
 })
@@ -1285,14 +1351,16 @@ it('discards the whole working copy when a sibling assignment throws mid-update'
   const circular: unknown[] = []
   circular.push(circular)
 
-  act(() => result.current.setValue('edited', circular))
+  act(() => {
+    result.current.setValue('edited', circular)
+  })
 
   // The siblings were written into the copy BEFORE the edited control's own
   // equality check threw; committed state must show none of it.
-  expect(result.current.values['sibling1']).toBe('bee')
-  expect(result.current.values['sibling2']).toBe('see')
-  expect(result.current.values['edited']).toEqual(['old'])
-  expect(result.current.controlState['edited'].errors.join(' ')).toContain('circular')
+  expect(result.current.values.sibling1).toBe('bee')
+  expect(result.current.values.sibling2).toBe('see')
+  expect(result.current.values.edited).toEqual(['old'])
+  expect(result.current.controlState.edited.errors.join(' ')).toContain('circular')
   expect(result.current.hasErrors).toBe(true)
 })
 
