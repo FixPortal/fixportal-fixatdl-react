@@ -1,0 +1,16 @@
+dist
+coverage
+
+# Detail and reasons: scaffold-ci/references/ci-workflow.md (ai-smells bullet).
+# Canonical scaffold-ci assets listed in its manifest; reformatting reads as DIVERGED.
+.github/ai-smells
+.github/workflows/review-tier.yml
+# Per-repo copy of review-policy.example.json, not in the manifest.
+# UNVERIFIED: that Prettier must be kept off it; refuted if prettier --check over a populated policy file passes.
+.claude/review-policy.json
+
+# Verbatim contract fixtures shared with the .NET side and a hand-drawn diagram: reformatting adds churn without meaning.
+contracts
+docs/diagrams
+# Review config owned by scaffold-ci; keep it as that skill writes it.
+.coderabbit.yaml
