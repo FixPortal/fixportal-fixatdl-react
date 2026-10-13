@@ -47,19 +47,19 @@ describe('optional DTO fields against a realistic backend document', () => {
     act(() => {
       result.current.setValue('account', 'AB')
     })
-    expect(result.current.controlState.account.errors).toContain(
+    expect(result.current.controlState['account'].errors).toContain(
       'Must contain at least 3 characters.',
     )
     act(() => {
       result.current.setValue('account', 'ABCDEFG')
     })
-    expect(result.current.controlState.account.errors).toContain(
+    expect(result.current.controlState['account'].errors).toContain(
       'Must contain at most 6 characters.',
     )
     act(() => {
       result.current.setValue('account', 'ABCD')
     })
-    expect(result.current.controlState.account.errors).toEqual([])
+    expect(result.current.controlState['account'].errors).toEqual([])
   })
 
   it('evaluates strategyEdits against the document and surfaces its message', () => {
@@ -105,7 +105,7 @@ describe('optional DTO fields against a realistic backend document', () => {
       result.current.setValue('participation', 12)
     })
     const parameters = mapControlValuesToParameters(strategy, result.current.values)
-    expect(parameters.Participation).toBe('0.12')
+    expect(parameters['Participation']).toBe('0.12')
     expect(emitStrategyParametersGrp(strategy, parameters)).toContainEqual({
       tag: 960,
       value: '12',
@@ -114,7 +114,7 @@ describe('optional DTO fields against a realistic backend document', () => {
 
   it('seeds a localMktTz clock to the matching instant and market wall time', () => {
     const { result } = renderHook(() => useAtdlFormState(strategy))
-    expect(result.current.values.expire).toMatchObject({
+    expect(result.current.values['expire']).toMatchObject({
       instant: '20260912-08:00:00',
       localDateTime: '20260912-09:00:00',
     })

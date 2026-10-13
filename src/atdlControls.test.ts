@@ -69,7 +69,7 @@ describe('mapControlValuesToParameters', () => {
     const second = { ...control('second', 'P'), parameter }
     const values: Record<string, unknown> = {}
     assignControlValue(strategy(panel([first, second])), values, first, value, new Set())
-    expect(values.second).toBe(expected)
+    expect(values['second']).toBe(expected)
   })
   it('rekeys control-id values to their parameter names', () => {
     const s = strategy(

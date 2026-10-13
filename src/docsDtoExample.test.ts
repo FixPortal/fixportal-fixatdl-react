@@ -26,7 +26,7 @@ describe('docs/getting-a-strategy.md non-.NET DTO example', () => {
     act(() => {
       result.current.setValue('orderQty', value)
     })
-    expect(result.current.controlState.orderQty.required).toBe(true)
+    expect(result.current.controlState['orderQty'].required).toBe(true)
     expect(result.current.hasErrors).toBe(error)
   })
 })

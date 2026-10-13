@@ -77,23 +77,23 @@ describe('participate sample strategy', () => {
     const { result } = sampleState()
     expect(result.current.hasErrors).toBe(false)
     expect(result.current.strategyErrors).toEqual([])
-    expect(result.current.values.ctrl_client_ref).toBe('DEMO-0001')
-    expect(result.current.values.ctrl_venues).toEqual(['DemoLit'])
+    expect(result.current.values['ctrl_client_ref']).toBe('DEMO-0001')
+    expect(result.current.values['ctrl_venues']).toEqual(['DemoLit'])
     // constValue reaches form state even though HiddenField_t renders nothing.
-    expect(result.current.values.ctrl_algo_version).toBe('1.4')
+    expect(result.current.values['ctrl_algo_version']).toBe('1.4')
   })
 
   it('disables the slice cap while urgency is High (enabled state rule)', () => {
     const { result } = sampleState()
-    expect(result.current.controlState.ctrl_max_slice.enabled).toBe(true)
+    expect(result.current.controlState['ctrl_max_slice'].enabled).toBe(true)
     act(() => {
       result.current.setValue('ctrl_urgency', 'High')
     })
-    expect(result.current.controlState.ctrl_max_slice.enabled).toBe(false)
+    expect(result.current.controlState['ctrl_max_slice'].enabled).toBe(false)
     act(() => {
       result.current.setValue('ctrl_urgency', 'Low')
     })
-    expect(result.current.controlState.ctrl_max_slice.enabled).toBe(true)
+    expect(result.current.controlState['ctrl_max_slice'].enabled).toBe(true)
   })
 
   it('shows the scheduled start only for the Scheduled benchmark (visible state rule)', () => {
@@ -101,28 +101,28 @@ describe('participate sample strategy', () => {
     // The sample opens on the Scheduled benchmark so the Clock control is on screen
     // at rest - otherwise the one control type the README screenshot cannot show is
     // the one the form hides by default.
-    expect(result.current.controlState.ctrl_start_time.visible).toBe(true)
+    expect(result.current.controlState['ctrl_start_time'].visible).toBe(true)
     act(() => {
       result.current.setValue('ctrl_benchmark', 'Arrival')
     })
-    expect(result.current.controlState.ctrl_start_time.visible).toBe(false)
+    expect(result.current.controlState['ctrl_start_time'].visible).toBe(false)
     act(() => {
       result.current.setValue('ctrl_benchmark', 'Scheduled')
     })
-    expect(result.current.controlState.ctrl_start_time.visible).toBe(true)
+    expect(result.current.controlState['ctrl_start_time'].visible).toBe(true)
   })
 
   it('clears and restores the minimum fill around the dark-liquidity toggle (NULL value rule)', () => {
     const { result } = sampleState()
-    expect(result.current.values.ctrl_min_fill_pct).toBe(25)
+    expect(result.current.values['ctrl_min_fill_pct']).toBe(25)
     act(() => {
       result.current.setValue('ctrl_allow_dark', false)
     })
-    expect(result.current.values.ctrl_min_fill_pct).toBeNull()
+    expect(result.current.values['ctrl_min_fill_pct']).toBeNull()
     act(() => {
       result.current.setValue('ctrl_allow_dark', true)
     })
-    expect(result.current.values.ctrl_min_fill_pct).toBe(25)
+    expect(result.current.values['ctrl_min_fill_pct']).toBe(25)
   })
 
   it('keeps the two capacity radios mutually exclusive on one parameter', () => {
@@ -130,8 +130,10 @@ describe('participate sample strategy', () => {
     act(() => {
       result.current.setValue('ctrl_capacity_principal', true)
     })
-    expect(result.current.values.ctrl_capacity_agency).toBe(false)
-    expect(mapControlValuesToParameters(sample, result.current.values).Capacity).toBe('Principal')
+    expect(result.current.values['ctrl_capacity_agency']).toBe(false)
+    expect(mapControlValuesToParameters(sample, result.current.values)['Capacity']).toBe(
+      'Principal',
+    )
   })
 
   it('surfaces the StrategyEdit only for the combination it forbids', () => {
@@ -192,11 +194,11 @@ describe('participate sample strategy', () => {
     act(() => {
       result.current.setValue('ctrl_participation', 40)
     })
-    expect(result.current.controlState.ctrl_participation.errors).toEqual([])
+    expect(result.current.controlState['ctrl_participation'].errors).toEqual([])
     act(() => {
       result.current.setValue('ctrl_participation', 60)
     })
-    expect(result.current.controlState.ctrl_participation.errors).toContain('Must be ≤ 50.')
+    expect(result.current.controlState['ctrl_participation'].errors).toContain('Must be ≤ 50.')
   })
 })
 

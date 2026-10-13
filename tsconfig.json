@@ -5,6 +5,13 @@
     "module": "ESNext",
     "moduleResolution": "bundler",
     "jsx": "react-jsx",
+    // HELD BACK, measured 2026-10-13 (errors with the flag on, everything else as below):
+    //  - noUncheckedIndexedAccess: 88 (75 in tests; 13 in shipped code: temporalValue.ts 8,
+    //    stateTransitions.ts 5). Each shipped site needs a guard or an assertion, which is a
+    //    runtime change to a published package.
+    //  - exactOptionalPropertyTypes: 6 (PanelRenderer.tsx 3, FormRenderer.tsx 2, atdlClock.ts 1),
+    //    all in exported prop and option types, so the fix rewrites the public .d.ts.
+    // Enable each with its fix in a reviewed change, then delete its line here.
     "strict": true,
     "skipLibCheck": true,
     "verbatimModuleSyntax": true,
@@ -14,6 +21,7 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
     "noImplicitOverride": true,
+    "noPropertyAccessFromIndexSignature": true,
     "erasableSyntaxOnly": true,
     "isolatedModules": true,
     "moduleDetection": "force",
