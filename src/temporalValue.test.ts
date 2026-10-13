@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { compareMonthYear, compareTenor, normalizeMonthYear, normalizeTenor, normalizeTzTemporal } from './temporalValue.js'
+import { compareMonthYear, compareTenor, normalizeMonthYear, normalizeTenor, normalizeTzTemporal, compareTemporal, parseTemporal } from './temporalValue.js'
 
 describe('core domain value parsing', () => {
   it.each(['D0', 'D-1', 'Q2', 'D2147483648', 'd2', '2D'])('rejects invalid tenor %s', value => {
@@ -41,5 +41,20 @@ describe('FIX timezone values', () => {
   it('checks the parameter date/time shape', () => {
     expect(normalizeTzTemporal('10:00Z', 'TZTimestamp_t')).toBeNull()
     expect(normalizeTzTemporal('20260101-10:00Z', 'TZTimeOnly_t')).toBeNull()
+  })
+})
+
+describe('compareTemporal and parseTemporal bounds', () => {
+  it.each(['20260230-10:00:00', '00000101-00:00:00', '20260912-24:00:00', '20260912-10:60:00', '20260912-10:00:60', '10:00:00.12345678', 20260912, null])('rejects %s', raw => {
+    expect(parseTemporal(raw)).toBeNull()
+    expect(compareTemporal(raw, '20260912-10:00:00')).toBeNull()
+  })
+  it('accepts the inclusive upper bounds of every field', () => {
+    expect(parseTemporal('20261231-23:59:59.9999999')).toEqual({ date: '20261231', time: '23:59:59.9999999' })
+  })
+  it('lets a time-only operand borrow the other operand date and orders by fraction', () => {
+    expect(compareTemporal('10:00:00', '20260912-10:00:00')).toBe(0)
+    expect(compareTemporal('20260912-10:00:00.1', '20260912-10:00:00.12')).toBe(-1)
+    expect(compareTemporal('20260913-00:00:00', '20260912-23:59:59')).toBe(1)
   })
 })
