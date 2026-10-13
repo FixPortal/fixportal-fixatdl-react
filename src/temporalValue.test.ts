@@ -62,12 +62,24 @@ describe('FIX timezone values', () => {
 })
 
 describe('compareTemporal and parseTemporal bounds', () => {
-  it.each(['20260230-10:00:00', '00000101-00:00:00', '20260912-24:00:00', '20260912-10:60:00', '20260912-10:00:60', '10:00:00.12345678', 20260912, null])('rejects %s', raw => {
+  it.each([
+    '20260230-10:00:00',
+    '00000101-00:00:00',
+    '20260912-24:00:00',
+    '20260912-10:60:00',
+    '20260912-10:00:60',
+    '10:00:00.12345678',
+    20260912,
+    null,
+  ])('rejects %s', (raw) => {
     expect(parseTemporal(raw)).toBeNull()
     expect(compareTemporal(raw, '20260912-10:00:00')).toBeNull()
   })
   it('accepts the inclusive upper bounds of every field', () => {
-    expect(parseTemporal('20261231-23:59:59.9999999')).toEqual({ date: '20261231', time: '23:59:59.9999999' })
+    expect(parseTemporal('20261231-23:59:59.9999999')).toEqual({
+      date: '20261231',
+      time: '23:59:59.9999999',
+    })
   })
   it('lets a time-only operand borrow the other operand date and orders by fraction', () => {
     expect(compareTemporal('10:00:00', '20260912-10:00:00')).toBe(0)
