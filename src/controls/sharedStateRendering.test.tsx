@@ -177,7 +177,7 @@ describe('shared control state rendering', () => {
         editors.forEach((editor) => expect(editor).toBeDisabled())
       } else if (entry.editor.kind === 'time') {
         // input[type="time"] has no ARIA textbox role - query it directly.
-        const input = document.querySelector('input[type="time"]') as HTMLInputElement
+        const input = document.querySelector<HTMLInputElement>('input[type="time"]')!
         expect(input).toBeDisabled()
       }
     },

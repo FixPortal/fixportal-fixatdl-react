@@ -87,7 +87,7 @@ describe('strategyContentKey', () => {
     expect(strategyContentKey(left)).toBe(strategyContentKey(right))
     expect(strategyContentKey({ ...left, name: 'Other' })).not.toBe(strategyContentKey(left))
     expect(strategyContentKey({ flag: false })).not.toBe(strategyContentKey({}))
-    const withProto = JSON.parse('{"name":"S","__proto__":{"polluted":true}}')
+    const withProto = JSON.parse('{"name":"S","__proto__":{"polluted":true}}') as AtdlStrategyDto
     expect(strategyContentKey(withProto)).not.toBe(strategyContentKey({ name: 'S' }))
     expect(strategyContentKey(withProto)).toContain('__proto__')
   })
@@ -197,7 +197,9 @@ describe('useAtdlFormState', () => {
       makeControl({ id: '__proto__', parameter }),
       makeControl({ id: 'sibling', parameter }),
     ])
-    const initialValues = Object.assign(Object.create(null), { sibling: 'old' })
+    const initialValues = Object.assign(Object.create(null) as Record<string, unknown>, {
+      sibling: 'old',
+    })
     Object.defineProperty(initialValues, '__proto__', {
       value: ['old'],
       enumerable: true,
@@ -1327,7 +1329,7 @@ it('surfaces a non-cloneable value-rule snapshot as a form error', () => {
     }),
   ])
   const { result } = renderHook(() =>
-    useAtdlFormState(strategy, { initialValues: { target: () => {} } }),
+    useAtdlFormState(strategy, { initialValues: { target: () => undefined } }),
   )
   expect(result.current.hasErrors).toBe(true)
   expect(result.current.strategyErrors).toContain('target: Value could not be copied safely.')

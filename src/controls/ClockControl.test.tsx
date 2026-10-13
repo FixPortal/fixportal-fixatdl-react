@@ -27,20 +27,20 @@ describe('ClockControl', () => {
       <ClockControl control={BASE_CONTROL} value="09:30" onChange={onChange} state={ENABLED} />,
     )
     // input[type="time"] has no ARIA textbox role - query it directly
-    const input = document.querySelector('input[type="time"]') as HTMLInputElement
+    const input = document.querySelector<HTMLInputElement>('input[type="time"]')!
     fireEvent.change(input, { target: { value: '14:45' } })
     expect(onChange).toHaveBeenCalledWith('14:45')
   })
 
   it('renders with the current value', () => {
     render(<ClockControl control={BASE_CONTROL} value="09:30" onChange={vi.fn()} state={ENABLED} />)
-    const input = document.querySelector('input[type="time"]') as HTMLInputElement
+    const input = document.querySelector<HTMLInputElement>('input[type="time"]')!
     expect(input.value).toBe('09:30')
   })
 
   it('uses the visible label without duplicating it through aria-label', () => {
     render(<ClockControl control={BASE_CONTROL} value="09:30" onChange={vi.fn()} state={ENABLED} />)
-    const input = document.querySelector('input[type="time"]') as HTMLInputElement
+    const input = document.querySelector<HTMLInputElement>('input[type="time"]')!
     expect(input.labels).toHaveLength(1)
     expect(input.getAttribute('aria-label')).toBeNull()
   })
@@ -52,7 +52,7 @@ describe('ClockControl', () => {
       localDateTime: '20261025-01:30:00.1234567',
     }
     render(<ClockControl control={BASE_CONTROL} value={value} onChange={vi.fn()} state={ENABLED} />)
-    const input = document.querySelector('input[type="time"]') as HTMLInputElement
+    const input = document.querySelector<HTMLInputElement>('input[type="time"]')!
     expect(input.value).toBe('01:30:00.123')
     expect(input.step).toBe('any')
     expect(value.instant).toBe('20261025-01:30:00.1234567')
@@ -67,7 +67,7 @@ describe('ClockControl', () => {
         state={{ ...ENABLED, errors: ['Invalid time.'] }}
       />,
     )
-    const input = document.querySelector('input[type="time"]') as HTMLInputElement
+    const input = document.querySelector<HTMLInputElement>('input[type="time"]')!
     expect(input.className).toContain('border-bad-border')
   })
 
@@ -77,7 +77,7 @@ describe('ClockControl', () => {
     // jsdom validates time inputs - the component passes String(value) which
     // is well-formed ('0' is not a valid HH:mm so the DOM sanitises it to '').
     // The typed string must reach onChange intact, not just as any string.
-    const input = document.querySelector('input[type="time"]') as HTMLInputElement
+    const input = document.querySelector<HTMLInputElement>('input[type="time"]')!
     fireEvent.change(input, { target: { value: '10:00' } })
     expect(onChange.mock.calls[0][0]).toBe('10:00')
   })

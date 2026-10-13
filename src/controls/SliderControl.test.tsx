@@ -155,7 +155,7 @@ describe('SliderControl', () => {
 
   it('uses parameter.min and parameter.max as range bounds', () => {
     render(<SliderControl control={BASE_CONTROL} value={50} onChange={vi.fn()} state={ENABLED} />)
-    const slider = screen.getByRole('slider') as HTMLInputElement
+    const slider = screen.getByRole<HTMLInputElement>('slider')
     expect(slider.min).toBe('0')
     expect(slider.max).toBe('100')
   })
@@ -163,7 +163,7 @@ describe('SliderControl', () => {
   it('falls back to 0/100 when parameter is null', () => {
     const ctrl = { ...BASE_CONTROL, parameter: null }
     render(<SliderControl control={ctrl} value={0} onChange={vi.fn()} state={ENABLED} />)
-    const slider = screen.getByRole('slider') as HTMLInputElement
+    const slider = screen.getByRole<HTMLInputElement>('slider')
     expect(slider.min).toBe('0')
     expect(slider.max).toBe('100')
   })

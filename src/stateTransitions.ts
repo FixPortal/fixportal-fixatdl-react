@@ -33,12 +33,18 @@ export function settleValueRules(
     active: previous?.rules[index]?.active ?? false,
     previousValue: structuredClone(previous?.rules[index]?.previousValue),
   }))
-  const values: Record<string, unknown> = Object.assign(Object.create(null), next)
+  const values: Record<string, unknown> = Object.assign(
+    Object.create(null) as Record<string, unknown>,
+    next,
+  )
   // Snapshot the incoming state so a failing rule mid-cascade rolls the whole call
   // back: earlier rules' writes and active flags must not survive alongside the
   // error. Entry copies suffice — the loop only ever replaces entry fields
   // (memory.active =, memory.previousValue =), it never mutates them in place.
-  const snapshotValues: Record<string, unknown> = Object.assign(Object.create(null), next)
+  const snapshotValues: Record<string, unknown> = Object.assign(
+    Object.create(null) as Record<string, unknown>,
+    next,
+  )
   const snapshotRules = rules.map((entry) => ({ ...entry }))
   // ponytail: bounded full scans; use a dependency queue if large strategies need it.
   const maxPasses = Math.max(64, bindings.length * 4)
@@ -66,7 +72,8 @@ export function settleValueRules(
         try {
           value =
             control.type === 'Clock_t'
-              ? editClockValue(control, values[control.id], rule.targetStringValue!, now)
+              ? // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- behaviour-preserving: removing the assertion is a runtime change, out of scope for the toolchain pass.
+                editClockValue(control, values[control.id], rule.targetStringValue!, now)
               : normalizeControlValue(control, rule.targetStringValue)
         } catch (error) {
           return {

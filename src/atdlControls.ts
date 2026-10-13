@@ -52,7 +52,7 @@ export function mapControlValuesToParameters(
   strategy: AtdlStrategyDto,
   controlValues: Record<string, unknown>,
 ): Record<string, unknown> {
-  const out: Record<string, unknown> = Object.create(null)
+  const out = Object.create(null) as Record<string, unknown>
   const controls = flattenControls(strategy)
   for (const control of controls) {
     const paramName = control.parameterRef ?? control.parameter?.name
@@ -156,6 +156,7 @@ export function assignControlValue(
         Array.isArray(next) &&
         JSON.stringify(values[sibling.id]) === JSON.stringify(next))
     if (!equal) {
+      // eslint-disable-next-line @typescript-eslint/no-dynamic-delete -- values is a null-prototype map keyed by control id; delete is the intended removal.
       if (next === undefined) delete values[sibling.id]
       else values[sibling.id] = next
       changed = true

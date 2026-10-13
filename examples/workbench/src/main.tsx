@@ -8,6 +8,7 @@ import '@fix-portal/fixatdl-react/styles.css'
 import './workbench.css'
 import { App } from './App'
 
+// eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- the host page always ships #root; failing loudly at start-up is intended.
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <App />

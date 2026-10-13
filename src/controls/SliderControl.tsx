@@ -25,14 +25,18 @@ export function SliderControl({ control, value, onChange, state }: ControlProps)
   const min = discrete
     ? '0'
     : (declaredMin ??
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- behaviour-preserving: a malformed decimal compares as null; changing that path is a runtime change.
       (declaredMax != null && compareDecimals(declaredMax, 0)! <= 0
-        ? addDecimals(declaredMax, -100)!
+        ? // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- behaviour-preserving: a malformed decimal compares as null; changing that path is a runtime change.
+          addDecimals(declaredMax, -100)!
         : '0'))
   const max = discrete
     ? String(items.length - 1)
     : (declaredMax ??
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- behaviour-preserving: a malformed decimal compares as null; changing that path is a runtime change.
       (declaredMin != null && compareDecimals(declaredMin, 100)! >= 0
-        ? addDecimals(declaredMin, 100)!
+        ? // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- behaviour-preserving: a malformed decimal compares as null; changing that path is a runtime change.
+          addDecimals(declaredMin, 100)!
         : '100'))
   const index = items.findIndex((item) => item.enumId === value)
   const unset = isUnfilledAtdlValue(value) || (discrete && index < 0)
@@ -83,7 +87,7 @@ export function SliderControl({ control, value, onChange, state }: ControlProps)
           aria-label={ariaLabel}
           aria-invalid={hasError}
           aria-describedby={hasError ? errorId : undefined}
-          aria-valuetext={unset ? 'Not selected' : discrete ? String(display) : undefined}
+          aria-valuetext={unset ? 'Not selected' : discrete ? display : undefined}
           title={control.tooltip ?? undefined}
           className="flex-1 accent-brand disabled:opacity-50 disabled:cursor-not-allowed"
         />
