@@ -34,7 +34,9 @@ export function CheckBoxControl({ control, value, onChange, state, radioGroupNam
           <span className="text-sm text-text">
             {control.label}
             {state.required && (
-              <span className="text-bad-text ml-1" aria-hidden="true">*</span>
+              <span className="text-bad-text ml-1" aria-hidden="true">
+                *
+              </span>
             )}
           </span>
         )}
@@ -42,7 +44,9 @@ export function CheckBoxControl({ control, value, onChange, state, radioGroupNam
       {hasError && (
         <ul id={errorId} className="space-y-0.5">
           {state.errors.map((err, index) => (
-            <li key={index} className="text-xs text-bad-text">{err}</li>
+            <li key={index} className="text-xs text-bad-text">
+              {err}
+            </li>
           ))}
         </ul>
       )}

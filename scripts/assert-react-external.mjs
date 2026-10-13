@@ -19,9 +19,11 @@ for (const match of bundle.matchAll(/(?:from|import)\s*["']([^"']+)["']/g)) {
 const required = ['react', 'react/jsx-runtime']
 const allowed = new Set(['react', 'react-dom', 'react/jsx-runtime', 'react/jsx-dev-runtime'])
 
-const isReactFamily = name =>
-  name === 'react' || name === 'react-dom' ||
-  name.startsWith('react/') || name.startsWith('react-dom/')
+const isReactFamily = (name) =>
+  name === 'react' ||
+  name === 'react-dom' ||
+  name.startsWith('react/') ||
+  name.startsWith('react-dom/')
 
 const problems = []
 for (const name of required) {
@@ -45,18 +47,24 @@ for (const name of specifiers) {
 // entries happen to be exercised.
 const externalBlock = /external\s*:\s*\[([^\]]*)\]/.exec(viteConfig)
 if (!externalBlock) {
-  problems.push('vite.config.ts has no rolldownOptions.external array -- React externalisation is no longer configured')
+  problems.push(
+    'vite.config.ts has no rolldownOptions.external array -- React externalisation is no longer configured',
+  )
 } else {
-  const configured = new Set([...externalBlock[1].matchAll(/["']([^"']+)["']/g)].map(m => m[1]))
+  const configured = new Set([...externalBlock[1].matchAll(/["']([^"']+)["']/g)].map((m) => m[1]))
   for (const name of allowed) {
     if (!configured.has(name)) {
-      problems.push(`vite.config.ts no longer lists "${name}" in rolldownOptions.external -- it would be inlined as soon as anything imports it`)
+      problems.push(
+        `vite.config.ts no longer lists "${name}" in rolldownOptions.external -- it would be inlined as soon as anything imports it`,
+      )
     }
   }
 }
 
 if (problems.length > 0) {
-  console.error(problems.map(p => `FAIL dist/index.js: ${p}`).join('\n'))
+  console.error(problems.map((p) => `FAIL dist/index.js: ${p}`).join('\n'))
   process.exit(1)
 }
-console.log(`OK dist/index.js keeps React external (specifiers: ${[...specifiers].sort().join(', ')})`)
+console.log(
+  `OK dist/index.js keeps React external (specifiers: ${[...specifiers].sort().join(', ')})`,
+)

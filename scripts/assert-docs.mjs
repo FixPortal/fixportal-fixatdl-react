@@ -16,7 +16,11 @@ function publicExportNames() {
 
   for (const match of index.matchAll(/export(?: type)? \{([^}]+)\}/g)) {
     for (const name of match[1].split(',')) {
-      const cleaned = name.trim().replace(/^type\s+/, '').split(/\s+as\s+/).at(-1)
+      const cleaned = name
+        .trim()
+        .replace(/^type\s+/, '')
+        .split(/\s+as\s+/)
+        .at(-1)
       if (cleaned) names.add(cleaned)
     }
   }
@@ -33,7 +37,9 @@ function publicExportNames() {
 /** Find broken relative Markdown links in one document. */
 export function localLinkProblems(rootPath, relativePath, markdown) {
   const problems = []
-  const links = [...markdown.matchAll(/\[[^\]]*\]\(\s*(<[^>]+>|(?:[^()\s]|\([^)]*\))+)(?:\s+[^)]*)?\)/g)].map(match => match[1])
+  const links = [
+    ...markdown.matchAll(/\[[^\]]*\]\(\s*(<[^>]+>|(?:[^()\s]|\([^)]*\))+)(?:\s+[^)]*)?\)/g),
+  ].map((match) => match[1])
   for (const match of markdown.matchAll(/^\s*\[[^\]]+\]:\s*(<[^>]+>|\S+)/gm)) links.push(match[1])
   for (const rawLink of links) {
     const link = rawLink.replace(/^<|>$/g, '').split('#')[0]
@@ -76,17 +82,24 @@ export function checkDocumentation() {
   }
 
   for (const name of publicExportNames()) {
-    if (!new RegExp(`\\b${name}\\b`).test(api)) problems.push(`docs/api.md is missing public export ${name}`)
+    if (!new RegExp(`\\b${name}\\b`).test(api))
+      problems.push(`docs/api.md is missing public export ${name}`)
   }
-  const exportLines = read('src/index.ts').split(/\r?\n/).filter(line => /^\s*export\b/.test(line))
+  const exportLines = read('src/index.ts')
+    .split(/\r?\n/)
+    .filter((line) => /^\s*export\b/.test(line))
   for (const line of exportLines) {
-    if (!/^\s*export(?:\s+type)?\s*\{[^}]*\}\s*(?:from\s+['"][^'"]+['"])?\s*;?\s*$/.test(line) &&
-        !/^\s*export\s+type\s+\*\s+from\s+['"]\.\/types\.js['"]\s*;?\s*$/.test(line)) {
+    if (
+      !/^\s*export(?:\s+type)?\s*\{[^}]*\}\s*(?:from\s+['"][^'"]+['"])?\s*;?\s*$/.test(line) &&
+      !/^\s*export\s+type\s+\*\s+from\s+['"]\.\/types\.js['"]\s*;?\s*$/.test(line)
+    ) {
       problems.push(`scripts/assert-docs.mjs cannot parse public export: ${line.trim()}`)
     }
   }
 
-  const registryNames = [...read('src/controls/controlRegistry.ts').matchAll(/^\s{2}(\w+_t):/gm)].map(match => match[1])
+  const registryNames = [
+    ...read('src/controls/controlRegistry.ts').matchAll(/^\s{2}(\w+_t):/gm),
+  ].map((match) => match[1])
   const countPattern = new RegExp(`\\b${registryNames.length}\\b`)
   if (!countPattern.test(readme.match(/registry handles[^\n]+/)?.[0] ?? '')) {
     problems.push(`README.md does not document ${registryNames.length} registered control types`)
@@ -99,11 +112,18 @@ export function checkDocumentation() {
   return problems
 }
 
-if (import.meta.url === `file://${process.argv[1]}` || process.argv[1]?.endsWith('assert-docs.mjs')) {
+if (
+  import.meta.url === `file://${process.argv[1]}` ||
+  process.argv[1]?.endsWith('assert-docs.mjs')
+) {
   const problems = checkDocumentation()
   if (problems.length > 0) {
-    console.error(['FAIL documentation contract:', ...problems.map(problem => `- ${problem}`)].join('\n'))
+    console.error(
+      ['FAIL documentation contract:', ...problems.map((problem) => `- ${problem}`)].join('\n'),
+    )
     process.exit(1)
   }
-  console.log('OK documentation contract matches the package exports, version, registry, and local links')
+  console.log(
+    'OK documentation contract matches the package exports, version, registry, and local links',
+  )
 }

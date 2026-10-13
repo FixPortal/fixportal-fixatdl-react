@@ -28,7 +28,9 @@ export function TextFieldControl({ control, value, onChange, state }: ControlPro
           {state.required && (
             // WHY: asterisk on the label, not the input, so screen readers
             // pick it up as part of the label text.
-            <span className="text-bad-text ml-1" aria-hidden="true">*</span>
+            <span className="text-bad-text ml-1" aria-hidden="true">
+              *
+            </span>
           )}
         </label>
       )}
@@ -51,7 +53,9 @@ export function TextFieldControl({ control, value, onChange, state }: ControlPro
       {hasError && (
         <ul id={errorId} className="space-y-0.5">
           {state.errors.map((err, index) => (
-            <li key={index} className="text-xs text-bad-text">{err}</li>
+            <li key={index} className="text-xs text-bad-text">
+              {err}
+            </li>
           ))}
         </ul>
       )}

@@ -28,7 +28,13 @@ const panel = {
         {
           effect: 'enabled',
           targetValue: false,
-          expression: { kind: 'compare', operator: '==', field: 'OrdType', value: '1', children: null },
+          expression: {
+            kind: 'compare',
+            operator: '==',
+            field: 'OrdType',
+            value: '1',
+            children: null,
+          },
         },
       ],
     },
@@ -40,19 +46,41 @@ const disabled = { price: { enabled: false, visible: true, required: false, erro
 
 const radioPanel = {
   ...panel,
-  children: [{
-    kind: 'control', id: 'side', type: 'RadioButton_t', label: 'Buy', parameterRef: null,
-    parameter: null, listItems: null, initValue: false, tooltip: null, radioGroup: 'side', stateRules: [],
-    checkedEnumRef: 'buy', uncheckedEnumRef: 'sell',
-  }],
+  children: [
+    {
+      kind: 'control',
+      id: 'side',
+      type: 'RadioButton_t',
+      label: 'Buy',
+      parameterRef: null,
+      parameter: null,
+      listItems: null,
+      initValue: false,
+      tooltip: null,
+      radioGroup: 'side',
+      stateRules: [],
+      checkedEnumRef: 'buy',
+      uncheckedEnumRef: 'sell',
+    },
+  ],
 } as unknown as AtdlPanelDto
 
 describe('PanelRenderer why? chip', () => {
   it('keeps explanation buttons from submitting a host form through text attributes', () => {
     const submit = vi.fn((event: { preventDefault(): void }) => event.preventDefault())
-    render(<form onSubmit={submit}><PanelRenderer panel={panel} values={{}} setValue={() => {}}
-      state={disabled} highlightedControlId={null} onHighlightControl={() => {}}
-      text={{ whyRule: { value: 'Explain', attrs: { type: 'submit' } } }} /></form>)
+    render(
+      <form onSubmit={submit}>
+        <PanelRenderer
+          panel={panel}
+          values={{}}
+          setValue={() => {}}
+          state={disabled}
+          highlightedControlId={null}
+          onHighlightControl={() => {}}
+          text={{ whyRule: { value: 'Explain', attrs: { type: 'submit' } } }}
+        />
+      </form>,
+    )
     fireEvent.click(screen.getByRole('button', { name: 'Explain' }))
     expect(submit).not.toHaveBeenCalled()
   })
@@ -87,10 +115,24 @@ describe('PanelRenderer why? chip', () => {
   })
 
   it('scopes individual radio controls between simultaneous editors', () => {
-    const { container } = render(<><PanelRenderer panel={radioPanel} values={{ side: false }} setValue={() => {}}
-      state={{ side: { enabled: true, visible: true, required: false, errors: [] } }} highlightedControlId={null} />
-      <PanelRenderer panel={radioPanel} values={{ side: false }} setValue={() => {}}
-        state={{ side: { enabled: true, visible: true, required: false, errors: [] } }} highlightedControlId={null} /></>)
+    const { container } = render(
+      <>
+        <PanelRenderer
+          panel={radioPanel}
+          values={{ side: false }}
+          setValue={() => {}}
+          state={{ side: { enabled: true, visible: true, required: false, errors: [] } }}
+          highlightedControlId={null}
+        />
+        <PanelRenderer
+          panel={radioPanel}
+          values={{ side: false }}
+          setValue={() => {}}
+          state={{ side: { enabled: true, visible: true, required: false, errors: [] } }}
+          highlightedControlId={null}
+        />
+      </>,
+    )
     const radios = [...container.querySelectorAll('input[type="radio"]')]
     expect(radios).toHaveLength(2)
     expect(radios[0].getAttribute('name')).not.toBe(radios[1].getAttribute('name'))

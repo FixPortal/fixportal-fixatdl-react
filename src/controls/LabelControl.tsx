@@ -7,7 +7,5 @@ import type { ControlProps } from './controlRegistry.js'
 export function LabelControl({ control, state }: ControlProps) {
   if (!state.visible) return null
 
-  return (
-    <div className="text-sm text-muted">{control.label}</div>
-  )
+  return <div className="text-sm text-muted">{control.label}</div>
 }

@@ -17,12 +17,17 @@ export function parseTemporal(value: unknown): { date: string | null; time: stri
     date = dateMatch[1] + dateMatch[2] + dateMatch[3]
     const probe = new Date(0)
     probe.setUTCFullYear(Number(dateMatch[1]), Number(dateMatch[2]) - 1, Number(dateMatch[3]))
-    if (probe.getUTCFullYear() < 1 || probe.toISOString().slice(0, 10).replaceAll('-', '') !== date) return null
+    if (probe.getUTCFullYear() < 1 || probe.toISOString().slice(0, 10).replaceAll('-', '') !== date)
+      return null
   }
-  const rawTime = dateMatch ? dateMatch[4] ?? '00:00:00' : value
+  const rawTime = dateMatch ? (dateMatch[4] ?? '00:00:00') : value
   const time = /^(\d{2}):(\d{2})(?::(\d{2})(?:\.(\d{1,7}))?)?$/.exec(rawTime)
-  if (!time || Number(time[1]) > 23 || Number(time[2]) > 59 || Number(time[3] ?? 0) > 59) return null
-  return { date, time: `${time[1]}:${time[2]}:${time[3] ?? '00'}.${(time[4] ?? '').padEnd(7, '0')}` }
+  if (!time || Number(time[1]) > 23 || Number(time[2]) > 59 || Number(time[3] ?? 0) > 59)
+    return null
+  return {
+    date,
+    time: `${time[1]}:${time[2]}:${time[3] ?? '00'}.${(time[4] ?? '').padEnd(7, '0')}`,
+  }
 }
 
 /** Tenor ordering follows core's nominal day magnitudes for different units. */
@@ -44,7 +49,9 @@ function parseTenor(value: unknown): { unit: string; offset: number } | null {
   const match = /^([DWMY])\s*\+?(\d+)\s*$/.exec(value)
   if (!match) return null
   const offset = Number(match[2])
-  return Number.isInteger(offset) && offset > 0 && offset <= 2147483647 ? { unit: match[1], offset } : null
+  return Number.isInteger(offset) && offset > 0 && offset <= 2147483647
+    ? { unit: match[1], offset }
+    : null
 }
 
 /** Core orders mixed MonthYear suffixes by ordinal, then day/week presence. */
@@ -94,8 +101,17 @@ export function normalizeTzTemporal(value: unknown, type?: string): string | nul
   if (offset === null) return null
   const date = parsed.date ?? '20000102'
   const probe = new Date(0)
-  probe.setUTCFullYear(Number(date.slice(0, 4)), Number(date.slice(4, 6)) - 1, Number(date.slice(6, 8)))
-  probe.setUTCHours(Number(parsed.time.slice(0, 2)), Number(parsed.time.slice(3, 5)) - offset, Number(parsed.time.slice(6, 8)), 0)
+  probe.setUTCFullYear(
+    Number(date.slice(0, 4)),
+    Number(date.slice(4, 6)) - 1,
+    Number(date.slice(6, 8)),
+  )
+  probe.setUTCHours(
+    Number(parsed.time.slice(0, 2)),
+    Number(parsed.time.slice(3, 5)) - offset,
+    Number(parsed.time.slice(6, 8)),
+    0,
+  )
   if (probe.getUTCFullYear() < 1 || probe.getUTCFullYear() > 9999) return null
   const iso = probe.toISOString()
   let fraction = parsed.time.slice(9)

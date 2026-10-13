@@ -785,9 +785,7 @@
                 "uiRep": "Demo Syndicate"
               }
             ],
-            "initValue": [
-              "DemoLit"
-            ],
+            "initValue": ["DemoLit"],
             "stateRules": [],
             "tooltip": null
           },

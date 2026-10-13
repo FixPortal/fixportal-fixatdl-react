@@ -3,14 +3,35 @@ import { render, screen } from '@testing-library/react'
 import { controlRegistry } from './controlRegistry.js'
 import type { AtdlControlDto } from '../types.js'
 
-it.each(['CheckBox_t', 'Clock_t', 'EditableDropDownList_t', 'Slider_t'])('%s associates each editor with its own errors', type => {
-  const control: AtdlControlDto = { id: 'value', type, label: 'Value', parameterRef: null,
-    parameter: null, listItems: null, initValue: null, stateRules: [], tooltip: null }
-  const Component = controlRegistry[type]
-  const state = { enabled: true, visible: true, required: false, errors: ['First error'] }
-  render(<><Component control={control} value={undefined} onChange={() => {}} state={state} />
-    <Component control={control} value={undefined} onChange={() => {}} state={{ ...state, errors: ['Second error'] }} /></>)
-  const inputs = screen.getAllByLabelText('Value')
-  expect(inputs[0]).toHaveAccessibleDescription('First error')
-  expect(inputs[1]).toHaveAccessibleDescription('Second error')
-})
+it.each(['CheckBox_t', 'Clock_t', 'EditableDropDownList_t', 'Slider_t'])(
+  '%s associates each editor with its own errors',
+  (type) => {
+    const control: AtdlControlDto = {
+      id: 'value',
+      type,
+      label: 'Value',
+      parameterRef: null,
+      parameter: null,
+      listItems: null,
+      initValue: null,
+      stateRules: [],
+      tooltip: null,
+    }
+    const Component = controlRegistry[type]
+    const state = { enabled: true, visible: true, required: false, errors: ['First error'] }
+    render(
+      <>
+        <Component control={control} value={undefined} onChange={() => {}} state={state} />
+        <Component
+          control={control}
+          value={undefined}
+          onChange={() => {}}
+          state={{ ...state, errors: ['Second error'] }}
+        />
+      </>,
+    )
+    const inputs = screen.getAllByLabelText('Value')
+    expect(inputs[0]).toHaveAccessibleDescription('First error')
+    expect(inputs[1]).toHaveAccessibleDescription('Second error')
+  },
+)

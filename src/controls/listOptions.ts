@@ -11,6 +11,13 @@ export interface ListOption {
 }
 
 export function listOptionsFor(control: ListOptionSource): ListOption[] {
-  if (control.listItems?.length) return control.listItems.map(item => ({ enumId: item.enumId, label: item.uiRep ?? item.enumId }))
-  return (control.parameter?.enumValues ?? []).map(item => ({ enumId: item.enumId, label: item.enumId }))
+  if (control.listItems?.length)
+    return control.listItems.map((item) => ({
+      enumId: item.enumId,
+      label: item.uiRep ?? item.enumId,
+    }))
+  return (control.parameter?.enumValues ?? []).map((item) => ({
+    enumId: item.enumId,
+    label: item.enumId,
+  }))
 }

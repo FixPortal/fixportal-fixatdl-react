@@ -18,16 +18,27 @@ interface Scenario {
 }
 
 describe('FIXatdl 1.1 shared state transitions', () => {
-  it.each(scenarios as Scenario[])('$name', scenario => {
-    const controls: AtdlControlDto[] = scenario.controls.map(control => ({
-      label: null, parameterRef: null, parameter: null, listItems: null, tooltip: null,
+  it.each(scenarios as Scenario[])('$name', (scenario) => {
+    const controls: AtdlControlDto[] = scenario.controls.map((control) => ({
+      label: null,
+      parameterRef: null,
+      parameter: null,
+      listItems: null,
+      tooltip: null,
       ...control,
     }))
     const strategy: AtdlStrategyDto = {
-      name: scenario.name, description: null, sourceXml: '', parameters: [],
+      name: scenario.name,
+      description: null,
+      sourceXml: '',
+      parameters: [],
       panel: {
-        title: null, border: 'None', orientation: 'Vertical', collapsible: false, collapsed: false,
-        children: controls.map(control => ({ kind: 'control', ...control })),
+        title: null,
+        border: 'None',
+        orientation: 'Vertical',
+        collapsible: false,
+        collapsed: false,
+        children: controls.map((control) => ({ kind: 'control', ...control })),
       },
     }
     const { result } = renderHook(() => useAtdlFormState(strategy))

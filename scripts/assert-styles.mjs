@@ -35,8 +35,16 @@ const css = readFileSync(cssPath, 'utf8')
 
 // --- 1. every token the README documents as the contract -------------------
 const TOKENS = [
-  'text', 'muted', 'card', 'border-base', 'brand', 'brand-soft',
-  'bad-text', 'bad-border', 'warn-bg', 'warn-border',
+  'text',
+  'muted',
+  'card',
+  'border-base',
+  'brand',
+  'brand-soft',
+  'bad-text',
+  'bad-border',
+  'warn-bg',
+  'warn-border',
 ]
 for (const token of TOKENS) {
   if (!css.includes(`--color-${token}:`)) {
@@ -61,7 +69,9 @@ for (const path of walk(fileURLToPath(new URL('src', root)))) {
   if (!path.endsWith('.tsx') || /\.(test|spec)\.tsx$/.test(path)) continue
   const source = readFileSync(path, 'utf8')
   // className="..." and the `const base = '...'` / template fragments beside it.
-  for (const match of source.matchAll(/(?:className=|=\s*)(?:"([^"\n]*)"|'([^'\n]*)'|`([^`]*)`)/g)) {
+  for (const match of source.matchAll(
+    /(?:className=|=\s*)(?:"([^"\n]*)"|'([^'\n]*)'|`([^`]*)`)/g,
+  )) {
     const literal = match[1] ?? match[2] ?? match[3] ?? ''
     for (const candidate of literal.split(/[\s`]+/)) {
       // Skip template holes and anything that cannot be a utility.
@@ -78,30 +88,56 @@ for (const path of walk(fileURLToPath(new URL('src', root)))) {
 // would be circular, so the assertion is narrowed to the utility families the
 // controls are built from - the ones whose absence is a visible regression.
 const REQUIRED_PREFIXES = [
-  'space-y-', 'flex', 'items-', 'gap-', 'text-', 'border', 'rounded', 'px-', 'py-',
-  'min-w-', 'accent-', 'bg-', 'outline', 'focus:', 'disabled:', 'cursor-', 'select-',
-  'font-', 'block', 'w-full', 'ml-', 'mb-', 'p-',
+  'space-y-',
+  'flex',
+  'items-',
+  'gap-',
+  'text-',
+  'border',
+  'rounded',
+  'px-',
+  'py-',
+  'min-w-',
+  'accent-',
+  'bg-',
+  'outline',
+  'focus:',
+  'disabled:',
+  'cursor-',
+  'select-',
+  'font-',
+  'block',
+  'w-full',
+  'ml-',
+  'mb-',
+  'p-',
 ]
-const escapeClass = name => '.' + name.replace(/[[\]/.:]/g, ch => `\\${ch}`)
+const escapeClass = (name) => '.' + name.replace(/[[\]/.:]/g, (ch) => `\\${ch}`)
 const missing = []
 for (const candidate of [...used].sort()) {
-  if (!REQUIRED_PREFIXES.some(prefix => candidate.startsWith(prefix))) continue
+  if (!REQUIRED_PREFIXES.some((prefix) => candidate.startsWith(prefix))) continue
   if (!css.includes(escapeClass(candidate))) missing.push(candidate)
 }
 if (missing.length > 0) {
-  problems.push(`src emits ${missing.length} class name(s) with no rule in dist/styles.css: ${missing.join(', ')}`)
+  problems.push(
+    `src emits ${missing.length} class name(s) with no rule in dist/styles.css: ${missing.join(', ')}`,
+  )
 }
 
 // --- 3. no base reset ------------------------------------------------------
 if (/@layer\s+base\s*\{/.test(css)) {
-  problems.push('dist/styles.css contains a base layer - Tailwind preflight would reset the host page')
+  problems.push(
+    'dist/styles.css contains a base layer - Tailwind preflight would reset the host page',
+  )
 }
 
 // --- 4. the exports entry resolves ----------------------------------------
 const manifest = JSON.parse(readFileSync(new URL('package.json', root), 'utf8'))
 const entry = manifest.exports?.['./styles.css']
 if (entry !== './dist/styles.css') {
-  problems.push(`package.json exports["./styles.css"] is ${JSON.stringify(entry)}, expected "./dist/styles.css"`)
+  problems.push(
+    `package.json exports["./styles.css"] is ${JSON.stringify(entry)}, expected "./dist/styles.css"`,
+  )
 }
 if (!(manifest.files ?? []).includes('dist')) {
   problems.push('package.json files does not include dist, so the stylesheet would not be packed')
@@ -110,16 +146,23 @@ if (!(manifest.files ?? []).includes('dist')) {
 // stylesheet exports nothing, so webpack treats the import as dead code and drops it -
 // the file resolves and applies no styles, with no error anywhere. The field has to
 // keep exempting CSS, and nothing else in the repo would notice if it stopped.
-if (manifest.sideEffects === false || !(manifest.sideEffects ?? []).some(pattern => pattern.endsWith('.css'))) {
-  problems.push(`package.json sideEffects is ${JSON.stringify(manifest.sideEffects)}, which does not exempt CSS - a bundler may prune the stylesheet import`)
+if (
+  manifest.sideEffects === false ||
+  !(manifest.sideEffects ?? []).some((pattern) => pattern.endsWith('.css'))
+) {
+  problems.push(
+    `package.json sideEffects is ${JSON.stringify(manifest.sideEffects)}, which does not exempt CSS - a bundler may prune the stylesheet import`,
+  )
 }
 
 report()
 
 function report() {
   if (problems.length > 0) {
-    console.error(problems.map(problem => `FAIL dist/styles.css: ${problem}`).join('\n'))
+    console.error(problems.map((problem) => `FAIL dist/styles.css: ${problem}`).join('\n'))
     process.exit(1)
   }
-  console.log(`OK dist/styles.css carries ${TOKENS.length} tokens and every emitted utility, with no preflight`)
+  console.log(
+    `OK dist/styles.css carries ${TOKENS.length} tokens and every emitted utility, with no preflight`,
+  )
 }

@@ -16,8 +16,16 @@ const watcher = tailwindRequire('@parcel/watcher')
 
 describe('Tailwind native watcher ignore compatibility', () => {
   it.each([
-    ['no ignore', [], ['keep.css', 'skip.css', '.hidden.css', 'nested/keep.css', 'nested/skip.txt']],
-    ['literal file', ['skip.css'], ['keep.css', '.hidden.css', 'nested/keep.css', 'nested/skip.txt']],
+    [
+      'no ignore',
+      [],
+      ['keep.css', 'skip.css', '.hidden.css', 'nested/keep.css', 'nested/skip.txt'],
+    ],
+    [
+      'literal file',
+      ['skip.css'],
+      ['keep.css', '.hidden.css', 'nested/keep.css', 'nested/skip.txt'],
+    ],
     ['literal directory', ['nested'], ['keep.css', 'skip.css', '.hidden.css']],
     ['recursive glob', ['**/*.css'], ['nested/skip.txt']],
     ['brace glob', ['**/*.{css,txt}'], []],
@@ -25,7 +33,10 @@ describe('Tailwind native watcher ignore compatibility', () => {
     ['mixed array', ['skip.css', 'nested/**'], ['keep.css', '.hidden.css']],
   ])('%s', async (_name, ignore, expected) => {
     const root = await mkdtemp(join(tmpdir(), 'fixatdl-watcher-compat-'))
-    if (dirname(resolve(root)) !== resolve(tmpdir()) || !basename(root).startsWith('fixatdl-watcher-compat-')) {
+    if (
+      dirname(resolve(root)) !== resolve(tmpdir()) ||
+      !basename(root).startsWith('fixatdl-watcher-compat-')
+    ) {
       throw new Error('Refusing cleanup outside the owned watcher fixture')
     }
     const watched = join(root, 'watched')
@@ -34,12 +45,20 @@ describe('Tailwind native watcher ignore compatibility', () => {
       await mkdir(join(watched, 'nested'), { recursive: true })
       const options = { backend: 'brute-force', ignore }
       await watcher.writeSnapshot(watched, snapshot, options)
-      for (const name of ['keep.css', 'skip.css', '.hidden.css', 'nested/keep.css', 'nested/skip.txt']) {
+      for (const name of [
+        'keep.css',
+        'skip.css',
+        '.hidden.css',
+        'nested/keep.css',
+        'nested/skip.txt',
+      ]) {
         await writeFile(join(watched, name), 'synthetic fixture')
       }
       const events = await watcher.getEventsSince(watched, snapshot, options)
-      const files = events.filter(event => event.type === 'create' && !event.path.endsWith('nested'))
-        .map(event => relative(watched, event.path).replaceAll('\\', '/')).sort()
+      const files = events
+        .filter((event) => event.type === 'create' && !event.path.endsWith('nested'))
+        .map((event) => relative(watched, event.path).replaceAll('\\', '/'))
+        .sort()
       expect(files).toEqual([...expected].sort())
     } finally {
       await rm(root, { recursive: true, force: true })

@@ -5,15 +5,27 @@ import { describe, expect, it } from 'vitest'
 import ts from 'typescript'
 import { scopedTypeDiagnostics } from './assert-consumer-types.mjs'
 
-const nodeNext = { module: ts.ModuleKind.NodeNext, moduleResolution: ts.ModuleResolutionKind.NodeNext }
+const nodeNext = {
+  module: ts.ModuleKind.NodeNext,
+  moduleResolution: ts.ModuleResolutionKind.NodeNext,
+}
 
 function fixture(importSpecifier) {
   const root = mkdtempSync(join(tmpdir(), 'fixatdl-consumer-types-'))
   mkdirSync(join(root, 'dist'))
   writeFileSync(join(root, 'package.json'), '{ "type": "module" }\n')
-  writeFileSync(join(root, 'dist', 'types.d.ts'), 'export interface AtdlStrategyDto { name: string }\n')
-  writeFileSync(join(root, 'dist', 'FormRenderer.d.ts'), `import type { AtdlStrategyDto } from '${importSpecifier}'\nexport interface FormRendererProps { strategy: AtdlStrategyDto }\n`)
-  writeFileSync(join(root, 'consumer.ts'), 'import type { FormRendererProps } from \'./dist/FormRenderer.js\'\nexport const marker: FormRendererProps | null = null\n')
+  writeFileSync(
+    join(root, 'dist', 'types.d.ts'),
+    'export interface AtdlStrategyDto { name: string }\n',
+  )
+  writeFileSync(
+    join(root, 'dist', 'FormRenderer.d.ts'),
+    `import type { AtdlStrategyDto } from '${importSpecifier}'\nexport interface FormRendererProps { strategy: AtdlStrategyDto }\n`,
+  )
+  writeFileSync(
+    join(root, 'consumer.ts'),
+    "import type { FormRendererProps } from './dist/FormRenderer.js'\nexport const marker: FormRendererProps | null = null\n",
+  )
   return root
 }
 

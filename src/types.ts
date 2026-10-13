@@ -90,8 +90,7 @@ export interface AtdlPanelDto {
  * AtdlPanelChildDto; the concrete subtypes are tested individually without it.
  */
 export type AtdlPanelChildDto =
-  | (AtdlPanelDto & { kind: 'panel' })
-  | (AtdlControlDto & { kind: 'control' })
+  (AtdlPanelDto & { kind: 'panel' }) | (AtdlControlDto & { kind: 'control' })
 
 /**
  * Mirrors C# AtdlStateRuleDto - one FIXatdl StateRule binding an AST condition to a UI effect.

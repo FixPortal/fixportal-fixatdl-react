@@ -8,4 +8,6 @@ import '@testing-library/jest-dom/vitest'
 // own afterEach(cleanup) are unaffected.
 import { afterEach } from 'vitest'
 import { cleanup } from '@testing-library/react'
-afterEach(() => { cleanup() })
+afterEach(() => {
+  cleanup()
+})

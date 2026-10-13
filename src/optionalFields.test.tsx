@@ -33,18 +33,25 @@ describe('optional DTO fields against a realistic backend document', () => {
   })
 
   it('keeps the embedded participation bounds in fraction units', () => {
-    const control = strategy.panel.children.find(child => 'id' in child && child.id === 'participation')
-    if (!control || !('parameter' in control) || !control.parameter) throw new Error('Participation control missing')
+    const control = strategy.panel.children.find(
+      (child) => 'id' in child && child.id === 'participation',
+    )
+    if (!control || !('parameter' in control) || !control.parameter)
+      throw new Error('Participation control missing')
     expect(control.parameter.max).toBe(1)
-    expect(strategy.parameters.find(parameter => parameter.name === 'Participation')?.max).toBe(1)
+    expect(strategy.parameters.find((parameter) => parameter.name === 'Participation')?.max).toBe(1)
   })
 
   it('enforces parameter minLength and maxLength through validation', () => {
     const { result } = renderHook(() => useAtdlFormState(strategy))
     act(() => result.current.setValue('account', 'AB'))
-    expect(result.current.controlState['account'].errors).toContain('Must contain at least 3 characters.')
+    expect(result.current.controlState['account'].errors).toContain(
+      'Must contain at least 3 characters.',
+    )
     act(() => result.current.setValue('account', 'ABCDEFG'))
-    expect(result.current.controlState['account'].errors).toContain('Must contain at most 6 characters.')
+    expect(result.current.controlState['account'].errors).toContain(
+      'Must contain at most 6 characters.',
+    )
     act(() => result.current.setValue('account', 'ABCD'))
     expect(result.current.controlState['account'].errors).toEqual([])
   })
@@ -58,8 +65,14 @@ describe('optional DTO fields against a realistic backend document', () => {
   })
 
   it('emits custom Boolean wire values from trueWireValue/falseWireValue', () => {
-    expect(emitStrategyParametersGrp(strategy, { Aggressive: true })).toContainEqual({ tag: 960, value: 'T' })
-    expect(emitStrategyParametersGrp(strategy, { Aggressive: false })).toContainEqual({ tag: 960, value: 'F' })
+    expect(emitStrategyParametersGrp(strategy, { Aggressive: true })).toContainEqual({
+      tag: 960,
+      value: 'T',
+    })
+    expect(emitStrategyParametersGrp(strategy, { Aggressive: false })).toContainEqual({
+      tag: 960,
+      value: 'F',
+    })
   })
 
   it('emits the inverted selection complement for an invertOnWire parameter', () => {
@@ -83,7 +96,10 @@ describe('optional DTO fields against a realistic backend document', () => {
     act(() => result.current.setValue('participation', 12))
     const parameters = mapControlValuesToParameters(strategy, result.current.values)
     expect(parameters.Participation).toBe('0.12')
-    expect(emitStrategyParametersGrp(strategy, parameters)).toContainEqual({ tag: 960, value: '12' })
+    expect(emitStrategyParametersGrp(strategy, parameters)).toContainEqual({
+      tag: 960,
+      value: '12',
+    })
   })
 
   it('seeds a localMktTz clock to the matching instant and market wall time', () => {

@@ -33,7 +33,9 @@ export function DropDownControl({ control, value, onChange, state }: ControlProp
         <label htmlFor={selectId} className="block text-xs text-muted font-medium">
           {control.label}
           {state.required && (
-            <span className="text-bad-text ml-1" aria-hidden="true">*</span>
+            <span className="text-bad-text ml-1" aria-hidden="true">
+              *
+            </span>
           )}
         </label>
       )}
@@ -50,13 +52,13 @@ export function DropDownControl({ control, value, onChange, state }: ControlProp
         title={control.tooltip ?? undefined}
         className={`${baseSelect} ${borderClass} disabled:opacity-50 disabled:cursor-not-allowed`}
       >
-        {currentValue !== '' && !options.some(option => option.enumId === currentValue) && (
-          <option value={currentValue} disabled>Unknown selection: {currentValue}</option>
+        {currentValue !== '' && !options.some((option) => option.enumId === currentValue) && (
+          <option value={currentValue} disabled>
+            Unknown selection: {currentValue}
+          </option>
         )}
         {/* Optional fields can be cleared; an empty required field must stay visibly empty. */}
-        {(!state.required || currentValue === '') && (
-          <option value="">-</option>
-        )}
+        {(!state.required || currentValue === '') && <option value="">-</option>}
         {options.map((opt) => (
           <option key={opt.enumId} value={opt.enumId}>
             {opt.label}
@@ -66,7 +68,9 @@ export function DropDownControl({ control, value, onChange, state }: ControlProp
       {hasError && (
         <ul id={errorId} className="space-y-0.5">
           {state.errors.map((err, index) => (
-            <li key={index} className="text-xs text-bad-text">{err}</li>
+            <li key={index} className="text-xs text-bad-text">
+              {err}
+            </li>
           ))}
         </ul>
       )}

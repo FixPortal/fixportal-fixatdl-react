@@ -31,7 +31,9 @@ export function MultiSelectControl({ control, value, onChange, state }: ControlP
         <span className="block text-xs text-muted font-medium">
           {control.label}
           {state.required && (
-            <span className="text-bad-text ml-1" aria-hidden="true">*</span>
+            <span className="text-bad-text ml-1" aria-hidden="true">
+              *
+            </span>
           )}
         </span>
       )}
@@ -75,7 +77,9 @@ export function MultiSelectControl({ control, value, onChange, state }: ControlP
       {hasError && (
         <ul id={`${inputId}-errors`} className="space-y-0.5">
           {state.errors.map((err, index) => (
-            <li key={index} className="text-xs text-bad-text">{err}</li>
+            <li key={index} className="text-xs text-bad-text">
+              {err}
+            </li>
           ))}
         </ul>
       )}

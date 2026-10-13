@@ -21,16 +21,36 @@ if (!existsSync(entry)) {
 
   // The value exports pinned by F1, plus every type-only export the package promises.
   const expected = [
-    'PanelRenderer', 'PanelRendererProps', 'PanelRendererText',
-    'FormRenderer', 'FormRendererHandle', 'FormRendererProps',
-    'useAtdlFormState', 'AtdlFormStateApi', 'AtdlFormOptions', 'ControlFormState',
-    'ControlProps', 'ControlState', 'controlRegistry',
-    'flattenControls', 'mapControlValuesToParameters', 'isUnfilledAtdlValue',
-    'clockDisplayValue', 'clockWireValue', 'ClockValue',
-    'evaluateStateRule', 'StateRuleAstNode', 'StateRuleOperator',
-    'stateRuleToText', 'stateRuleToTree', 'TreeLine',
-    'collectRuleRows', 'RuleRow',
-    'emitStrategyParametersGrp', 'fixTypeCodeName', 'FixTag',
+    'PanelRenderer',
+    'PanelRendererProps',
+    'PanelRendererText',
+    'FormRenderer',
+    'FormRendererHandle',
+    'FormRendererProps',
+    'useAtdlFormState',
+    'AtdlFormStateApi',
+    'AtdlFormOptions',
+    'ControlFormState',
+    'ControlProps',
+    'ControlState',
+    'controlRegistry',
+    'flattenControls',
+    'mapControlValuesToParameters',
+    'isUnfilledAtdlValue',
+    'clockDisplayValue',
+    'clockWireValue',
+    'ClockValue',
+    'evaluateStateRule',
+    'StateRuleAstNode',
+    'StateRuleOperator',
+    'stateRuleToText',
+    'stateRuleToTree',
+    'TreeLine',
+    'collectRuleRows',
+    'RuleRow',
+    'emitStrategyParametersGrp',
+    'fixTypeCodeName',
+    'FixTag',
   ]
   for (const name of expected) {
     if (!exported.has(name)) problems.push(`dist/index.d.ts does not export ${name}`)
@@ -42,7 +62,10 @@ if (!existsSync(entry)) {
   // has no runtime key and is invisible there, so this is its only gate.
   const intended = new Set(expected)
   for (const name of exported) {
-    if (!intended.has(name)) problems.push(`dist/index.d.ts exports ${name}, which is not in the intended public surface - add it to \`expected\` here and to src/index.test.ts if it is deliberate`)
+    if (!intended.has(name))
+      problems.push(
+        `dist/index.d.ts exports ${name}, which is not in the intended public surface - add it to \`expected\` here and to src/index.test.ts if it is deliberate`,
+      )
   }
   if (!/export\s+type\s+\*\s+from\s*['"]\.\/types\.js['"]/.test(declaration)) {
     problems.push("dist/index.d.ts lost the `export type * from './types.js'` re-export")
@@ -59,23 +82,33 @@ function* walk(dir) {
   }
 }
 const leakMarkers = [/\.(test|spec)\.d\.ts$/, /(^|\/)test\//, /__fixtures__/]
-const contentMarkers = ['twap-strategy', 'optional-fields-strategy', 'participate-strategy', 'from \'vitest\'', '@testing-library']
+const contentMarkers = [
+  'twap-strategy',
+  'optional-fields-strategy',
+  'participate-strategy',
+  "from 'vitest'",
+  '@testing-library',
+]
 // Guard the walk: without it, a missing dist/ throws ENOENT out of readdirSync
 // before the "run npm run build first" problem above is ever printed, so the
 // developer gets a raw stack instead of the diagnostic written for them.
 for (const path of existsSync(dist) ? walk(fileURLToPath(dist)) : []) {
   if (!path.endsWith('.d.ts')) continue
   for (const marker of leakMarkers) {
-    if (marker.test(path)) problems.push(`test or fixture declaration leaked into the build: ${path}`)
+    if (marker.test(path))
+      problems.push(`test or fixture declaration leaked into the build: ${path}`)
   }
   const text = readFileSync(path, 'utf8')
   for (const marker of contentMarkers) {
-    if (text.includes(marker)) problems.push(`${path} references ${marker} - test-only types reached the declarations`)
+    if (text.includes(marker))
+      problems.push(`${path} references ${marker} - test-only types reached the declarations`)
   }
 }
 
 if (problems.length > 0) {
-  console.error(problems.map(p => `FAIL dist declarations: ${p}`).join('\n'))
+  console.error(problems.map((p) => `FAIL dist declarations: ${p}`).join('\n'))
   process.exit(1)
 }
-console.log('OK dist/index.d.ts matches the intended public declaration surface, no test/fixture leaks')
+console.log(
+  'OK dist/index.d.ts matches the intended public declaration surface, no test/fixture leaks',
+)

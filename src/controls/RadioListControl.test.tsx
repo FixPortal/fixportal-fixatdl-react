@@ -28,26 +28,33 @@ const ENABLED: ControlFormState = { enabled: true, visible: true, required: fals
 
 describe('RadioListControl', () => {
   it('renders one radio button per list item', () => {
-    render(<RadioListControl control={BASE_CONTROL} value={null} onChange={vi.fn()} state={ENABLED} />)
+    render(
+      <RadioListControl control={BASE_CONTROL} value={null} onChange={vi.fn()} state={ENABLED} />,
+    )
     expect(screen.getAllByRole('radio')).toHaveLength(3)
   })
 
   it('checks the radio whose enumId matches the current value', () => {
-    render(<RadioListControl control={BASE_CONTROL} value="MED" onChange={vi.fn()} state={ENABLED} />)
+    render(
+      <RadioListControl control={BASE_CONTROL} value="MED" onChange={vi.fn()} state={ENABLED} />,
+    )
     expect(screen.getByRole('radio', { name: 'Medium' })).toBeChecked()
     expect(screen.getByRole('radio', { name: 'Low' })).not.toBeChecked()
   })
 
   it('emits onChange with the enumId when a radio is selected', () => {
     const onChange = vi.fn()
-    render(<RadioListControl control={BASE_CONTROL} value={null} onChange={onChange} state={ENABLED} />)
+    render(
+      <RadioListControl control={BASE_CONTROL} value={null} onChange={onChange} state={ENABLED} />,
+    )
     fireEvent.click(screen.getByRole('radio', { name: 'High' }))
     expect(onChange).toHaveBeenCalledWith('HIGH')
   })
 
   it('shows the group label', () => {
-    render(<RadioListControl control={BASE_CONTROL} value={null} onChange={vi.fn()} state={ENABLED} />)
+    render(
+      <RadioListControl control={BASE_CONTROL} value={null} onChange={vi.fn()} state={ENABLED} />,
+    )
     expect(screen.getByText('Urgency')).toBeInTheDocument()
   })
-
 })

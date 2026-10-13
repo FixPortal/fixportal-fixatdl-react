@@ -39,7 +39,7 @@ describe('workbench smoke server path handling', () => {
     const dist = mkdtempSync(resolve(tmpdir(), 'fixatdl-smoke-'))
     writeFileSync(resolve(dist, 'index.html'), 'ok')
     const server = createStaticServer(dist)
-    await new Promise(resolveListen => server.listen(0, '127.0.0.1', resolveListen))
+    await new Promise((resolveListen) => server.listen(0, '127.0.0.1', resolveListen))
     const address = server.address()
     if (!address || typeof address === 'string') throw new Error('Expected an HTTP address')
     try {
@@ -48,7 +48,9 @@ describe('workbench smoke server path handling', () => {
       const existing = await fetch(`http://127.0.0.1:${address.port}/index.html`)
       expect(await existing.text()).toBe('ok')
     } finally {
-      await new Promise((resolveClose, reject) => server.close(error => error ? reject(error) : resolveClose()))
+      await new Promise((resolveClose, reject) =>
+        server.close((error) => (error ? reject(error) : resolveClose())),
+      )
       rmSync(dist, { recursive: true, force: true })
     }
   })
