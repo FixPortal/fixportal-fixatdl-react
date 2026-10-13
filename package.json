@@ -73,7 +73,8 @@
     "prepack": "npm run build",
     "dev": "npm run build && npm run dev --workspace @fix-portal/fixatdl-react-workbench",
     "format": "prettier --check .",
-    "format:write": "prettier --write ."
+    "format:write": "prettier --write .",
+    "gate": "npm run format && npm run lint && npm run typecheck && npm run test"
   },
   "publishConfig": {
     "registry": "https://registry.npmjs.org",

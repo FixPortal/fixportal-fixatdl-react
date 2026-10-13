@@ -38,9 +38,14 @@ updates:
       # releases a `typescript` peer range admitting >= 7. The typescript-eslint
       # bump that does so still arrives as its own PR, so the signal survives
       # this ignore. Drop this entry then.
+      #
+      # Minor bumps are ignored too: typescript-eslint 8.x declares
+      # `typescript >=4.8.4 <6.1.0`, so a 6.1 bump fails npm install with ERESOLVE
+      # and would take the grouped minor-and-patch PR down with it.
       - dependency-name: typescript
         update-types:
           - version-update:semver-major
+          - version-update:semver-minor
   - package-ecosystem: github-actions
     directory: /
     schedule:
