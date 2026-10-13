@@ -84,6 +84,28 @@ export default defineConfig([
     },
   },
   {
+    // HELD BACK, measured 2026-10-13 on the first strictTypeChecked run (counts are errors left
+    // after the safe fixes). This is a published package and each rule needs edits to shipped
+    // runtime behaviour or to the public .d.ts, which belong in their own reviewed change:
+    //  - no-unnecessary-condition (30): the DTOs arrive as parsed JSON, and removing a guard
+    //    trusts the declared type over that input. UNVERIFIED: that each flagged guard is
+    //    reachable at runtime; refuted if the tests still pass with every flagged guard removed.
+    //  - unbound-method (17): the callbacks (`onChange`, `setValue`, `onHighlightControl`) are
+    //    declared with method syntax in exported types. Switching to property syntax narrows
+    //    what consumers may pass (strictFunctionTypes) and rewrites the published .d.ts.
+    //  - no-base-to-string (14) and restrict-template-expressions (15): control values are
+    //    `unknown` by design (any ATDL parameter type) and are stringified at the form boundary;
+    //    fixing them means a typed value-to-string conversion per control type.
+    // Turn these back on one at a time, with the matching fix, when that work is scheduled.
+    files: ['**/*.{ts,tsx}'],
+    rules: {
+      '@typescript-eslint/no-unnecessary-condition': 'off',
+      '@typescript-eslint/unbound-method': 'off',
+      '@typescript-eslint/no-base-to-string': 'off',
+      '@typescript-eslint/restrict-template-expressions': 'off',
+    },
+  },
+  {
     // The single boundary file that may call a bare new Date(). The template ships no
     // clock file: create src/<area>/clock.ts when the first time-dependent code lands.
     // The boundary clock file reads the system clock with new Date(); Date.now() stays
@@ -132,6 +154,9 @@ export default defineConfig([
           message: 'Use vi.useFakeTimers() or await a real completion signal.',
         },
       ],
+      // A `!` after a query or ref in a test fails the test with a TypeError if the value is
+      // missing, which is the same outcome as an explicit guard, so the assertion is idiomatic here.
+      '@typescript-eslint/no-non-null-assertion': 'off',
       // Test code imports devDependencies (vitest, testing-library) by design.
       'sonarjs/no-duplicate-string': 'off',
       'sonarjs/no-undefined-assignment': 'off',

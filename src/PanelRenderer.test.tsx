@@ -75,10 +75,10 @@ describe('PanelRenderer why? chip', () => {
         <PanelRenderer
           panel={panel}
           values={{}}
-          setValue={() => {}}
+          setValue={() => undefined}
           state={disabled}
           highlightedControlId={null}
-          onHighlightControl={() => {}}
+          onHighlightControl={() => undefined}
           text={{ whyRule: { value: 'Explain', attrs: { type: 'submit' } } }}
         />
       </form>,
@@ -92,7 +92,7 @@ describe('PanelRenderer why? chip', () => {
       <PanelRenderer
         panel={panel}
         values={{}}
-        setValue={() => {}}
+        setValue={() => undefined}
         state={disabled}
         highlightedControlId={null}
         onHighlightControl={onHighlight}
@@ -107,10 +107,10 @@ describe('PanelRenderer why? chip', () => {
       <PanelRenderer
         panel={panel}
         values={{}}
-        setValue={() => {}}
+        setValue={() => undefined}
         state={enabled}
         highlightedControlId={null}
-        onHighlightControl={() => {}}
+        onHighlightControl={() => undefined}
       />,
     )
     expect(screen.queryByRole('button', { name: /why\?/i })).not.toBeInTheDocument()
@@ -122,14 +122,14 @@ describe('PanelRenderer why? chip', () => {
         <PanelRenderer
           panel={radioPanel}
           values={{ side: false }}
-          setValue={() => {}}
+          setValue={() => undefined}
           state={{ side: { enabled: true, visible: true, required: false, errors: [] } }}
           highlightedControlId={null}
         />
         <PanelRenderer
           panel={radioPanel}
           values={{ side: false }}
-          setValue={() => {}}
+          setValue={() => undefined}
           state={{ side: { enabled: true, visible: true, required: false, errors: [] } }}
           highlightedControlId={null}
         />

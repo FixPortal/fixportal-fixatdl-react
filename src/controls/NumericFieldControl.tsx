@@ -46,8 +46,8 @@ export function NumericFieldControl({ control, value, onChange, state }: Control
   const outerStep = (direction: number) => {
     let next = addDecimals(value ?? min ?? 0, direction * (control.outerIncrement ?? 1))
     if (next === null) return
-    if (min !== undefined && compareDecimals(next, min) === -1) next = String(min)
-    if (max !== undefined && compareDecimals(next, max) === 1) next = String(max)
+    if (min !== undefined && compareDecimals(next, min) === -1) next = min
+    if (max !== undefined && compareDecimals(next, max) === 1) next = max
     onChange(decimalInputValue(next))
   }
 

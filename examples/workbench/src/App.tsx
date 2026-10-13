@@ -70,6 +70,7 @@ export function App() {
   // `clock` is the host's time source. The library never reads a static clock, so
   // a host can drive it from a session clock, a replay, or a test.
   const { values, setValue, controlState, hasErrors, strategyErrors } = useAtdlFormState(strategy, {
+    // eslint-disable-next-line no-restricted-syntax -- the demo app is the system-clock boundary and hands the library its clock.
     clock: () => new Date(),
   })
 

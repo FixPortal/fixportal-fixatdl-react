@@ -78,7 +78,7 @@ function canonicalizeStrategy(value: unknown): unknown {
     const keys = Object.keys(source)
       .filter((key) => source[key] !== null && source[key] !== undefined)
       .sort()
-    const result: Record<string, unknown> = Object.create(null)
+    const result = Object.create(null) as Record<string, unknown>
     for (const key of keys) result[key] = canonicalizeStrategy(source[key])
     return result
   }
@@ -94,7 +94,12 @@ export function useAtdlFormState(
   const { values: validatedExternalValues, errors: externalErrors } = validateExternalValues(
     options.externalValues,
   )
-  const contextKey = JSON.stringify(validatedExternalValues)
+  // The template wrapper is load-bearing: without it React Compiler infers
+  // `validatedExternalValues` (a fresh object each render) as the memo dependency and rejects
+  // the manual `[contextKey]` list (react-hooks/preserve-manual-memoization). The content key
+  // is the point of this memo.
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-template-expression
+  const contextKey = `${JSON.stringify(validatedExternalValues)}`
   const externalValues = useMemo(
     () => JSON.parse(contextKey) as Record<string, unknown>,
     [contextKey],
@@ -151,9 +156,10 @@ export function useAtdlFormState(
       const now = clock?.()
       setRuntime((previous) => {
         const inputErrors: Record<string, string> = Object.assign(
-          Object.create(null),
+          Object.create(null) as Record<string, string>,
           previous.inputErrors,
         )
+        // eslint-disable-next-line @typescript-eslint/no-dynamic-delete -- inputErrors is a null-prototype map keyed by control id; delete is the intended removal.
         delete inputErrors[controlId]
         let normalized: unknown
         try {
@@ -170,7 +176,10 @@ export function useAtdlFormState(
           inputErrors[controlId] = error instanceof Error ? error.message : String(error)
           return { ...previous, inputErrors }
         }
-        const next: Record<string, unknown> = Object.assign(Object.create(null), previous.values)
+        const next: Record<string, unknown> = Object.assign(
+          Object.create(null) as Record<string, unknown>,
+          previous.values,
+        )
         try {
           assignControlValue(strategy, next, control, normalized, readonlyIds, now)
         } catch (error) {
@@ -225,8 +234,8 @@ function validateExternalValues(input: Record<string, unknown> = {}) {
 }
 
 function seedValues(strategy: AtdlStrategyDto, options: AtdlFormOptions) {
-  const seeded: Record<string, unknown> = Object.create(null)
-  const errors: Record<string, string> = Object.create(null)
+  const seeded = Object.create(null) as Record<string, unknown>
+  const errors = Object.create(null) as Record<string, string>
   const now = options.clock?.()
   const controls = flattenControls(strategy)
   for (const control of controls) {
@@ -369,7 +378,7 @@ function deriveControlState(
   readonlyIds: Set<string>,
   externalValues: Record<string, unknown> = {},
 ): Record<string, ControlFormState> {
-  const result: Record<string, ControlFormState> = Object.create(null)
+  const result = Object.create(null) as Record<string, ControlFormState>
   const ruleValues = { ...externalValues, ...controlValuesForRules(strategy, values) }
   // Hoisted: flattenControls is a full recursive panel walk and this derive runs on every value
   // change, so calling it inside the loop below made the derive O(n^2) in control count. seedValues
@@ -411,7 +420,10 @@ function validateStrategy(
   externalValues: Record<string, unknown> = {},
 ): string[] {
   const parameters = mapControlValuesToParameters(strategy, values)
-  const wireValues: Record<string, unknown> = Object.assign(Object.create(null), externalValues)
+  const wireValues: Record<string, unknown> = Object.assign(
+    Object.create(null) as Record<string, unknown>,
+    externalValues,
+  )
   const errors: string[] = []
   for (const parameter of strategy.parameters) {
     const logical =

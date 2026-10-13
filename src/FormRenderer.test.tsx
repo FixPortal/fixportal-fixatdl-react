@@ -46,7 +46,7 @@ describe('FormRenderer', () => {
     'Slider_t',
     'MultiSelectList_t',
   ])('renders duplicate errors without React key collisions: %s', (type) => {
-    const spy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => undefined)
     try {
       const Component = controlRegistry[type]
       render(

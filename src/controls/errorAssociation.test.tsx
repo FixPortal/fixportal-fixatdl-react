@@ -21,11 +21,11 @@ it.each(['CheckBox_t', 'Clock_t', 'EditableDropDownList_t', 'Slider_t'])(
     const state = { enabled: true, visible: true, required: false, errors: ['First error'] }
     render(
       <>
-        <Component control={control} value={undefined} onChange={() => {}} state={state} />
+        <Component control={control} value={undefined} onChange={() => undefined} state={state} />
         <Component
           control={control}
           value={undefined}
-          onChange={() => {}}
+          onChange={() => undefined}
           state={{ ...state, errors: ['Second error'] }}
         />
       </>,
