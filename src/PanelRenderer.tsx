@@ -153,7 +153,7 @@ function PanelChild({
   if (isPanel) {
     return (
       <PanelRenderer
-        panel={child as AtdlPanelDto}
+        panel={child}
         values={values}
         setValue={setValue}
         state={state}
@@ -206,7 +206,9 @@ function PanelChild({
       <Component
         control={control}
         value={values[control.id]}
-        onChange={(next) => setValue(control.id, next)}
+        onChange={(next) => {
+          setValue(control.id, next)
+        }}
         state={controlState}
         radioGroupName={control.radioGroup ? `${instanceId}:${control.radioGroup}` : undefined}
       />
@@ -214,7 +216,9 @@ function PanelChild({
         <button
           {...whyT.attrs}
           type="button"
-          onClick={() => onHighlightControl(control.id)}
+          onClick={() => {
+            onHighlightControl(control.id)
+          }}
           className="ml-2 text-xs text-bad-text border border-bad-border rounded px-1"
         >
           {whyT.value}

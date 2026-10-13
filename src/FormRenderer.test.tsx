@@ -433,7 +433,7 @@ describe('FormRenderer', () => {
     // Pull values via the handle
     const values = ref.current?.getValues()
     expect(values).toBeDefined()
-    expect(values?.['ctrl_name']).toBe('handle-test')
+    expect(values?.ctrl_name).toBe('handle-test')
   })
 
   it.each([false, true])(

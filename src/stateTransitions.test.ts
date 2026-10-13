@@ -44,7 +44,10 @@ describe('FIXatdl 1.1 shared state transitions', () => {
     const { result } = renderHook(() => useAtdlFormState(strategy))
     for (const step of scenario.steps) {
       const edit = step.set
-      if (edit) act(() => result.current.setValue(edit.id, edit.value))
+      if (edit)
+        act(() => {
+          result.current.setValue(edit.id, edit.value)
+        })
       for (const [id, value] of Object.entries(step.expected.values ?? {})) {
         expect(result.current.values[id] ?? null, id).toEqual(value)
       }

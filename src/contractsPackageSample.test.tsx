@@ -29,9 +29,13 @@ describe('strategy produced by FixPortal.FixAtdl.Contracts', () => {
   it('evaluates the mapped state rule: Target % is disabled only while Aggression is Passive', () => {
     const { result } = renderHook(() => useAtdlFormState(strategy))
     expect(result.current.controlState.c_TargetPercentage.enabled).toBe(true)
-    act(() => result.current.setValue('c_Aggression', 'PASSIVE'))
+    act(() => {
+      result.current.setValue('c_Aggression', 'PASSIVE')
+    })
     expect(result.current.controlState.c_TargetPercentage.enabled).toBe(false)
-    act(() => result.current.setValue('c_Aggression', 'NEUTRAL'))
+    act(() => {
+      result.current.setValue('c_Aggression', 'NEUTRAL')
+    })
     expect(result.current.controlState.c_TargetPercentage.enabled).toBe(true)
   })
 })

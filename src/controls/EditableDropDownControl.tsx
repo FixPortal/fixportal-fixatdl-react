@@ -46,7 +46,9 @@ export function EditableDropDownControl({ control, value, onChange, state }: Con
         type="text"
         list={listId}
         value={String(value ?? '')}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={(e) => {
+          onChange(e.target.value)
+        }}
         disabled={!state.enabled}
         aria-disabled={!state.enabled}
         aria-label={control.label ?? control.id}

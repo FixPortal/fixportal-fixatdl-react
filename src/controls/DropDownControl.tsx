@@ -42,7 +42,9 @@ export function DropDownControl({ control, value, onChange, state }: ControlProp
       <select
         id={selectId}
         value={currentValue}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={(e) => {
+          onChange(e.target.value)
+        }}
         disabled={!state.enabled}
         aria-disabled={!state.enabled}
         aria-label={control.label == null ? control.id : undefined}

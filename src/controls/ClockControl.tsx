@@ -38,7 +38,9 @@ export function ClockControl({ control, value, onChange, state }: ControlProps) 
         // Fractional seconds remain intact when the control is left unchanged.
         step="any"
         value={clockDisplayValue(value)}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={(e) => {
+          onChange(e.target.value)
+        }}
         disabled={!state.enabled}
         aria-disabled={!state.enabled}
         aria-label={control.label == null ? control.id : undefined}

@@ -79,7 +79,7 @@ function parseClock(
       const minutes = Number(suffix.slice(4, 6) || 0)
       if (hours > 14 || minutes > 59 || (hours === 14 && minutes !== 0))
         throw new Error(`Invalid clock timezone offset: ${suffix}`)
-      offsetMinutes = (hours * 60 + minutes) * (suffix[0] === '-' ? -1 : 1)
+      offsetMinutes = (hours * 60 + minutes) * (suffix.startsWith('-') ? -1 : 1)
     }
   }
   const canonicalInput = input.replace(/^(\d{4})-(\d{2})-(\d{2})T/, '$1$2$3-')
