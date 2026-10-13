@@ -37,7 +37,9 @@ export function createStaticServer(dist) {
     }
     try {
       const body = readFileSync(file)
-      response.writeHead(200, { 'content-type': types[extname(file)] ?? 'application/octet-stream' }).end(body)
+      response
+        .writeHead(200, { 'content-type': types[extname(file)] ?? 'application/octet-stream' })
+        .end(body)
     } catch {
       response.writeHead(404).end('not found')
     }
@@ -50,11 +52,13 @@ export async function runBrowserSmoke() {
   const root = fileURLToPath(new URL('../', import.meta.url))
   const appDist = join(root, 'examples', 'workbench', 'dist')
   if (!existsSync(join(appDist, 'index.html'))) {
-    throw new Error('workbench is not built; run npm run build --workspace @fix-portal/fixatdl-react-workbench first')
+    throw new Error(
+      'workbench is not built; run npm run build --workspace @fix-portal/fixatdl-react-workbench first',
+    )
   }
 
   const server = createStaticServer(appDist)
-  await new Promise(resolve => server.listen(0, '127.0.0.1', resolve))
+  await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve))
   const address = server.address()
   const browser = await chromium.launch()
   try {

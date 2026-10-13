@@ -21,7 +21,8 @@ export function addDecimals(value: unknown, increment: unknown): string | null {
   const b = decimal(increment)
   if (!a || !b) return null
   const scale = Math.max(a.scale, b.scale)
-  const coefficient = a.coefficient * 10n ** BigInt(scale - a.scale) + b.coefficient * 10n ** BigInt(scale - b.scale)
+  const coefficient =
+    a.coefficient * 10n ** BigInt(scale - a.scale) + b.coefficient * 10n ** BigInt(scale - b.scale)
   return formatDecimal(String(coefficient), null, scale)
 }
 
@@ -30,11 +31,18 @@ export function formatDecimal(value: unknown, precision?: number | null, shift =
   if (!parsed) return null
   let { coefficient, scale } = parsed
   scale += shift
-  if (precision != null && Number.isInteger(precision) && precision >= 0 && precision <= 28 && scale > precision) {
+  if (
+    precision != null &&
+    Number.isInteger(precision) &&
+    precision >= 0 &&
+    precision <= 28 &&
+    scale > precision
+  ) {
     const divisor = 10n ** BigInt(scale - precision)
     const remainder = coefficient % divisor
     coefficient /= divisor
-    if ((remainder < 0n ? -remainder : remainder) * 2n >= divisor) coefficient += remainder < 0n ? -1n : 1n
+    if ((remainder < 0n ? -remainder : remainder) * 2n >= divisor)
+      coefficient += remainder < 0n ? -1n : 1n
     scale = precision
   }
   if (scale < 0) return String(coefficient * 10n ** BigInt(-scale))
@@ -43,7 +51,10 @@ export function formatDecimal(value: unknown, precision?: number | null, shift =
   return sign + (scale ? `${digits.slice(0, -scale)}.${digits.slice(-scale)}` : digits)
 }
 
-function decimal(value: unknown, allowGrouping = false): { coefficient: bigint; scale: number } | null {
+function decimal(
+  value: unknown,
+  allowGrouping = false,
+): { coefficient: bigint; scale: number } | null {
   if (typeof value !== 'string' && typeof value !== 'number') return null
   const text = String(value).trim()
   // Bound work at the payload boundary; .NET decimal has at most 29 significant digits.
@@ -55,5 +66,8 @@ function decimal(value: unknown, allowGrouping = false): { coefficient: bigint; 
   if (!match[2] && !fraction) return null
   const exponent = Number(match[4] ?? 0)
   if (Math.abs(exponent) > 100) return null
-  return { coefficient: BigInt(`${match[1]}${match[2].replaceAll(',', '')}${fraction}`), scale: fraction.length - exponent }
+  return {
+    coefficient: BigInt(`${match[1]}${match[2].replaceAll(',', '')}${fraction}`),
+    scale: fraction.length - exponent,
+  }
 }

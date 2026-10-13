@@ -2,7 +2,12 @@ import { describe, it, expect, vi } from 'vitest'
 import { StrictMode } from 'react'
 import { renderHook, act } from '@testing-library/react'
 import { strategyContentKey, useAtdlFormState } from './useAtdlFormState.js'
-import type { AtdlStrategyDto, AtdlControlDto, AtdlParameterDto, AtdlStateRuleDto } from './types.js'
+import type {
+  AtdlStrategyDto,
+  AtdlControlDto,
+  AtdlParameterDto,
+  AtdlStateRuleDto,
+} from './types.js'
 import type { StateRuleAstNodeDto } from './types.js'
 import { mapControlValuesToParameters } from './atdlControls.js'
 import { emitStrategyParametersGrp } from './output/fixPreviewEmitter.js'
@@ -58,7 +63,7 @@ function makeStrategy(controls: AtdlControlDto[]): AtdlStrategyDto {
       orientation: 'Vertical',
       collapsible: false,
       collapsed: false,
-      children: controls.map(c => ({ ...c, kind: 'control' as const })),
+      children: controls.map((c) => ({ ...c, kind: 'control' as const })),
     },
     sourceXml: '',
   }
@@ -70,8 +75,15 @@ function makeStrategy(controls: AtdlControlDto[]): AtdlStrategyDto {
 
 describe('strategyContentKey', () => {
   it('treats key order and null-versus-omitted members as the same strategy', () => {
-    const left = { name: 'S', description: null, panel: { collapsed: false, children: [{ id: 'a', initValue: null }] } }
-    const right = { panel: { children: [{ initValue: undefined, id: 'a' }], collapsed: false }, name: 'S' }
+    const left = {
+      name: 'S',
+      description: null,
+      panel: { collapsed: false, children: [{ id: 'a', initValue: null }] },
+    }
+    const right = {
+      panel: { children: [{ initValue: undefined, id: 'a' }], collapsed: false },
+      name: 'S',
+    }
     expect(strategyContentKey(left)).toBe(strategyContentKey(right))
     expect(strategyContentKey({ ...left, name: 'Other' })).not.toBe(strategyContentKey(left))
     expect(strategyContentKey({ flag: false })).not.toBe(strategyContentKey({}))
@@ -82,17 +94,38 @@ describe('strategyContentKey', () => {
 })
 
 describe('useAtdlFormState', () => {
-  it.each(['1', '2'])('loads either selected radio from an amended order: %s', wire => {
-    const parameter = makeParam({ enumValues: [{ enumId: 'buy', wireValue: '1' }, { enumId: 'sell', wireValue: '2' }] })
-    const strategy = makeStrategy(['buy', 'sell'].map(id => makeControl({ id, type: 'RadioButton_t', radioGroup: 'side', checkedEnumRef: id, parameter })))
-    const { result } = renderHook(() => useAtdlFormState(strategy, { isAmendment: true, initialFixValues: { 9001: wire } }))
+  it.each(['1', '2'])('loads either selected radio from an amended order: %s', (wire) => {
+    const parameter = makeParam({
+      enumValues: [
+        { enumId: 'buy', wireValue: '1' },
+        { enumId: 'sell', wireValue: '2' },
+      ],
+    })
+    const strategy = makeStrategy(
+      ['buy', 'sell'].map((id) =>
+        makeControl({
+          id,
+          type: 'RadioButton_t',
+          radioGroup: 'side',
+          checkedEnumRef: id,
+          parameter,
+        }),
+      ),
+    )
+    const { result } = renderHook(() =>
+      useAtdlFormState(strategy, { isAmendment: true, initialFixValues: { 9001: wire } }),
+    )
     expect(result.current.values).toEqual({ buy: wire === '1', sell: wire === '2' })
     expect(result.current.hasErrors).toBe(false)
   })
 
   it('excludes a boolean radio sibling sharing the same parameter', () => {
     const parameter = makeParam({ type: 'Boolean_t' })
-    const strategy = makeStrategy(['a', 'b'].map(id => makeControl({ id, type: 'RadioButton_t', radioGroup: 'group', parameter })))
+    const strategy = makeStrategy(
+      ['a', 'b'].map((id) =>
+        makeControl({ id, type: 'RadioButton_t', radioGroup: 'group', parameter }),
+      ),
+    )
     const { result } = renderHook(() => useAtdlFormState(strategy))
     act(() => result.current.setValue('a', true))
     expect(result.current.values).toEqual({ a: true, b: false })
@@ -103,16 +136,30 @@ describe('useAtdlFormState', () => {
   it('reports a selected radio error only on the selected sibling', () => {
     const parameter = makeParam({ enumValues: [{ enumId: 'buy', wireValue: '1' }] })
     const strategy = makeStrategy([
-      makeControl({ id: 'buy', type: 'RadioButton_t', radioGroup: 'side', checkedEnumRef: 'buy', parameter }),
-      makeControl({ id: 'sell', type: 'RadioButton_t', radioGroup: 'side', checkedEnumRef: 'sell', parameter }),
+      makeControl({
+        id: 'buy',
+        type: 'RadioButton_t',
+        radioGroup: 'side',
+        checkedEnumRef: 'buy',
+        parameter,
+      }),
+      makeControl({
+        id: 'sell',
+        type: 'RadioButton_t',
+        radioGroup: 'side',
+        checkedEnumRef: 'sell',
+        parameter,
+      }),
     ])
     const { result } = renderHook(() => useAtdlFormState(strategy))
     act(() => result.current.setValue('sell', true))
-    expect(result.current.controlState.sell.errors).toContain('Must be a declared enumeration value.')
+    expect(result.current.controlState.sell.errors).toContain(
+      'Must be a declared enumeration value.',
+    )
     expect(result.current.controlState.buy.errors).toEqual([])
   })
 
-  it.each(['__proto__', 'constructor'])('keeps control state safe for the reserved id %s', id => {
+  it.each(['__proto__', 'constructor'])('keeps control state safe for the reserved id %s', (id) => {
     const strategy = makeStrategy([makeControl({ id, initValue: 'safe' })])
     const { result } = renderHook(() => useAtdlFormState(strategy))
     expect(Object.hasOwn(result.current.values, id)).toBe(true)
@@ -141,7 +188,11 @@ describe('useAtdlFormState', () => {
       makeControl({ id: 'sibling', parameter }),
     ])
     const initialValues = Object.assign(Object.create(null), { sibling: 'old' })
-    Object.defineProperty(initialValues, '__proto__', { value: ['old'], enumerable: true, writable: true })
+    Object.defineProperty(initialValues, '__proto__', {
+      value: ['old'],
+      enumerable: true,
+      writable: true,
+    })
     const { result } = renderHook(() => useAtdlFormState(strategy, { initialValues }))
     const circular: unknown[] = []
     circular.push(circular)
@@ -151,7 +202,10 @@ describe('useAtdlFormState', () => {
 
   it('allows partial typing beside a linked clock and synchronizes the completed timestamp', () => {
     const parameter = makeParam({ type: 'UTCTimestamp_t' })
-    const strategy = makeStrategy([makeControl({ id: 'text', parameter }), makeControl({ id: 'clock', type: 'Clock_t', parameter, localMktTz: 'UTC' })])
+    const strategy = makeStrategy([
+      makeControl({ id: 'text', parameter }),
+      makeControl({ id: 'clock', type: 'Clock_t', parameter, localMktTz: 'UTC' }),
+    ])
     const { result } = renderHook(() => useAtdlFormState(strategy))
     act(() => result.current.setValue('text', '2'))
     expect(result.current.values.text).toBe('2')
@@ -161,30 +215,54 @@ describe('useAtdlFormState', () => {
     expect(result.current.hasErrors).toBe(false)
   })
 
-  it.each([undefined, 'original'])('restores NULL rule absence or original value, without discarding active edits: %s', initValue => {
-    const strategy = makeStrategy([
-      makeControl({ id: 'trigger', initValue: 'off' }),
-      makeControl({ id: 'target', initValue, stateRules: [{ effect: 'value', targetValue: false, targetStringValue: '{NULL}', expression: makeEqExpression('trigger', 'on') }] }),
-    ])
-    const { result } = renderHook(() => useAtdlFormState(strategy))
-    act(() => result.current.setValue('trigger', 'on'))
-    expect(result.current.values.target).toBeNull()
-    act(() => result.current.setValue('trigger', 'off'))
-    expect(Object.hasOwn(result.current.values, 'target')).toBe(initValue !== undefined)
-    expect(result.current.values.target).toBe(initValue)
-    act(() => result.current.setValue('trigger', 'on'))
-    act(() => result.current.setValue('target', 'edited'))
-    act(() => result.current.setValue('trigger', 'off'))
-    expect(result.current.values.target).toBe('edited')
-  })
+  it.each([undefined, 'original'])(
+    'restores NULL rule absence or original value, without discarding active edits: %s',
+    (initValue) => {
+      const strategy = makeStrategy([
+        makeControl({ id: 'trigger', initValue: 'off' }),
+        makeControl({
+          id: 'target',
+          initValue,
+          stateRules: [
+            {
+              effect: 'value',
+              targetValue: false,
+              targetStringValue: '{NULL}',
+              expression: makeEqExpression('trigger', 'on'),
+            },
+          ],
+        }),
+      ])
+      const { result } = renderHook(() => useAtdlFormState(strategy))
+      act(() => result.current.setValue('trigger', 'on'))
+      expect(result.current.values.target).toBeNull()
+      act(() => result.current.setValue('trigger', 'off'))
+      expect(Object.hasOwn(result.current.values, 'target')).toBe(initValue !== undefined)
+      expect(result.current.values.target).toBe(initValue)
+      act(() => result.current.setValue('trigger', 'on'))
+      act(() => result.current.setValue('target', 'edited'))
+      act(() => result.current.setValue('trigger', 'off'))
+      expect(result.current.values.target).toBe('edited')
+    },
+  )
 
-  it.each([false, true])('reports a malformed multi-value constant without throwing during initialization, inverted=%s', invertOnWire => {
-    const parameter = makeParam({ type: 'MultipleStringValue_t', constValue: 'unknown', enumValues: [{ enumId: 'a', wireValue: 'A' }], invertOnWire })
-    const strategy = makeStrategy([makeControl({ type: 'MultiSelectList_t', parameter })])
-    const { result } = renderHook(() => useAtdlFormState(strategy))
-    expect(result.current.hasErrors).toBe(true)
-    expect(result.current.controlState.ctrl1.errors.join(' ')).toContain('Unknown enumeration wire value')
-  })
+  it.each([false, true])(
+    'reports a malformed multi-value constant without throwing during initialization, inverted=%s',
+    (invertOnWire) => {
+      const parameter = makeParam({
+        type: 'MultipleStringValue_t',
+        constValue: 'unknown',
+        enumValues: [{ enumId: 'a', wireValue: 'A' }],
+        invertOnWire,
+      })
+      const strategy = makeStrategy([makeControl({ type: 'MultiSelectList_t', parameter })])
+      const { result } = renderHook(() => useAtdlFormState(strategy))
+      expect(result.current.hasErrors).toBe(true)
+      expect(result.current.controlState.ctrl1.errors.join(' ')).toContain(
+        'Unknown enumeration wire value',
+      )
+    },
+  )
 
   it.each([
     ['HiddenField_t', 'MultipleStringValue_t'],
@@ -192,75 +270,173 @@ describe('useAtdlFormState', () => {
     ['HiddenField_t', 'MultipleCharValue_t'],
     ['TextField_t', 'MultipleCharValue_t'],
   ])('validates each token of a %s bound to %s', (controlType, parameterType) => {
-    const enums = [{ enumId: 'a', wireValue: 'A' }, { enumId: 'b', wireValue: 'B' }]
+    const enums = [
+      { enumId: 'a', wireValue: 'A' },
+      { enumId: 'b', wireValue: 'B' },
+    ]
     const known = makeParam({ name: 'Venues', type: parameterType, enumValues: enums })
-    const knownStrategy = makeStrategy([makeControl({ type: controlType, parameter: known, initValue: 'a b' })])
+    const knownStrategy = makeStrategy([
+      makeControl({ type: controlType, parameter: known, initValue: 'a b' }),
+    ])
     knownStrategy.parameters = [known]
     const { result } = renderHook(() => useAtdlFormState(knownStrategy))
     expect(result.current.hasErrors).toBe(false)
-    expect(emitStrategyParametersGrp(knownStrategy, mapControlValuesToParameters(knownStrategy, result.current.values))).toContainEqual({ tag: 960, value: 'A B' })
+    expect(
+      emitStrategyParametersGrp(
+        knownStrategy,
+        mapControlValuesToParameters(knownStrategy, result.current.values),
+      ),
+    ).toContainEqual({ tag: 960, value: 'A B' })
 
     const unknown = makeParam({ name: 'Venues', type: parameterType, enumValues: enums })
-    const unknownStrategy = makeStrategy([makeControl({ type: controlType, parameter: unknown, initValue: 'a BOGUS' })])
+    const unknownStrategy = makeStrategy([
+      makeControl({ type: controlType, parameter: unknown, initValue: 'a BOGUS' }),
+    ])
     unknownStrategy.parameters = [unknown]
     const rejected = renderHook(() => useAtdlFormState(unknownStrategy))
     expect(rejected.result.current.hasErrors).toBe(true)
-    expect(rejected.result.current.controlState.ctrl1.errors).toContain('Must be a declared enumeration value.')
+    expect(rejected.result.current.controlState.ctrl1.errors).toContain(
+      'Must be a declared enumeration value.',
+    )
   })
 
   it('keeps an editable mixed multi-value string, translating only the known tokens', () => {
-    const parameter = makeParam({ name: 'Venues', type: 'MultipleStringValue_t', invertOnWire: true, enumValues: [{ enumId: 'Buy', wireValue: '1' }, { enumId: 'Sell', wireValue: '2' }] })
-    const strategy = makeStrategy([makeControl({ type: 'EditableDropDownList_t', parameter, initValue: 'Buy BOGUS' })])
+    const parameter = makeParam({
+      name: 'Venues',
+      type: 'MultipleStringValue_t',
+      invertOnWire: true,
+      enumValues: [
+        { enumId: 'Buy', wireValue: '1' },
+        { enumId: 'Sell', wireValue: '2' },
+      ],
+    })
+    const strategy = makeStrategy([
+      makeControl({ type: 'EditableDropDownList_t', parameter, initValue: 'Buy BOGUS' }),
+    ])
     strategy.parameters = [parameter]
     const { result } = renderHook(() => useAtdlFormState(strategy))
     expect(result.current.hasErrors).toBe(false)
-    expect(emitStrategyParametersGrp(strategy, mapControlValuesToParameters(strategy, result.current.values))).toContainEqual({ tag: 960, value: '1 BOGUS' })
+    expect(
+      emitStrategyParametersGrp(
+        strategy,
+        mapControlValuesToParameters(strategy, result.current.values),
+      ),
+    ).toContainEqual({ tag: 960, value: '1 BOGUS' })
   })
 
   it('loads a multi-value constant through a hidden field and emits each wire token', () => {
-    const parameter = makeParam({ name: 'Venues', type: 'MultipleStringValue_t', constValue: 'a b', enumValues: [{ enumId: 'a', wireValue: 'A' }, { enumId: 'b', wireValue: 'B' }] })
+    const parameter = makeParam({
+      name: 'Venues',
+      type: 'MultipleStringValue_t',
+      constValue: 'a b',
+      enumValues: [
+        { enumId: 'a', wireValue: 'A' },
+        { enumId: 'b', wireValue: 'B' },
+      ],
+    })
     const strategy = makeStrategy([makeControl({ type: 'HiddenField_t', parameter })])
     strategy.parameters = [parameter]
     const { result } = renderHook(() => useAtdlFormState(strategy))
     expect(result.current.hasErrors).toBe(false)
-    expect(emitStrategyParametersGrp(strategy, mapControlValuesToParameters(strategy, result.current.values))).toContainEqual({ tag: 960, value: 'A B' })
+    expect(
+      emitStrategyParametersGrp(
+        strategy,
+        mapControlValuesToParameters(strategy, result.current.values),
+      ),
+    ).toContainEqual({ tag: 960, value: 'A B' })
   })
 
-  it.each(['MultiSelectList_t', 'CheckBoxList_t'])('keeps a split list initValue valid for %s', type => {
-    const parameter = makeParam({ type: 'MultipleStringValue_t', enumValues: [{ enumId: 'a', wireValue: 'A' }, { enumId: 'b', wireValue: 'B' }] })
-    const strategy = makeStrategy([makeControl({ type, parameter, initValue: 'a b', listItems: [{ enumId: 'a', uiRep: 'A' }, { enumId: 'b', uiRep: 'B' }] })])
-    const { result } = renderHook(() => useAtdlFormState(strategy))
-    expect(result.current.values.ctrl1).toEqual(['a', 'b'])
-    expect(result.current.hasErrors).toBe(false)
-  })
+  it.each(['MultiSelectList_t', 'CheckBoxList_t'])(
+    'keeps a split list initValue valid for %s',
+    (type) => {
+      const parameter = makeParam({
+        type: 'MultipleStringValue_t',
+        enumValues: [
+          { enumId: 'a', wireValue: 'A' },
+          { enumId: 'b', wireValue: 'B' },
+        ],
+      })
+      const strategy = makeStrategy([
+        makeControl({
+          type,
+          parameter,
+          initValue: 'a b',
+          listItems: [
+            { enumId: 'a', uiRep: 'A' },
+            { enumId: 'b', uiRep: 'B' },
+          ],
+        }),
+      ])
+      const { result } = renderHook(() => useAtdlFormState(strategy))
+      expect(result.current.values.ctrl1).toEqual(['a', 'b'])
+      expect(result.current.hasErrors).toBe(false)
+    },
+  )
 
   it('loads an enum-ID multi-value constant into the control', () => {
-    const parameter = makeParam({ type: 'MultipleStringValue_t', constValue: 'a b', invertOnWire: true, enumValues: [{ enumId: 'a', wireValue: 'A' }, { enumId: 'b', wireValue: 'B' }, { enumId: 'c', wireValue: 'C' }] })
-    const { result } = renderHook(() => useAtdlFormState(makeStrategy([makeControl({ type: 'MultiSelectList_t', parameter })])))
+    const parameter = makeParam({
+      type: 'MultipleStringValue_t',
+      constValue: 'a b',
+      invertOnWire: true,
+      enumValues: [
+        { enumId: 'a', wireValue: 'A' },
+        { enumId: 'b', wireValue: 'B' },
+        { enumId: 'c', wireValue: 'C' },
+      ],
+    })
+    const { result } = renderHook(() =>
+      useAtdlFormState(makeStrategy([makeControl({ type: 'MultiSelectList_t', parameter })])),
+    )
     expect(result.current.values.ctrl1).toEqual(['a', 'b'])
     expect(result.current.hasErrors).toBe(false)
   })
 
-  it.each(['constructor', '__proto__', 'toString'])('treats unsupplied prototype-named parameters as absent in strategy edits: %s', name => {
-    const strategy = makeStrategy([])
-    strategy.parameters = [makeParam({ name })]
-    strategy.strategyEdits = [{ errorMessage: 'Must be absent.', expression: { ...makeEqExpression(name, null), operator: 'not-exists' } }]
-    const { result } = renderHook(() => useAtdlFormState(strategy))
-    expect(result.current.hasErrors).toBe(false)
-  })
+  it.each(['constructor', '__proto__', 'toString'])(
+    'treats unsupplied prototype-named parameters as absent in strategy edits: %s',
+    (name) => {
+      const strategy = makeStrategy([])
+      strategy.parameters = [makeParam({ name })]
+      strategy.strategyEdits = [
+        {
+          errorMessage: 'Must be absent.',
+          expression: { ...makeEqExpression(name, null), operator: 'not-exists' },
+        },
+      ]
+      const { result } = renderHook(() => useAtdlFormState(strategy))
+      expect(result.current.hasErrors).toBe(false)
+    },
+  )
 
   it('accepts custom Boolean wires with the backend-normalized Boolean AST literal', () => {
     const parameter = makeParam({ type: 'Boolean_t', trueWireValue: 'T', falseWireValue: 'F' })
     const strategy = makeStrategy([makeControl({ type: 'CheckBox_t', parameter, initValue: true })])
     strategy.parameters = [parameter]
-    strategy.strategyEdits = [{ errorMessage: 'Must be true.', expression: { ...makeEqExpression('P1', true), comparisonType: 'Boolean_t' } }]
+    strategy.strategyEdits = [
+      {
+        errorMessage: 'Must be true.',
+        expression: { ...makeEqExpression('P1', true), comparisonType: 'Boolean_t' },
+      },
+    ]
     const { result } = renderHook(() => useAtdlFormState(strategy))
     expect(result.current.hasErrors).toBe(false)
   })
 
   it('retains the backend no-selection radio fallback to unchecked mappings in document order', () => {
-    const parameter = makeParam({ enumValues: ['a', 'b', 'noneA', 'noneB'].map(enumId => ({ enumId, wireValue: enumId })) })
-    const strategy = makeStrategy(['a', 'b'].map(id => makeControl({ id, type: 'RadioButton_t', parameter, radioGroup: 'group', checkedEnumRef: id, uncheckedEnumRef: id === 'a' ? 'noneA' : 'noneB' })))
+    const parameter = makeParam({
+      enumValues: ['a', 'b', 'noneA', 'noneB'].map((enumId) => ({ enumId, wireValue: enumId })),
+    })
+    const strategy = makeStrategy(
+      ['a', 'b'].map((id) =>
+        makeControl({
+          id,
+          type: 'RadioButton_t',
+          parameter,
+          radioGroup: 'group',
+          checkedEnumRef: id,
+          uncheckedEnumRef: id === 'a' ? 'noneA' : 'noneB',
+        }),
+      ),
+    )
     const { result } = renderHook(() => useAtdlFormState(strategy))
     expect(mapControlValuesToParameters(strategy, result.current.values)).toEqual({ P1: 'noneB' })
   })
@@ -387,7 +563,11 @@ describe('useAtdlFormState', () => {
 
   it('applies a value StateRule at seed when its expression already holds', () => {
     const ordType = makeControl({ id: 'ord_type', initValue: 'Market' })
-    const price = makeControl({ id: 'price', initValue: '99', stateRules: [makeValueRule('ord_type', 'Market', '0')] })
+    const price = makeControl({
+      id: 'price',
+      initValue: '99',
+      stateRules: [makeValueRule('ord_type', 'Market', '0')],
+    })
     const strategy = makeStrategy([ordType, price])
 
     const { result } = renderHook(() => useAtdlFormState(strategy))
@@ -398,7 +578,11 @@ describe('useAtdlFormState', () => {
 
   it('fires a value StateRule when its expression transitions to true', () => {
     const ordType = makeControl({ id: 'ord_type', initValue: 'Limit' })
-    const price = makeControl({ id: 'price', initValue: '99', stateRules: [makeValueRule('ord_type', 'Market', '0')] })
+    const price = makeControl({
+      id: 'price',
+      initValue: '99',
+      stateRules: [makeValueRule('ord_type', 'Market', '0')],
+    })
     const strategy = makeStrategy([ordType, price])
 
     const { result } = renderHook(() => useAtdlFormState(strategy))
@@ -416,7 +600,10 @@ describe('useAtdlFormState', () => {
     // WHY: value rules are edge-triggered. Re-applying on every evaluation would pin the
     // control and revert each keystroke for as long as the condition held.
     const ordType = makeControl({ id: 'ord_type', initValue: 'Market' })
-    const price = makeControl({ id: 'price', stateRules: [makeValueRule('ord_type', 'Market', '0')] })
+    const price = makeControl({
+      id: 'price',
+      stateRules: [makeValueRule('ord_type', 'Market', '0')],
+    })
     const strategy = makeStrategy([ordType, price])
 
     const { result } = renderHook(() => useAtdlFormState(strategy))
@@ -466,10 +653,14 @@ describe('useAtdlFormState', () => {
 
     const { result } = renderHook(() => useAtdlFormState(strategy))
 
-    act(() => { result.current.setValue('qty', '5') })
+    act(() => {
+      result.current.setValue('qty', '5')
+    })
     expect(result.current.controlState['qty'].errors).toContain('Must be ≥ 10.')
 
-    act(() => { result.current.setValue('qty', '50') })
+    act(() => {
+      result.current.setValue('qty', '50')
+    })
     expect(result.current.controlState['qty'].errors).toHaveLength(0)
   })
 
@@ -480,7 +671,9 @@ describe('useAtdlFormState', () => {
 
     const { result } = renderHook(() => useAtdlFormState(strategy))
 
-    act(() => { result.current.setValue('qty', '500') })
+    act(() => {
+      result.current.setValue('qty', '500')
+    })
     expect(result.current.controlState['qty'].errors).toContain('Must be ≤ 100.')
   })
 
@@ -491,7 +684,9 @@ describe('useAtdlFormState', () => {
 
     const { result } = renderHook(() => useAtdlFormState(strategy))
 
-    act(() => { result.current.setValue('qty', '999999') })
+    act(() => {
+      result.current.setValue('qty', '999999')
+    })
     expect(result.current.controlState['qty'].errors).toHaveLength(0)
   })
 
@@ -539,7 +734,20 @@ it('validates StrategyEdits against parameter wire values and field2', () => {
     makeControl({ id: 'end', parameter: end, initValue: '5' }),
   ])
   strategy.parameters = [param, end]
-  strategy.strategyEdits = [{ errorMessage: 'Start must precede End.', expression: { kind: 'compare', field: 'Start', field2: 'End', value: null, operator: '<', children: null, comparisonType: 'Int_t' } }]
+  strategy.strategyEdits = [
+    {
+      errorMessage: 'Start must precede End.',
+      expression: {
+        kind: 'compare',
+        field: 'Start',
+        field2: 'End',
+        value: null,
+        operator: '<',
+        children: null,
+        comparisonType: 'Int_t',
+      },
+    },
+  ]
   const { result } = renderHook(() => useAtdlFormState(strategy))
   expect(result.current.strategyErrors).toContain('Start must precede End.')
   expect(result.current.hasErrors).toBe(true)
@@ -548,10 +756,29 @@ it('validates StrategyEdits against parameter wire values and field2', () => {
 })
 
 it('maps grouped radios to one enum parameter in either direction', () => {
-  const parameter = makeParam({ enumValues: [{ enumId: 'buy', wireValue: '1' }, { enumId: 'sell', wireValue: '2' }] })
+  const parameter = makeParam({
+    enumValues: [
+      { enumId: 'buy', wireValue: '1' },
+      { enumId: 'sell', wireValue: '2' },
+    ],
+  })
   const strategy = makeStrategy([
-    makeControl({ id: 'buy', type: 'RadioButton_t', parameter, radioGroup: 'side', checkedEnumRef: 'buy', initValue: true }),
-    makeControl({ id: 'sell', type: 'RadioButton_t', parameter, radioGroup: 'side', checkedEnumRef: 'sell', initValue: false }),
+    makeControl({
+      id: 'buy',
+      type: 'RadioButton_t',
+      parameter,
+      radioGroup: 'side',
+      checkedEnumRef: 'buy',
+      initValue: true,
+    }),
+    makeControl({
+      id: 'sell',
+      type: 'RadioButton_t',
+      parameter,
+      radioGroup: 'side',
+      checkedEnumRef: 'sell',
+      initValue: false,
+    }),
   ])
   const { result } = renderHook(() => useAtdlFormState(strategy))
   expect(mapControlValuesToParameters(strategy, result.current.values)).toEqual({ P1: 'buy' })
@@ -563,10 +790,33 @@ it('maps grouped radios to one enum parameter in either direction', () => {
 })
 
 it('ignores inactive radio NULL enum mappings in output and required validation', () => {
-  const parameter = makeParam({ useValue: 'required', enumValues: [{ enumId: 'buy', wireValue: '1' }, { enumId: 'sell', wireValue: '2' }, { enumId: 'none', wireValue: '{NULL}' }] })
+  const parameter = makeParam({
+    useValue: 'required',
+    enumValues: [
+      { enumId: 'buy', wireValue: '1' },
+      { enumId: 'sell', wireValue: '2' },
+      { enumId: 'none', wireValue: '{NULL}' },
+    ],
+  })
   const strategy = makeStrategy([
-    makeControl({ id: 'buy', type: 'RadioButton_t', parameter, radioGroup: 'side', checkedEnumRef: 'buy', uncheckedEnumRef: 'none', initValue: true }),
-    makeControl({ id: 'sell', type: 'RadioButton_t', parameter, radioGroup: 'side', checkedEnumRef: 'sell', uncheckedEnumRef: 'none', initValue: false }),
+    makeControl({
+      id: 'buy',
+      type: 'RadioButton_t',
+      parameter,
+      radioGroup: 'side',
+      checkedEnumRef: 'buy',
+      uncheckedEnumRef: 'none',
+      initValue: true,
+    }),
+    makeControl({
+      id: 'sell',
+      type: 'RadioButton_t',
+      parameter,
+      radioGroup: 'side',
+      checkedEnumRef: 'sell',
+      uncheckedEnumRef: 'none',
+      initValue: false,
+    }),
   ])
   const { result } = renderHook(() => useAtdlFormState(strategy))
   expect(mapControlValuesToParameters(strategy, result.current.values)).toEqual({ P1: 'buy' })
@@ -576,7 +826,9 @@ it('ignores inactive radio NULL enum mappings in output and required validation'
 it('loads FIX values ahead of defaults and locks immutable amendment parameters', () => {
   const parameter = makeParam({ mutableOnCxlRpl: false })
   const strategy = makeStrategy([makeControl({ parameter, initValue: 'default' })])
-  const { result } = renderHook(() => useAtdlFormState(strategy, { isAmendment: true, initialFixValues: { 9001: 'loaded' } }))
+  const { result } = renderHook(() =>
+    useAtdlFormState(strategy, { isAmendment: true, initialFixValues: { 9001: 'loaded' } }),
+  )
   expect(result.current.values.ctrl1).toBe('loaded')
   expect(result.current.controlState.ctrl1.enabled).toBe(false)
   act(() => result.current.setValue('ctrl1', 'changed'))
@@ -585,15 +837,31 @@ it('loads FIX values ahead of defaults and locks immutable amendment parameters'
 
 it('preserves explicit loaded absence and clones loaded selections', () => {
   const loaded = ['a']
-  const strategy = makeStrategy([makeControl({ id: 'list', type: 'MultiSelectList_t', initValue: 'b' }), makeControl({ id: 'text', initValue: 'default' })])
-  const { result } = renderHook(() => useAtdlFormState(strategy, { initialValues: { list: loaded, text: null } }))
+  const strategy = makeStrategy([
+    makeControl({ id: 'list', type: 'MultiSelectList_t', initValue: 'b' }),
+    makeControl({ id: 'text', initValue: 'default' }),
+  ])
+  const { result } = renderHook(() =>
+    useAtdlFormState(strategy, { initialValues: { list: loaded, text: null } }),
+  )
   loaded.push('b')
   expect(result.current.values).toEqual({ list: ['a'], text: null })
 })
 
 it('validates enum wire numbers instead of the selected enum ID', () => {
-  const parameter = makeParam({ type: 'Int_t', min: 10, enumValues: [{ enumId: 'large', wireValue: '20' }] })
-  const strategy = makeStrategy([makeControl({ parameter, type: 'DropDownList_t', initValue: 'large', listItems: [{ enumId: 'large', uiRep: 'Large' }] })])
+  const parameter = makeParam({
+    type: 'Int_t',
+    min: 10,
+    enumValues: [{ enumId: 'large', wireValue: '20' }],
+  })
+  const strategy = makeStrategy([
+    makeControl({
+      parameter,
+      type: 'DropDownList_t',
+      initValue: 'large',
+      listItems: [{ enumId: 'large', uiRep: 'Large' }],
+    }),
+  ])
   const { result } = renderHook(() => useAtdlFormState(strategy))
   expect(result.current.hasErrors).toBe(false)
   act(() => result.current.setValue('ctrl1', 'missing'))
@@ -601,24 +869,45 @@ it('validates enum wire numbers instead of the selected enum ID', () => {
 })
 
 it('checks decimal bounds without losing significant digits', () => {
-  const strategy = makeStrategy([makeControl({ parameter: makeParam({ type: 'Qty_t', max: '9007199254740992' }), initValue: '9007199254740993' })])
+  const strategy = makeStrategy([
+    makeControl({
+      parameter: makeParam({ type: 'Qty_t', max: '9007199254740992' }),
+      initValue: '9007199254740993',
+    }),
+  ])
   const { result } = renderHook(() => useAtdlFormState(strategy))
   expect(result.current.hasErrors).toBe(true)
 })
 
 it('preserves a loaded instant in a DST overlap until the clock is edited', () => {
   const parameter = makeParam({ type: 'UTCTimestamp_t' })
-  const strategy = makeStrategy([makeControl({ type: 'Clock_t', parameter, localMktTz: 'America/New_York' })])
-  const { result } = renderHook(() => useAtdlFormState(strategy, { isAmendment: true, initialFixValues: { 9001: '20261101-06:30:45' }, clock: () => new Date('2026-11-01T12:00:00Z') }))
+  const strategy = makeStrategy([
+    makeControl({ type: 'Clock_t', parameter, localMktTz: 'America/New_York' }),
+  ])
+  const { result } = renderHook(() =>
+    useAtdlFormState(strategy, {
+      isAmendment: true,
+      initialFixValues: { 9001: '20261101-06:30:45' },
+      clock: () => new Date('2026-11-01T12:00:00Z'),
+    }),
+  )
   expect(result.current.hasErrors).toBe(false)
-  expect(mapControlValuesToParameters(strategy, result.current.values)).toEqual({ P1: '20261101-06:30:45' })
+  expect(mapControlValuesToParameters(strategy, result.current.values)).toEqual({
+    P1: '20261101-06:30:45',
+  })
   act(() => result.current.setValue('ctrl1', '01:45:00'))
-  expect(mapControlValuesToParameters(strategy, result.current.values)).toEqual({ P1: '20261101-05:45:00' })
+  expect(mapControlValuesToParameters(strategy, result.current.values)).toEqual({
+    P1: '20261101-05:45:00',
+  })
 })
 
 it('surfaces invalid clock configuration without crashing the form', () => {
-  const strategy = makeStrategy([makeControl({ type: 'Clock_t', initValue: '09:00:00', localMktTz: 'Not/AZone' })])
-  const { result } = renderHook(() => useAtdlFormState(strategy, { clock: () => new Date('2026-09-12T10:00:00Z') }))
+  const strategy = makeStrategy([
+    makeControl({ type: 'Clock_t', initValue: '09:00:00', localMktTz: 'Not/AZone' }),
+  ])
+  const { result } = renderHook(() =>
+    useAtdlFormState(strategy, { clock: () => new Date('2026-09-12T10:00:00Z') }),
+  )
   expect(result.current.hasErrors).toBe(true)
   expect(result.current.controlState.ctrl1.errors.length).toBeGreaterThan(0)
 })
@@ -646,31 +935,64 @@ it.each([
   expect(result.current.controlState.ctrl1.errors).toContain(expectedError)
 })
 
-it.each([false, true])('round-trips whole-percent UI values and checks fractional bounds (multiplyBy100=%s)', multiplyBy100 => {
-  const parameter = makeParam({ type: 'Percentage_t', min: '0.1', max: '0.8', multiplyBy100, precision: 1 })
-  const strategy = makeStrategy([makeControl({ parameter, type: 'SingleSpinner_t' })])
-  const { result } = renderHook(() => useAtdlFormState(strategy, { isAmendment: true, initialFixValues: { 9001: multiplyBy100 ? '75' : '0.75' } }))
-  expect(Number(result.current.values.ctrl1)).toBe(75)
-  expect(Number(mapControlValuesToParameters(strategy, result.current.values).P1)).toBe(0.75)
-  expect(result.current.hasErrors).toBe(false)
-  act(() => result.current.setValue('ctrl1', 90))
-  expect(result.current.hasErrors).toBe(true)
-})
+it.each([false, true])(
+  'round-trips whole-percent UI values and checks fractional bounds (multiplyBy100=%s)',
+  (multiplyBy100) => {
+    const parameter = makeParam({
+      type: 'Percentage_t',
+      min: '0.1',
+      max: '0.8',
+      multiplyBy100,
+      precision: 1,
+    })
+    const strategy = makeStrategy([makeControl({ parameter, type: 'SingleSpinner_t' })])
+    const { result } = renderHook(() =>
+      useAtdlFormState(strategy, {
+        isAmendment: true,
+        initialFixValues: { 9001: multiplyBy100 ? '75' : '0.75' },
+      }),
+    )
+    expect(Number(result.current.values.ctrl1)).toBe(75)
+    expect(Number(mapControlValuesToParameters(strategy, result.current.values).P1)).toBe(0.75)
+    expect(result.current.hasErrors).toBe(false)
+    act(() => result.current.setValue('ctrl1', 90))
+    expect(result.current.hasErrors).toBe(true)
+  },
+)
 
 it('honours UseValue and UseFixField independently of the bound parameter tag', () => {
   const parameter = makeParam({ type: 'Int_t' })
   const strategy = makeStrategy([
     makeControl({ id: 'authored', parameter, initPolicy: 'UseValue', initValue: 5 }),
-    makeControl({ id: 'external', parameter, initPolicy: 'UseFixField', initFixField: 44, initValue: 5 }),
+    makeControl({
+      id: 'external',
+      parameter,
+      initPolicy: 'UseFixField',
+      initFixField: 44,
+      initValue: 5,
+    }),
   ])
-  const { result } = renderHook(() => useAtdlFormState(strategy, { initialFixValues: { 9001: 9, 44: 12 } }))
+  const { result } = renderHook(() =>
+    useAtdlFormState(strategy, { initialFixValues: { 9001: 9, 44: 12 } }),
+  )
   expect(result.current.values).toEqual({ authored: 5, external: 12 })
 })
 
 it('requires named FIX context and settles value rules when it changes', () => {
   const expression = makeEqExpression('FIX_OrdType', '1')
-  const strategy = makeStrategy([makeControl({ initValue: 'limit', stateRules: [{ effect: 'value', targetValue: false, targetStringValue: 'market', expression }] })])
-  const { result, rerender } = renderHook(({ externalValues }: { externalValues: Record<string, unknown> }) => useAtdlFormState(strategy, { externalValues }), { initialProps: { externalValues: {} } })
+  const strategy = makeStrategy([
+    makeControl({
+      initValue: 'limit',
+      stateRules: [
+        { effect: 'value', targetValue: false, targetStringValue: 'market', expression },
+      ],
+    }),
+  ])
+  const { result, rerender } = renderHook(
+    ({ externalValues }: { externalValues: Record<string, unknown> }) =>
+      useAtdlFormState(strategy, { externalValues }),
+    { initialProps: { externalValues: {} } },
+  )
   expect(result.current.hasErrors).toBe(true)
   rerender({ externalValues: { FIX_OrdType: '1' } })
   expect(result.current.hasErrors).toBe(false)
@@ -681,44 +1003,71 @@ const circularExternalValue: Record<string, unknown> = {}
 circularExternalValue.self = circularExternalValue
 
 it.each([
-  ['BigInt', 1n], ['circular object', circularExternalValue], ['NaN', Number.NaN],
-  ['infinity', Number.POSITIVE_INFINITY], ['undefined', undefined], ['array', ['1']],
-  ['symbol', Symbol('value')], ['function', () => '1'],
-])('reports unsupported external FIX %s values without crashing and recovers when corrected', (_label, value) => {
-  const strategy = makeStrategy([makeControl({ initValue: 'initial' })])
-  const externalValues: Record<string, unknown> = { FIX_OrderQty: value }
-  const { result, rerender } = renderHook(({ externalValues }: { externalValues: Record<string, unknown> }) => useAtdlFormState(strategy, { externalValues }), { initialProps: { externalValues } })
-  expect(result.current.strategyErrors).toContain('FIX_OrderQty: external FIX values must be strings, finite numbers, booleans, or null.')
-  expect(result.current.hasErrors).toBe(true)
-  act(() => result.current.setValue('ctrl1', 'edited'))
-  expect(result.current.values.ctrl1).toBe('edited')
-  rerender({ externalValues: { FIX_OrderQty: '12' } })
-  expect(result.current.hasErrors).toBe(false)
-  expect(result.current.values.ctrl1).toBe('edited')
-})
+  ['BigInt', 1n],
+  ['circular object', circularExternalValue],
+  ['NaN', Number.NaN],
+  ['infinity', Number.POSITIVE_INFINITY],
+  ['undefined', undefined],
+  ['array', ['1']],
+  ['symbol', Symbol('value')],
+  ['function', () => '1'],
+])(
+  'reports unsupported external FIX %s values without crashing and recovers when corrected',
+  (_label, value) => {
+    const strategy = makeStrategy([makeControl({ initValue: 'initial' })])
+    const externalValues: Record<string, unknown> = { FIX_OrderQty: value }
+    const { result, rerender } = renderHook(
+      ({ externalValues }: { externalValues: Record<string, unknown> }) =>
+        useAtdlFormState(strategy, { externalValues }),
+      { initialProps: { externalValues } },
+    )
+    expect(result.current.strategyErrors).toContain(
+      'FIX_OrderQty: external FIX values must be strings, finite numbers, booleans, or null.',
+    )
+    expect(result.current.hasErrors).toBe(true)
+    act(() => result.current.setValue('ctrl1', 'edited'))
+    expect(result.current.values.ctrl1).toBe('edited')
+    rerender({ externalValues: { FIX_OrderQty: '12' } })
+    expect(result.current.hasErrors).toBe(false)
+    expect(result.current.values.ctrl1).toBe('edited')
+  },
+)
 
-it.each(['01', 12, true, false, null])('accepts supported external FIX scalar %s', value => {
+it.each(['01', 12, true, false, null])('accepts supported external FIX scalar %s', (value) => {
   const strategy = makeStrategy([])
-  const { result } = renderHook(() => useAtdlFormState(strategy, { externalValues: { FIX_Value: value } }))
+  const { result } = renderHook(() =>
+    useAtdlFormState(strategy, { externalValues: { FIX_Value: value } }),
+  )
   expect(result.current.hasErrors).toBe(false)
 })
 
 it.each([
-  ['==', 'Business rule failed.'], ['unsupported', 'Invalid or unsupported strategy rule.'],
-])('distinguishes a failed business condition from invalid strategy operator %s', (operator, expected) => {
-  const parameter = makeParam()
-  const strategy = makeStrategy([makeControl({ parameter, initValue: 'actual' })])
-  strategy.parameters = [parameter]
-  strategy.strategyEdits = [{ errorMessage: 'Business rule failed.', expression: { ...makeEqExpression('P1', 'expected'), operator } }]
-  const { result } = renderHook(() => useAtdlFormState(strategy))
-  expect(result.current.strategyErrors).toEqual([expected])
-  expect(result.current.hasErrors).toBe(true)
-})
+  ['==', 'Business rule failed.'],
+  ['unsupported', 'Invalid or unsupported strategy rule.'],
+])(
+  'distinguishes a failed business condition from invalid strategy operator %s',
+  (operator, expected) => {
+    const parameter = makeParam()
+    const strategy = makeStrategy([makeControl({ parameter, initValue: 'actual' })])
+    strategy.parameters = [parameter]
+    strategy.strategyEdits = [
+      {
+        errorMessage: 'Business rule failed.',
+        expression: { ...makeEqExpression('P1', 'expected'), operator },
+      },
+    ]
+    const { result } = renderHook(() => useAtdlFormState(strategy))
+    expect(result.current.strategyErrors).toEqual([expected])
+    expect(result.current.hasErrors).toBe(true)
+  },
+)
 
 it('reads the clock once for an edit when StrictMode replays state updaters', () => {
   const clock = vi.fn(() => new Date('2026-09-12T12:00:00Z'))
   const strategy = makeStrategy([makeControl({ type: 'Clock_t', localMktTz: 'UTC' })])
-  const { result } = renderHook(() => useAtdlFormState(strategy, { clock }), { wrapper: StrictMode })
+  const { result } = renderHook(() => useAtdlFormState(strategy, { clock }), {
+    wrapper: StrictMode,
+  })
   clock.mockClear()
   act(() => result.current.setValue('ctrl1', '10:00:00'))
   expect(clock).toHaveBeenCalledTimes(1)
@@ -727,7 +1076,10 @@ it('reads the clock once for an edit when StrictMode replays state updaters', ()
 
 it('keeps linked percentage controls in whole-percent units', () => {
   const parameter = makeParam({ type: 'Percentage_t' })
-  const strategy = makeStrategy([makeControl({ id: 'a', parameter, type: 'SingleSpinner_t' }), makeControl({ id: 'b', parameter, type: 'TextField_t' })])
+  const strategy = makeStrategy([
+    makeControl({ id: 'a', parameter, type: 'SingleSpinner_t' }),
+    makeControl({ id: 'b', parameter, type: 'TextField_t' }),
+  ])
   const { result } = renderHook(() => useAtdlFormState(strategy))
   act(() => result.current.setValue('a', 75))
   expect(Number(result.current.values.b)).toBe(75)
@@ -735,16 +1087,26 @@ it('keeps linked percentage controls in whole-percent units', () => {
 
 it('converts shared clock instants into each control timezone', () => {
   const parameter = makeParam({ type: 'UTCTimestamp_t' })
-  const strategy = makeStrategy([makeControl({ id: 'london', parameter, type: 'Clock_t', localMktTz: 'Europe/London' }), makeControl({ id: 'newYork', parameter, type: 'Clock_t', localMktTz: 'America/New_York' })])
-  const { result } = renderHook(() => useAtdlFormState(strategy, { clock: () => new Date('2026-09-12T12:00:00Z') }))
+  const strategy = makeStrategy([
+    makeControl({ id: 'london', parameter, type: 'Clock_t', localMktTz: 'Europe/London' }),
+    makeControl({ id: 'newYork', parameter, type: 'Clock_t', localMktTz: 'America/New_York' }),
+  ])
+  const { result } = renderHook(() =>
+    useAtdlFormState(strategy, { clock: () => new Date('2026-09-12T12:00:00Z') }),
+  )
   act(() => result.current.setValue('london', '10:00:00'))
-  expect(result.current.values.newYork).toMatchObject({ instant: '20260912-09:00:00', localDateTime: '20260912-05:00:00' })
+  expect(result.current.values.newYork).toMatchObject({
+    instant: '20260912-09:00:00',
+    localDateTime: '20260912-05:00:00',
+  })
 })
 
 it('resets hook state when the strategy document changes', () => {
   const first = makeStrategy([makeControl({ initValue: 'first' })])
   const second = makeStrategy([makeControl({ initValue: 'second' })])
-  const { result, rerender } = renderHook(({ strategy }) => useAtdlFormState(strategy), { initialProps: { strategy: first } })
+  const { result, rerender } = renderHook(({ strategy }) => useAtdlFormState(strategy), {
+    initialProps: { strategy: first },
+  })
   act(() => result.current.setValue('ctrl1', 'edited'))
   rerender({ strategy: second })
   expect(result.current.values.ctrl1).toBe('second')
@@ -760,7 +1122,12 @@ it('refreshes amendment defaults and visibility after in-place strategy edits', 
 
   const control = strategy.panel.children[0] as AtdlControlDto
   control.initValue = 'second'
-  control.stateRules.push({ effect: 'visible', targetValue: false, targetStringValue: null, expression: makeEqExpression('ctrl1', 'second') })
+  control.stateRules.push({
+    effect: 'visible',
+    targetValue: false,
+    targetStringValue: null,
+    expression: makeEqExpression('ctrl1', 'second'),
+  })
   parameter.mutableOnCxlRpl = false
   rerender()
   expect(result.current.values.ctrl1).toBe('second')
@@ -798,8 +1165,26 @@ it('treats a control DTO missing stateRules as having no rules', () => {
 })
 
 it('keeps a failed value-rule conversion invalid across unrelated edits', () => {
-  const strategy = makeStrategy([makeControl({ id: 'trigger', initValue: 'on' }), makeControl({ id: 'clock', type: 'Clock_t', localMktTz: 'UTC', stateRules: [{ effect: 'value', targetValue: false, targetStringValue: 'bad-time', expression: makeEqExpression('trigger', 'on') }] }), makeControl({ id: 'other' })])
-  const { result } = renderHook(() => useAtdlFormState(strategy, { clock: () => new Date('2026-09-12T12:00:00Z') }))
+  const strategy = makeStrategy([
+    makeControl({ id: 'trigger', initValue: 'on' }),
+    makeControl({
+      id: 'clock',
+      type: 'Clock_t',
+      localMktTz: 'UTC',
+      stateRules: [
+        {
+          effect: 'value',
+          targetValue: false,
+          targetStringValue: 'bad-time',
+          expression: makeEqExpression('trigger', 'on'),
+        },
+      ],
+    }),
+    makeControl({ id: 'other' }),
+  ])
+  const { result } = renderHook(() =>
+    useAtdlFormState(strategy, { clock: () => new Date('2026-09-12T12:00:00Z') }),
+  )
   expect(result.current.hasErrors).toBe(true)
   act(() => result.current.setValue('other', 'changed'))
   expect(result.current.hasErrors).toBe(true)
@@ -812,14 +1197,45 @@ it('rolls back the whole cascade when a later value rule fails', () => {
   // The hook does not expose rule flags, so the flag check calls settleValueRules.
   const strategy = makeStrategy([
     makeControl({ id: 'trigger', initValue: 'on' }),
-    makeControl({ id: 'first', initValue: 'original', stateRules: [{ effect: 'value', targetValue: false, targetStringValue: 'from-rule', expression: makeEqExpression('trigger', 'on') }] }),
-    makeControl({ id: 'clock', type: 'Clock_t', localMktTz: 'UTC', stateRules: [{ effect: 'value', targetValue: false, targetStringValue: 'bad-time', expression: makeEqExpression('trigger', 'on') }] }),
+    makeControl({
+      id: 'first',
+      initValue: 'original',
+      stateRules: [
+        {
+          effect: 'value',
+          targetValue: false,
+          targetStringValue: 'from-rule',
+          expression: makeEqExpression('trigger', 'on'),
+        },
+      ],
+    }),
+    makeControl({
+      id: 'clock',
+      type: 'Clock_t',
+      localMktTz: 'UTC',
+      stateRules: [
+        {
+          effect: 'value',
+          targetValue: false,
+          targetStringValue: 'bad-time',
+          expression: makeEqExpression('trigger', 'on'),
+        },
+      ],
+    }),
   ])
-  const settled = settleValueRules(strategy, { trigger: 'on', first: 'original' }, undefined, new Set(), new Date('2026-09-12T12:00:00Z'))
+  const settled = settleValueRules(
+    strategy,
+    { trigger: 'on', first: 'original' },
+    undefined,
+    new Set(),
+    new Date('2026-09-12T12:00:00Z'),
+  )
   expect(settled.errors.length).toBeGreaterThan(0)
   expect(settled.values.first).toBe('original')
-  expect(settled.rules.map(rule => rule.active)).toEqual([false, false])
-  const { result } = renderHook(() => useAtdlFormState(strategy, { clock: () => new Date('2026-09-12T12:00:00Z') }))
+  expect(settled.rules.map((rule) => rule.active)).toEqual([false, false])
+  const { result } = renderHook(() =>
+    useAtdlFormState(strategy, { clock: () => new Date('2026-09-12T12:00:00Z') }),
+  )
   expect(result.current.hasErrors).toBe(true)
   expect(result.current.values.first).toBe('original')
   // The failed rule is retried on every settle, and the rollback holds there too.
@@ -831,11 +1247,22 @@ it('rolls back the whole cascade when a later value rule fails', () => {
 it('surfaces a non-cloneable value-rule snapshot as a form error', () => {
   const strategy = makeStrategy([
     makeControl({ id: 'trigger', initValue: 'on' }),
-    makeControl({ id: 'target', initValue: null, stateRules: [{
-      effect: 'value', targetValue: false, targetStringValue: 'changed', expression: makeEqExpression('trigger', 'on'),
-    }] }),
+    makeControl({
+      id: 'target',
+      initValue: null,
+      stateRules: [
+        {
+          effect: 'value',
+          targetValue: false,
+          targetStringValue: 'changed',
+          expression: makeEqExpression('trigger', 'on'),
+        },
+      ],
+    }),
   ])
-  const { result } = renderHook(() => useAtdlFormState(strategy, { initialValues: { target: () => {} } }))
+  const { result } = renderHook(() =>
+    useAtdlFormState(strategy, { initialValues: { target: () => {} } }),
+  )
   expect(result.current.hasErrors).toBe(true)
   expect(result.current.strategyErrors).toContain('target: Value could not be copied safely.')
 })
@@ -852,7 +1279,9 @@ it('discards the whole working copy when a sibling assignment throws mid-update'
     makeControl({ id: 'sibling2', parameter, initValue: 'see' }),
     makeControl({ id: 'edited', parameter }),
   ])
-  const { result } = renderHook(() => useAtdlFormState(strategy, { initialValues: { edited: ['old'] } }))
+  const { result } = renderHook(() =>
+    useAtdlFormState(strategy, { initialValues: { edited: ['old'] } }),
+  )
   const circular: unknown[] = []
   circular.push(circular)
 
@@ -867,28 +1296,62 @@ it('discards the whole working copy when a sibling assignment throws mid-update'
   expect(result.current.hasErrors).toBe(true)
 })
 
-it.each([false, true])('rejects unknown loaded list tokens, with initValue fallback only on new orders: %s', isAmendment => {
-  const parameter = makeParam({ type: 'MultipleStringValue_t', enumValues: [{ enumId: 'buy', wireValue: '1' }] })
-  const strategy = makeStrategy([makeControl({ type: 'MultiSelectList_t', parameter, initValue: 'buy', initPolicy: 'UseFixField', initFixField: 9001 })])
-  const { result } = renderHook(() => useAtdlFormState(strategy, { isAmendment, initialFixValues: { 9001: '1 UNKNOWN' } }))
-  expect(result.current.hasErrors).toBe(isAmendment)
-  if (!isAmendment) expect(result.current.values.ctrl1).toEqual(['buy'])
-})
+it.each([false, true])(
+  'rejects unknown loaded list tokens, with initValue fallback only on new orders: %s',
+  (isAmendment) => {
+    const parameter = makeParam({
+      type: 'MultipleStringValue_t',
+      enumValues: [{ enumId: 'buy', wireValue: '1' }],
+    })
+    const strategy = makeStrategy([
+      makeControl({
+        type: 'MultiSelectList_t',
+        parameter,
+        initValue: 'buy',
+        initPolicy: 'UseFixField',
+        initFixField: 9001,
+      }),
+    ])
+    const { result } = renderHook(() =>
+      useAtdlFormState(strategy, { isAmendment, initialFixValues: { 9001: '1 UNKNOWN' } }),
+    )
+    expect(result.current.hasErrors).toBe(isAmendment)
+    if (!isAmendment) expect(result.current.values.ctrl1).toEqual(['buy'])
+  },
+)
 
-it.each(['SingleSpinner_t', 'CheckBox_t'])('falls back from an unparsable FIX initialization value for %s', type => {
-  const binary = type === 'CheckBox_t'
-  const parameter = makeParam({ type: binary ? 'Boolean_t' : 'Float_t' })
-  const strategy = makeStrategy([makeControl({ type, parameter, initValue: binary ? true : 5, initPolicy: 'UseFixField', initFixField: 44 })])
-  const { result } = renderHook(() => useAtdlFormState(strategy, { initialFixValues: { 44: 'invalid' } }))
-  expect(result.current.values.ctrl1).toBe(binary ? true : 5)
-  expect(result.current.hasErrors).toBe(false)
-})
+it.each(['SingleSpinner_t', 'CheckBox_t'])(
+  'falls back from an unparsable FIX initialization value for %s',
+  (type) => {
+    const binary = type === 'CheckBox_t'
+    const parameter = makeParam({ type: binary ? 'Boolean_t' : 'Float_t' })
+    const strategy = makeStrategy([
+      makeControl({
+        type,
+        parameter,
+        initValue: binary ? true : 5,
+        initPolicy: 'UseFixField',
+        initFixField: 44,
+      }),
+    ])
+    const { result } = renderHook(() =>
+      useAtdlFormState(strategy, { initialFixValues: { 44: 'invalid' } }),
+    )
+    expect(result.current.values.ctrl1).toBe(binary ? true : 5)
+    expect(result.current.hasErrors).toBe(false)
+  },
+)
 
 it('preserves a UTC clock constant when displaying it in a market timezone', () => {
   const parameter = makeParam({ type: 'UTCTimestamp_t', constValue: '20260912-09:00:00' })
-  const strategy = makeStrategy([makeControl({ type: 'Clock_t', parameter, localMktTz: 'Europe/London' })])
+  const strategy = makeStrategy([
+    makeControl({ type: 'Clock_t', parameter, localMktTz: 'Europe/London' }),
+  ])
   const { result } = renderHook(() => useAtdlFormState(strategy))
-  expect(result.current.values.ctrl1).toMatchObject({ instant: '20260912-09:00:00', localDateTime: '20260912-10:00:00' })
+  expect(result.current.values.ctrl1).toMatchObject({
+    instant: '20260912-09:00:00',
+    localDateTime: '20260912-10:00:00',
+  })
   expect(result.current.controlState.ctrl1.enabled).toBe(false)
 })
 

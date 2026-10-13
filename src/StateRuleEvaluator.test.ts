@@ -12,17 +12,38 @@ import corpus from '../contracts/state-rule-cases.json'
 import { evaluateStateRule, tryEvaluateStateRule } from './StateRuleEvaluator.js'
 import type { StateRuleAstNode } from './stateRuleAst.js'
 
-it.each([['Y', true], ['N', false], ['TRUE', true], ['false', false]] as const)('coerces %s symmetrically', (wire, logical) => {
-  expect(evaluateStateRule({ kind: 'compare', field: 'a', operator: '==', value: logical }, { a: wire })).toBe(true)
-  expect(evaluateStateRule({ kind: 'compare', field: 'a', operator: '==', value: wire }, { a: logical })).toBe(true)
+it.each([
+  ['Y', true],
+  ['N', false],
+  ['TRUE', true],
+  ['false', false],
+] as const)('coerces %s symmetrically', (wire, logical) => {
+  expect(
+    evaluateStateRule({ kind: 'compare', field: 'a', operator: '==', value: logical }, { a: wire }),
+  ).toBe(true)
+  expect(
+    evaluateStateRule({ kind: 'compare', field: 'a', operator: '==', value: wire }, { a: logical }),
+  ).toBe(true)
 })
 
-it.each([['==', false], ['!=', true], ['exists', false], ['not-exists', true]] as const)('preserves core empty-text semantics for %s', (operator, expected) => {
-  expect(evaluateStateRule({ kind: 'compare', field: 'text', operator, value: '{NULL}' }, { text: '' })).toBe(expected)
+it.each([
+  ['==', false],
+  ['!=', true],
+  ['exists', false],
+  ['not-exists', true],
+] as const)('preserves core empty-text semantics for %s', (operator, expected) => {
+  expect(
+    evaluateStateRule({ kind: 'compare', field: 'text', operator, value: '{NULL}' }, { text: '' }),
+  ).toBe(expected)
 })
 
 it('retains core numeric grouping inference in edits', () => {
-  expect(evaluateStateRule({ kind: 'compare', field: 'text', operator: '==', value: 12 }, { text: '1,2' })).toBe(true)
+  expect(
+    evaluateStateRule(
+      { kind: 'compare', field: 'text', operator: '==', value: 12 },
+      { text: '1,2' },
+    ),
+  ).toBe(true)
 })
 
 describe('StateRuleEvaluator (shared C# corpus)', () => {
@@ -36,19 +57,24 @@ describe('StateRuleEvaluator (shared C# corpus)', () => {
 // evaluateStateRule reads an unevaluable rule (null) as false, so the corpus loop above
 // cannot tell a short-circuited AND from one that evaluated the invalid Data_t operand and
 // failed. tryEvaluateStateRule keeps null distinct, so these pin the short circuit itself.
-it.each(['and_short_circuit_skips_invalid_data_operand', 'or_short_circuit_skips_invalid_data_operand'])(
-  '%s decides without evaluating the invalid operand',
-  name => {
-    const c = corpus.find(entry => entry.name === name)!
-    expect(tryEvaluateStateRule(c.ast as unknown as StateRuleAstNode, c.formState)).toBe(c.expected)
-  },
-)
+it.each([
+  'and_short_circuit_skips_invalid_data_operand',
+  'or_short_circuit_skips_invalid_data_operand',
+])('%s decides without evaluating the invalid operand', (name) => {
+  const c = corpus.find((entry) => entry.name === name)!
+  expect(tryEvaluateStateRule(c.ast as unknown as StateRuleAstNode, c.formState)).toBe(c.expected)
+})
 
 describe('StateRuleEvaluator depth guard', () => {
   // The inner compare is deliberately one that evaluates TRUE, so a test asserting
   // false is asserting the guard fired - not merely that the rule happened to be
   // false anyway.
-  const satisfiedLeaf: StateRuleAstNode = { kind: 'compare', operator: '==', field: 'X', value: '1' }
+  const satisfiedLeaf: StateRuleAstNode = {
+    kind: 'compare',
+    operator: '==',
+    field: 'X',
+    value: '1',
+  }
 
   const nest = (kind: 'and' | 'not', levels: number): StateRuleAstNode => {
     let node: StateRuleAstNode = satisfiedLeaf
@@ -79,21 +105,34 @@ describe('StateRuleEvaluator depth guard', () => {
   })
 })
 
-it.each([false, true])('fails closed for an unknown node kind, nested under NOT: %s', nested => {
+it.each([false, true])('fails closed for an unknown node kind, nested under NOT: %s', (nested) => {
   const unknown = { kind: 'future-extension' } as unknown as StateRuleAstNode
   const node: StateRuleAstNode = nested ? { kind: 'not', children: [unknown] } : unknown
   expect(evaluateStateRule(node, {})).toBe(false)
 })
 
-it.each(['Data_t', 'data_t', 'Tenor_t', 'MonthYear_t', 'TZTimeOnly_t', 'TZTimestamp_t'])('reports invalid typed comparisons under NOT: %s', comparisonType => {
-  const expression: StateRuleAstNode = { kind: 'not', children: [{ kind: 'compare', operator: '==', field: 'a', value: 'invalid', comparisonType }] }
-  expect(tryEvaluateStateRule(expression, { a: 'invalid' })).toBeNull()
-  expect(evaluateStateRule(expression, { a: 'invalid' })).toBe(false)
-})
+it.each(['Data_t', 'data_t', 'Tenor_t', 'MonthYear_t', 'TZTimeOnly_t', 'TZTimestamp_t'])(
+  'reports invalid typed comparisons under NOT: %s',
+  (comparisonType) => {
+    const expression: StateRuleAstNode = {
+      kind: 'not',
+      children: [{ kind: 'compare', operator: '==', field: 'a', value: 'invalid', comparisonType }],
+    }
+    expect(tryEvaluateStateRule(expression, { a: 'invalid' })).toBeNull()
+    expect(evaluateStateRule(expression, { a: 'invalid' })).toBe(false)
+  },
+)
 
 it('distinguishes a valid false rule from a malformed rule', () => {
-  expect(tryEvaluateStateRule({ kind: 'compare', operator: '==', field: 'a', value: 1 }, { a: 2 })).toBe(false)
-  expect(tryEvaluateStateRule({ kind: 'compare', operator: 'bogus', field: 'a', value: 1 } as unknown as StateRuleAstNode, { a: 2 })).toBeNull()
+  expect(
+    tryEvaluateStateRule({ kind: 'compare', operator: '==', field: 'a', value: 1 }, { a: 2 }),
+  ).toBe(false)
+  expect(
+    tryEvaluateStateRule(
+      { kind: 'compare', operator: 'bogus', field: 'a', value: 1 } as unknown as StateRuleAstNode,
+      { a: 2 },
+    ),
+  ).toBeNull()
 })
 
 it('matches set equality for array values', () => {
@@ -101,9 +140,16 @@ it('matches set equality for array values', () => {
   expect(evaluateStateRule(expression, { a: ['A', 'A'] })).toBe(true)
 })
 
-it.each([['==', false], ['!=', true]] as const)('matches C# temporal comparison for invalid values with %s', (operator, expected) => {
+it.each([
+  ['==', false],
+  ['!=', true],
+] as const)('matches C# temporal comparison for invalid values with %s', (operator, expected) => {
   const expression: StateRuleAstNode = {
-    kind: 'compare', operator, field: 'a', value: '99:00:00', comparisonType: 'Clock_t',
+    kind: 'compare',
+    operator,
+    field: 'a',
+    value: '99:00:00',
+    comparisonType: 'Clock_t',
   }
   expect(tryEvaluateStateRule(expression, { a: '99:00:00' })).toBe(expected)
 })

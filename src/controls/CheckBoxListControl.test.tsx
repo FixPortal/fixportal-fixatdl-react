@@ -31,15 +31,9 @@ describe('CheckBoxListControl', () => {
   it('emits onChange with the selected item added when a checkbox is checked', () => {
     const onChange = vi.fn()
     render(
-      <CheckBoxListControl
-        control={BASE_CONTROL}
-        value={[]}
-        onChange={onChange}
-        state={ENABLED}
-      />,
+      <CheckBoxListControl control={BASE_CONTROL} value={[]} onChange={onChange} state={ENABLED} />,
     )
     fireEvent.click(screen.getByRole('checkbox', { name: 'Option A' }))
     expect(onChange).toHaveBeenCalledWith(['OPT_A'])
   })
-
 })

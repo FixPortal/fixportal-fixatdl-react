@@ -35,7 +35,9 @@ export function EditableDropDownControl({ control, value, onChange, state }: Con
           {state.required && (
             // WHY: asterisk on the label so screen readers pick it up as part
             // of the label text, not as a standalone punctuation character.
-            <span className="text-bad-text ml-1" aria-hidden="true">*</span>
+            <span className="text-bad-text ml-1" aria-hidden="true">
+              *
+            </span>
           )}
         </label>
       )}
@@ -64,7 +66,9 @@ export function EditableDropDownControl({ control, value, onChange, state }: Con
       {hasError && (
         <ul id={errorId} className="space-y-0.5">
           {state.errors.map((err, index) => (
-            <li key={index} className="text-xs text-bad-text">{err}</li>
+            <li key={index} className="text-xs text-bad-text">
+              {err}
+            </li>
           ))}
         </ul>
       )}

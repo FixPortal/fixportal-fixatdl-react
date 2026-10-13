@@ -31,9 +31,14 @@ export function isAncestor(cwd, ref, ofRef) {
 
 // Only run the check when invoked as a script, so the test can import the pure
 // wrapper without needing HEAD/FETCH_HEAD to exist.
-if (import.meta.url === `file://${process.argv[1]}` || process.argv[1]?.endsWith('assert-release-is-ancestor.mjs')) {
+if (
+  import.meta.url === `file://${process.argv[1]}` ||
+  process.argv[1]?.endsWith('assert-release-is-ancestor.mjs')
+) {
   if (!isAncestor(process.cwd(), 'HEAD', 'FETCH_HEAD')) {
-    console.error('FAIL release: HEAD is not an ancestor of origin/main (release must be cut from main)')
+    console.error(
+      'FAIL release: HEAD is not an ancestor of origin/main (release must be cut from main)',
+    )
     process.exit(1)
   }
   console.log('OK release: HEAD is an ancestor of origin/main')

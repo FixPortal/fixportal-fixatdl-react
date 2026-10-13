@@ -5,6 +5,8 @@ export default defineConfig({
   plugins: [react()],
   build: {
     lib: { entry: 'src/index.ts', formats: ['es'], fileName: 'index' },
-    rolldownOptions: { external: ['react', 'react-dom', 'react/jsx-runtime', 'react/jsx-dev-runtime'] },
+    rolldownOptions: {
+      external: ['react', 'react-dom', 'react/jsx-runtime', 'react/jsx-dev-runtime'],
+    },
   },
 })

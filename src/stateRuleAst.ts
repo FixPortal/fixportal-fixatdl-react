@@ -8,20 +8,20 @@
  */
 
 export type StateRuleAstNode =
-  | { kind: 'compare'; operator: StateRuleOperator; field: string; field2?: string | null; comparisonType?: string | null; value: unknown; children?: null }
+  | {
+      kind: 'compare'
+      operator: StateRuleOperator
+      field: string
+      field2?: string | null
+      comparisonType?: string | null
+      value: unknown
+      children?: null
+    }
   | { kind: 'and'; children: StateRuleAstNode[] }
   | { kind: 'or'; children: StateRuleAstNode[] }
   | { kind: 'not'; children: [StateRuleAstNode] }
   | { kind: 'xor'; children: StateRuleAstNode[] }
 
-export type StateRuleOperator =
-  | '=='
-  | '!='
-  | '>'
-  | '<'
-  | '>='
-  | '<='
-  | 'exists'
-  | 'not-exists'
+export type StateRuleOperator = '==' | '!=' | '>' | '<' | '>=' | '<=' | 'exists' | 'not-exists'
 /** Matches the AST evaluation limit of `StateRuleEvaluator` in FixPortal.FixAtdl.Contracts. */
 export const MAX_STATE_RULE_DEPTH = 64

@@ -53,9 +53,7 @@ export function PanelRenderer({
   // so both wire forms are handled without a separate fallback branch.
   const orientation = panel.orientation?.toUpperCase()
   const layout =
-    orientation === 'HORIZONTAL'
-      ? 'flex flex-row gap-3 flex-wrap'
-      : 'flex flex-col gap-2'
+    orientation === 'HORIZONTAL' ? 'flex flex-row gap-3 flex-wrap' : 'flex flex-col gap-2'
 
   // WHY: "Line" is the only non-None border value the mapper produces (mirrors
   // the FIXatdl Border enum: None | Line). Compare case-insensitively for safety.
@@ -64,20 +62,20 @@ export function PanelRenderer({
 
   const body = (
     <FormInstance value={parentInstance ?? instanceId}>
-    <div className={`${layout} ${borderClass}`}>
-      {(panel.children ?? []).map((child, i) => (
-        <PanelChild
-          key={child.kind === 'control' ? child.id : `${child.title ?? 'panel'}-${i}`}
-          child={child}
-          values={values}
-          setValue={setValue}
-          state={state}
-          highlightedControlId={highlightedControlId}
-          onHighlightControl={onHighlightControl}
-          text={text}
-        />
-      ))}
-    </div>
+      <div className={`${layout} ${borderClass}`}>
+        {(panel.children ?? []).map((child, i) => (
+          <PanelChild
+            key={child.kind === 'control' ? child.id : `${child.title ?? 'panel'}-${i}`}
+            child={child}
+            values={values}
+            setValue={setValue}
+            state={state}
+            highlightedControlId={highlightedControlId}
+            onHighlightControl={onHighlightControl}
+            text={text}
+          />
+        ))}
+      </div>
     </FormInstance>
   )
 
@@ -138,7 +136,10 @@ function PanelChild({
   text,
 }: PanelChildProps) {
   const instanceId = useContext(FormInstance)
-  const unsupportedT = text?.unsupportedControlType ?? { value: 'Unsupported control type:', attrs: {} }
+  const unsupportedT = text?.unsupportedControlType ?? {
+    value: 'Unsupported control type:',
+    attrs: {},
+  }
   const whyT = text?.whyRule ?? { value: 'why?', attrs: {} }
 
   // WHY: AtdlPanelChildDto is a discriminated union keyed on `kind`. The `kind`
@@ -164,7 +165,9 @@ function PanelChild({
   }
 
   const control = child as AtdlControlDto
-  const Component = Object.hasOwn(controlRegistry, control.type) ? controlRegistry[control.type] : undefined
+  const Component = Object.hasOwn(controlRegistry, control.type)
+    ? controlRegistry[control.type]
+    : undefined
 
   if (!Component) {
     // WHY: unknown control types must not silently vanish - they indicate an
@@ -195,7 +198,11 @@ function PanelChild({
   const isHighlighted = highlightedControlId === control.id
 
   return (
-    <div className={isHighlighted ? 'rounded outline outline-2 outline-warn-border bg-warn-bg/40 p-1' : ''}>
+    <div
+      className={
+        isHighlighted ? 'rounded outline outline-2 outline-warn-border bg-warn-bg/40 p-1' : ''
+      }
+    >
       <Component
         control={control}
         value={values[control.id]}

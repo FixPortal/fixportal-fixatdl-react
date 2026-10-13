@@ -14,11 +14,16 @@ describe('release commit must be an ancestor of main', () => {
 
   beforeAll(() => {
     dir = mkdtempSync(join(tmpdir(), 'fixatdl-ancestor-'))
-    const git = (...args) => execFileSync('git', args, {
-      cwd: dir,
-      stdio: 'pipe',
-      env: { ...process.env, GIT_CONFIG_GLOBAL: process.platform === 'win32' ? 'NUL' : devNull, GIT_CONFIG_NOSYSTEM: '1' },
-    })
+    const git = (...args) =>
+      execFileSync('git', args, {
+        cwd: dir,
+        stdio: 'pipe',
+        env: {
+          ...process.env,
+          GIT_CONFIG_GLOBAL: process.platform === 'win32' ? 'NUL' : devNull,
+          GIT_CONFIG_NOSYSTEM: '1',
+        },
+      })
     git('init', '-q', '-b', 'main')
     git('config', 'user.email', 'test@example.com')
     git('config', 'user.name', 'test')

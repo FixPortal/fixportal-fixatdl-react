@@ -29,7 +29,9 @@ const PANE_WIDTH = 1180
 const PANE_HEIGHT = 1420
 
 if (!existsSync(join(appDist, 'index.html'))) {
-  console.error(`FAIL: ${appDist} has no index.html - run the two build commands in this file's header first`)
+  console.error(
+    `FAIL: ${appDist} has no index.html - run the two build commands in this file's header first`,
+  )
   process.exit(1)
 }
 
@@ -82,13 +84,15 @@ const server = createServer(async (request, response) => {
   }
   try {
     const body = await readFile(file)
-    response.writeHead(200, { 'content-type': TYPES[extname(file)] ?? 'application/octet-stream' }).end(body)
+    response
+      .writeHead(200, { 'content-type': TYPES[extname(file)] ?? 'application/octet-stream' })
+      .end(body)
   } catch {
     response.writeHead(404).end('not found')
   }
 })
 
-await new Promise(resolve => server.listen(0, '127.0.0.1', resolve))
+await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve))
 const { port } = server.address()
 
 const browser = await chromium.launch()

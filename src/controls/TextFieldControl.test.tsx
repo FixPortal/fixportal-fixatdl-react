@@ -34,7 +34,9 @@ describe('TextFieldControl', () => {
   })
 
   it('displays the current value', () => {
-    render(<TextFieldControl control={BASE_CONTROL} value="VWAP" onChange={vi.fn()} state={ENABLED} />)
+    render(
+      <TextFieldControl control={BASE_CONTROL} value="VWAP" onChange={vi.fn()} state={ENABLED} />,
+    )
     expect(screen.getByRole('textbox')).toHaveValue('VWAP')
   })
 
@@ -49,5 +51,4 @@ describe('TextFieldControl', () => {
     )
     expect(screen.getByText('*')).toBeInTheDocument()
   })
-
 })

@@ -18,19 +18,30 @@ import { ThemeSelect } from './ThemeSelect'
 const strategy = participate as unknown as AtdlStrategyDto
 
 function FixPreview({ tags, error }: { tags: FixTag[]; error: string | null }) {
-  if (error != null) return <p className="wb-alert" role="alert">{error}</p>
+  if (error != null)
+    return (
+      <p className="wb-alert" role="alert">
+        {error}
+      </p>
+    )
   if (tags.length === 0) {
     return <p className="wb-note">No parameters are filled, so no group is emitted.</p>
   }
   const count = tags[0].value
   return (
     <table className="wb-table">
-      <caption className="wb-note">957 = {count} parameter{count === '1' ? '' : 's'}</caption>
+      <caption className="wb-note">
+        957 = {count} parameter{count === '1' ? '' : 's'}
+      </caption>
       <thead>
-        <tr><th scope="col">958 name</th><th scope="col">959 type</th><th scope="col">960 value</th></tr>
+        <tr>
+          <th scope="col">958 name</th>
+          <th scope="col">959 type</th>
+          <th scope="col">960 value</th>
+        </tr>
       </thead>
       <tbody>
-        {toRows(tags).map(row => (
+        {toRows(tags).map((row) => (
           <tr key={row.name}>
             <td>{row.name}</td>
             <td>{row.typeCode}</td>
@@ -58,8 +69,9 @@ export function App() {
 
   // `clock` is the host's time source. The library never reads a static clock, so
   // a host can drive it from a session clock, a replay, or a test.
-  const { values, setValue, controlState, hasErrors, strategyErrors } =
-    useAtdlFormState(strategy, { clock: () => new Date() })
+  const { values, setValue, controlState, hasErrors, strategyErrors } = useAtdlFormState(strategy, {
+    clock: () => new Date(),
+  })
 
   // The preview is derived on every render rather than held in state: the tags are a
   // pure function of the form values, and a second copy of them could only be wrong.
@@ -90,7 +102,9 @@ export function App() {
           <h2 id="wb-form-heading">Strategy form</h2>
           {strategyErrors.length > 0 && (
             <ul className="wb-alert" role="alert">
-              {strategyErrors.map((error, index) => <li key={index}>{error}</li>)}
+              {strategyErrors.map((error, index) => (
+                <li key={index}>{error}</li>
+              ))}
             </ul>
           )}
           <PanelRenderer
@@ -107,8 +121,8 @@ export function App() {
           <section className="wb-panel" aria-labelledby="wb-fix-heading">
             <h2 id="wb-fix-heading">FIX preview</h2>
             <p className="wb-note">
-              StrategyParametersGrp, tags 957-960. Only filled parameters appear, and the
-              count in 957 is emitted before the repeating group.
+              StrategyParametersGrp, tags 957-960. Only filled parameters appear, and the count in
+              957 is emitted before the repeating group.
             </p>
             <FixPreview tags={preview} error={previewError} />
             <p className={hasErrors ? 'wb-alert' : 'wb-ok'} role="status">
@@ -121,14 +135,16 @@ export function App() {
           <section className="wb-panel" aria-labelledby="wb-rules-heading">
             <h2 id="wb-rules-heading">State rules</h2>
             <p className="wb-note">
-              Each rule with its condition in words and whether it is firing right now.
-              The &quot;why?&quot; button beside a disabled or hidden control highlights it here.
+              Each rule with its condition in words and whether it is firing right now. The
+              &quot;why?&quot; button beside a disabled or hidden control highlights it here.
             </p>
             <ul className="wb-rules">
               {rules.map((rule, index) => (
                 <li
                   key={index}
-                  className={rule.controlId === highlightedControlId ? 'wb-rule wb-rule-on' : 'wb-rule'}
+                  className={
+                    rule.controlId === highlightedControlId ? 'wb-rule wb-rule-on' : 'wb-rule'
+                  }
                 >
                   <span className="wb-rule-head">
                     {rule.controlLabel} &rarr; {rule.effect} = {String(rule.targetValue)}
@@ -151,10 +167,9 @@ export function App() {
 
       <footer className="wb-footer">
         <p className="wb-note">
-          Synthetic strategy from the fictional provider DEMO. It is not a broker
-          specification and is not tradeable anywhere. The package renders a strategy
-          DTO; obtaining, parsing and validating the broker XML stays with the host and
-          its backend.
+          Synthetic strategy from the fictional provider DEMO. It is not a broker specification and
+          is not tradeable anywhere. The package renders a strategy DTO; obtaining, parsing and
+          validating the broker XML stays with the host and its backend.
         </p>
       </footer>
     </div>

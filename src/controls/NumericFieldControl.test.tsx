@@ -38,37 +38,88 @@ const ENABLED: ControlFormState = { enabled: true, visible: true, required: fals
 
 describe('NumericFieldControl', () => {
   it.each([
-    { type: 'Percentage_t', min: '0.07', max: '0.29', value: 8, bound: 'min', expected: '7', direction: 'Decrease' },
-    { type: 'Float_t', min: null, max: '9007199254740993', value: '9007199254740992', bound: 'max', expected: '9007199254740993', direction: 'Increase' },
-  ])('clamps to the exact decimal bound: %j', ({ type, min, max, value, bound, expected, direction }) => {
-    const onChange = vi.fn()
-    render(<NumericFieldControl control={{ ...BASE_CONTROL, outerIncrement: 10, parameter: makeParam({ type, min, max }) }} value={value} onChange={onChange} state={ENABLED} />)
-    expect(screen.getByRole('spinbutton')).toHaveAttribute(bound, expected)
-    fireEvent.click(screen.getByRole('button', { name: `${direction} Order Qty by 10` }))
-    expect(String(onChange.mock.calls[0][0])).toBe(expected)
-  })
+    {
+      type: 'Percentage_t',
+      min: '0.07',
+      max: '0.29',
+      value: 8,
+      bound: 'min',
+      expected: '7',
+      direction: 'Decrease',
+    },
+    {
+      type: 'Float_t',
+      min: null,
+      max: '9007199254740993',
+      value: '9007199254740992',
+      bound: 'max',
+      expected: '9007199254740993',
+      direction: 'Increase',
+    },
+  ])(
+    'clamps to the exact decimal bound: %j',
+    ({ type, min, max, value, bound, expected, direction }) => {
+      const onChange = vi.fn()
+      render(
+        <NumericFieldControl
+          control={{
+            ...BASE_CONTROL,
+            outerIncrement: 10,
+            parameter: makeParam({ type, min, max }),
+          }}
+          value={value}
+          onChange={onChange}
+          state={ENABLED}
+        />,
+      )
+      expect(screen.getByRole('spinbutton')).toHaveAttribute(bound, expected)
+      fireEvent.click(screen.getByRole('button', { name: `${direction} Order Qty by 10` }))
+      expect(String(onChange.mock.calls[0][0])).toBe(expected)
+    },
+  )
   it('applies the outer increment with exact decimal arithmetic and clamps to bounds', () => {
     const onChange = vi.fn()
     const control = { ...BASE_CONTROL, outerIncrement: 0.2, parameter: makeParam({ max: 0.25 }) }
-    render(<NumericFieldControl control={control} value={0.1} onChange={onChange} state={ENABLED} />)
+    render(
+      <NumericFieldControl control={control} value={0.1} onChange={onChange} state={ENABLED} />,
+    )
     fireEvent.click(screen.getByRole('button', { name: 'Increase Order Qty by 0.2' }))
     expect(onChange).toHaveBeenCalledWith(0.25)
   })
   it('preserves a decimal that cannot round-trip through a JavaScript number', () => {
     const onChange = vi.fn()
-    render(<NumericFieldControl control={BASE_CONTROL} value={null} onChange={onChange} state={ENABLED} />)
+    render(
+      <NumericFieldControl
+        control={BASE_CONTROL}
+        value={null}
+        onChange={onChange}
+        state={ENABLED}
+      />,
+    )
     fireEvent.change(screen.getByRole('spinbutton'), { target: { value: '9007199254740993' } })
     expect(onChange).toHaveBeenCalledWith('9007199254740993')
   })
 
   it('uses authored increments before display precision', () => {
-    const control = { ...BASE_CONTROL, type: 'SingleSpinner_t', increment: 0.25, parameter: makeParam({ precision: 2 }) }
+    const control = {
+      ...BASE_CONTROL,
+      type: 'SingleSpinner_t',
+      increment: 0.25,
+      parameter: makeParam({ precision: 2 }),
+    }
     render(<NumericFieldControl control={control} value={1} onChange={vi.fn()} state={ENABLED} />)
     expect(screen.getByRole('spinbutton')).toHaveAttribute('step', '0.25')
   })
   it('emits a number when the user types a numeric value', () => {
     const onChange = vi.fn()
-    render(<NumericFieldControl control={BASE_CONTROL} value={null} onChange={onChange} state={ENABLED} />)
+    render(
+      <NumericFieldControl
+        control={BASE_CONTROL}
+        value={null}
+        onChange={onChange}
+        state={ENABLED}
+      />,
+    )
     const input = screen.getByRole('spinbutton')
     fireEvent.change(input, { target: { value: '42' } })
     expect(onChange).toHaveBeenCalledWith(42)
@@ -76,7 +127,9 @@ describe('NumericFieldControl', () => {
 
   it('emits null when the input is cleared', () => {
     const onChange = vi.fn()
-    render(<NumericFieldControl control={BASE_CONTROL} value={10} onChange={onChange} state={ENABLED} />)
+    render(
+      <NumericFieldControl control={BASE_CONTROL} value={10} onChange={onChange} state={ENABLED} />,
+    )
     fireEvent.change(screen.getByRole('spinbutton'), { target: { value: '' } })
     expect(onChange).toHaveBeenCalledWith(null)
   })
@@ -94,5 +147,4 @@ describe('NumericFieldControl', () => {
     expect(input).toHaveAttribute('min', '0')
     expect(input).toHaveAttribute('max', '100')
   })
-
 })

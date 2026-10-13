@@ -36,7 +36,7 @@ function sampleState() {
 
 describe('participate sample strategy', () => {
   it('exercises every control type in the registry', () => {
-    const covered = new Set(flattenControls(sample).map(control => control.type))
+    const covered = new Set(flattenControls(sample).map((control) => control.type))
     expect([...covered].sort()).toEqual(Object.keys(controlRegistry).sort())
   })
 
@@ -141,7 +141,10 @@ describe('participate sample strategy', () => {
    */
   it('emits the measured StrategyParametersGrp for the authored initial values', () => {
     const { result } = sampleState()
-    const tags = emitStrategyParametersGrp(sample, mapControlValuesToParameters(sample, result.current.values))
+    const tags = emitStrategyParametersGrp(
+      sample,
+      mapControlValuesToParameters(sample, result.current.values),
+    )
     const byName = new Map<string, string>()
     for (let i = 0; i < tags.length; i++) {
       if (tags[i].tag === 958) byName.set(tags[i].value, tags[i + 2].value)
@@ -183,7 +186,7 @@ describe('participate sample fixture shape', () => {
   })
 
   it('embeds each control parameter consistently with the strategy parameter list', () => {
-    const declared = new Map(sample.parameters.map(parameter => [parameter.name, parameter]))
+    const declared = new Map(sample.parameters.map((parameter) => [parameter.name, parameter]))
     for (const control of flattenControls(sample)) {
       if (control.parameterRef == null) continue
       expect(declared.get(control.parameterRef)).toEqual(control.parameter)

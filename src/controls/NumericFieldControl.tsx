@@ -19,20 +19,27 @@ export function NumericFieldControl({ control, value, onChange, state }: Control
   // types with a precision, derive step from the decimal places (e.g. precision=2
   // → step=0.01). Omit step for integers so the browser defaults to 1.
   const paramType = param?.type
-  const isFloatPrice = paramType === 'Float_t' || paramType === 'Price_t' || paramType === 'PriceOffset_t'
-  const isFloatQtyAmt = paramType === 'Qty_t' || paramType === 'Amt_t' || paramType === 'Percentage_t'
+  const isFloatPrice =
+    paramType === 'Float_t' || paramType === 'Price_t' || paramType === 'PriceOffset_t'
+  const isFloatQtyAmt =
+    paramType === 'Qty_t' || paramType === 'Amt_t' || paramType === 'Percentage_t'
   const isFloat = isFloatPrice || isFloatQtyAmt
-  const step = control.increment ?? control.innerIncrement ?? (
-    isFloat && param?.precision != null
+  const step =
+    control.increment ??
+    control.innerIncrement ??
+    (isFloat && param?.precision != null
       ? Math.pow(10, -param.precision)
-      : isFloat ? 'any' : undefined)
+      : isFloat
+        ? 'any'
+        : undefined)
 
   const baseInput =
     'w-full rounded border px-2 py-1 text-sm bg-card text-text font-mono focus:outline-none focus:ring-2'
   const borderClass = hasError
     ? 'border-bad-border focus:ring-bad-border'
     : 'border-border-base focus:ring-brand-soft'
-  const outerStepButton = 'inline-flex min-h-11 min-w-11 items-center justify-center rounded border border-border-base bg-card px-2 py-1 text-sm text-text font-mono focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-soft disabled:opacity-50 disabled:cursor-not-allowed'
+  const outerStepButton =
+    'inline-flex min-h-11 min-w-11 items-center justify-center rounded border border-border-base bg-card px-2 py-1 text-sm text-text font-mono focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-soft disabled:opacity-50 disabled:cursor-not-allowed'
   const shift = param?.type === 'Percentage_t' ? -2 : 0
   const min = formatDecimal(param?.min, null, shift) ?? undefined
   const max = formatDecimal(param?.max, null, shift) ?? undefined
@@ -50,7 +57,9 @@ export function NumericFieldControl({ control, value, onChange, state }: Control
         <label htmlFor={inputId} className="block text-xs text-muted font-medium">
           {control.label}
           {state.required && (
-            <span className="text-bad-text ml-1" aria-hidden="true">*</span>
+            <span className="text-bad-text ml-1" aria-hidden="true">
+              *
+            </span>
           )}
         </label>
       )}
@@ -58,9 +67,7 @@ export function NumericFieldControl({ control, value, onChange, state }: Control
         id={inputId}
         type="number"
         value={value == null ? '' : String(value)}
-        onChange={(e) =>
-          onChange(decimalInputValue(e.target.value))
-        }
+        onChange={(e) => onChange(decimalInputValue(e.target.value))}
         step={step}
         min={min}
         max={max}
@@ -75,14 +82,32 @@ export function NumericFieldControl({ control, value, onChange, state }: Control
       />
       {control.type === 'DoubleSpinner_t' && control.outerIncrement != null && (
         <div className="flex gap-1">
-          <button type="button" className={outerStepButton} disabled={!state.enabled} aria-label={`Decrease ${control.label ?? control.id} by ${control.outerIncrement}`} onClick={() => outerStep(-1)}>−{control.outerIncrement}</button>
-          <button type="button" className={outerStepButton} disabled={!state.enabled} aria-label={`Increase ${control.label ?? control.id} by ${control.outerIncrement}`} onClick={() => outerStep(1)}>+{control.outerIncrement}</button>
+          <button
+            type="button"
+            className={outerStepButton}
+            disabled={!state.enabled}
+            aria-label={`Decrease ${control.label ?? control.id} by ${control.outerIncrement}`}
+            onClick={() => outerStep(-1)}
+          >
+            −{control.outerIncrement}
+          </button>
+          <button
+            type="button"
+            className={outerStepButton}
+            disabled={!state.enabled}
+            aria-label={`Increase ${control.label ?? control.id} by ${control.outerIncrement}`}
+            onClick={() => outerStep(1)}
+          >
+            +{control.outerIncrement}
+          </button>
         </div>
       )}
       {hasError && (
         <ul id={errorId} className="space-y-0.5">
           {state.errors.map((err, index) => (
-            <li key={index} className="text-xs text-bad-text">{err}</li>
+            <li key={index} className="text-xs text-bad-text">
+              {err}
+            </li>
           ))}
         </ul>
       )}

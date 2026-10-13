@@ -31,18 +31,23 @@ export function stateRuleToText(node: StateRuleAstNode, depth = 0): string {
     case 'compare':
       return compareText(node)
     case 'and':
-      return node.children.map(c => wrap(c, depth + 1)).join(' AND ')
+      return node.children.map((c) => wrap(c, depth + 1)).join(' AND ')
     case 'or':
-      return node.children.map(c => wrap(c, depth + 1)).join(' OR ')
+      return node.children.map((c) => wrap(c, depth + 1)).join(' OR ')
     case 'xor':
-      return node.children.map(c => wrap(c, depth + 1)).join(' XOR ')
+      return node.children.map((c) => wrap(c, depth + 1)).join(' XOR ')
     case 'not':
       return `NOT (${stateRuleToText(node.children[0], depth + 1)})`
-    default: return '(invalid rule)'
+    default:
+      return '(invalid rule)'
   }
 }
 
-export function stateRuleToTree(node: StateRuleAstNode, depth = 0, into: TreeLine[] = []): TreeLine[] {
+export function stateRuleToTree(
+  node: StateRuleAstNode,
+  depth = 0,
+  into: TreeLine[] = [],
+): TreeLine[] {
   if (depth > MAX_STATE_RULE_DEPTH) {
     into.push({ depth, text: '...', isOperator: false })
     return into

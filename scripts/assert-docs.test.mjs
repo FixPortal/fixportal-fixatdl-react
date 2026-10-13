@@ -15,7 +15,8 @@ describe('public documentation contract', () => {
     writeFileSync(join(root, 'README.md'), 'root')
     writeFileSync(join(root, 'docs', 'api.md'), 'ok')
     try {
-      const markdown = '[angle](<docs/api.md>) [title](docs/api.md "Title") [root](/docs/api.md)\n[ref]: docs/api.md\n[bad](%ZZ)'
+      const markdown =
+        '[angle](<docs/api.md>) [title](docs/api.md "Title") [root](/docs/api.md)\n[ref]: docs/api.md\n[bad](%ZZ)'
       expect(localLinkProblems(root, 'README.md', markdown)).toEqual(['README.md -> %ZZ'])
       expect(localLinkProblems(root, 'docs/deep/api.md', '[root](/README.md)')).toEqual([])
     } finally {

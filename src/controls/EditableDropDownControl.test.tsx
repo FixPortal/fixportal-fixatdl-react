@@ -100,9 +100,7 @@ describe('EditableDropDownControl', () => {
         defaultValue: null,
       },
     }
-    render(
-      <EditableDropDownControl control={ctrl} value="" onChange={vi.fn()} state={ENABLED} />,
-    )
+    render(<EditableDropDownControl control={ctrl} value="" onChange={vi.fn()} state={ENABLED} />)
     // datalist options are not queryable by role; check they exist in the DOM
     expect(document.querySelector('datalist')).not.toBeNull()
     const options = document.querySelectorAll('datalist option')

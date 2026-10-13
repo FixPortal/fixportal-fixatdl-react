@@ -53,7 +53,10 @@ function parameterName(control: AtdlControlDto): string | null {
 /** A hidden control repeats a visible sibling's message when they share a parameter.
  * An error only the hidden control has still belongs in the summary: an editable
  * dropdown accepts free text, and the hidden copy of that parameter does not. */
-function hiddenSummaryErrors(strategy: AtdlStrategyDto, controlState: Record<string, ControlFormState>): string[] {
+function hiddenSummaryErrors(
+  strategy: AtdlStrategyDto,
+  controlState: Record<string, ControlFormState>,
+): string[] {
   const controls = flattenControls(strategy)
   const visibleErrorsByParameter = new Map<string, Set<string>>()
   for (const control of controls) {
@@ -64,46 +67,76 @@ function hiddenSummaryErrors(strategy: AtdlStrategyDto, controlState: Record<str
     for (const error of state.errors) errors.add(error)
     visibleErrorsByParameter.set(name, errors)
   }
-  return controls.flatMap(control => {
+  return controls.flatMap((control) => {
     const state = controlState[control.id]
     const hidden = control.type === 'HiddenField_t' || !state?.visible
     if (!hidden) return []
     const name = parameterName(control)
     if (!state) return []
     const visibleErrors = name == null ? undefined : visibleErrorsByParameter.get(name)
-    return state.errors.filter(error => !visibleErrors?.has(error)).map(error => `${control.label ?? control.id}: ${error}`)
+    return state.errors
+      .filter((error) => !visibleErrors?.has(error))
+      .map((error) => `${control.label ?? control.id}: ${error}`)
   })
 }
 
-function FormRendererInner({ strategy, forwardedRef, options, highlightedControlId, onHighlightControl }: FormRendererInnerProps) {
-  const { values, setValue, controlState, hasErrors, strategyErrors } = useAtdlFormState(strategy, options)
+function FormRendererInner({
+  strategy,
+  forwardedRef,
+  options,
+  highlightedControlId,
+  onHighlightControl,
+}: FormRendererInnerProps) {
+  const { values, setValue, controlState, hasErrors, strategyErrors } = useAtdlFormState(
+    strategy,
+    options,
+  )
   const summaryErrors = [...strategyErrors, ...hiddenSummaryErrors(strategy, controlState)]
 
   // WHY [values] dependency: the closure must capture the latest values map
   // so getValues() always returns current state, not a stale snapshot from
   // the render that installed the handle.
-  useImperativeHandle(forwardedRef, () => ({
-    getValues: () => structuredClone(values),
-    isValid: () => !hasErrors,
-    getErrors: () => [...strategyErrors, ...Object.values(controlState).flatMap(state => state.errors)],
-  }), [values, hasErrors, strategyErrors, controlState])
+  useImperativeHandle(
+    forwardedRef,
+    () => ({
+      getValues: () => structuredClone(values),
+      isValid: () => !hasErrors,
+      getErrors: () => [
+        ...strategyErrors,
+        ...Object.values(controlState).flatMap((state) => state.errors),
+      ],
+    }),
+    [values, hasErrors, strategyErrors, controlState],
+  )
 
   return (
     <>
-    {summaryErrors.length > 0 && <ul role="alert">{summaryErrors.map((error, index) => <li key={index}>{error}</li>)}</ul>}
-    <PanelRenderer
-      panel={strategy.panel}
-      values={values}
-      setValue={setValue}
-      state={controlState}
-      highlightedControlId={highlightedControlId ?? null}
-      onHighlightControl={onHighlightControl}
-    />
+      {summaryErrors.length > 0 && (
+        <ul role="alert">
+          {summaryErrors.map((error, index) => (
+            <li key={index}>{error}</li>
+          ))}
+        </ul>
+      )}
+      <PanelRenderer
+        panel={strategy.panel}
+        values={values}
+        setValue={setValue}
+        state={controlState}
+        highlightedControlId={highlightedControlId ?? null}
+        onHighlightControl={onHighlightControl}
+      />
     </>
   )
 }
 
-export function FormRenderer({ strategy, ref, options, highlightedControlId, onHighlightControl }: FormRendererProps) {
+export function FormRenderer({
+  strategy,
+  ref,
+  options,
+  highlightedControlId,
+  onHighlightControl,
+}: FormRendererProps) {
   const strategyKey = strategyContentKey(strategy)
   return (
     <FormRendererInner

@@ -79,5 +79,4 @@ describe('DropDownControl', () => {
     expect(screen.getByRole('option', { name: 'A' })).toBeInTheDocument()
     expect(screen.getByRole('option', { name: 'B' })).toBeInTheDocument()
   })
-
 })

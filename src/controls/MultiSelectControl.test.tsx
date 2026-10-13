@@ -85,12 +85,7 @@ describe('MultiSelectControl', () => {
 
   it('renders all items as checkboxes', () => {
     render(
-      <MultiSelectControl
-        control={BASE_CONTROL}
-        value={[]}
-        onChange={vi.fn()}
-        state={ENABLED}
-      />,
+      <MultiSelectControl control={BASE_CONTROL} value={[]} onChange={vi.fn()} state={ENABLED} />,
     )
     expect(screen.getByRole('checkbox', { name: 'Dark Pool' })).toBeInTheDocument()
     expect(screen.getByRole('checkbox', { name: 'Lit Venue' })).toBeInTheDocument()
@@ -106,17 +101,16 @@ describe('MultiSelectControl', () => {
         state={{ ...ENABLED, errors: ['Required.'] }}
       />,
     )
-    screen.getAllByRole('checkbox').forEach(checkbox => expect(checkbox).toHaveAttribute('aria-invalid', 'true'))
+    screen
+      .getAllByRole('checkbox')
+      .forEach((checkbox) => expect(checkbox).toHaveAttribute('aria-invalid', 'true'))
 
     rerender(
-      <MultiSelectControl
-        control={BASE_CONTROL}
-        value={[]}
-        onChange={vi.fn()}
-        state={ENABLED}
-      />,
+      <MultiSelectControl control={BASE_CONTROL} value={[]} onChange={vi.fn()} state={ENABLED} />,
     )
-    screen.getAllByRole('checkbox').forEach(checkbox => expect(checkbox).toHaveAttribute('aria-invalid', 'false'))
+    screen
+      .getAllByRole('checkbox')
+      .forEach((checkbox) => expect(checkbox).toHaveAttribute('aria-invalid', 'false'))
   })
 
   it('applies error border class to the group wrapper when state.errors is non-empty', () => {

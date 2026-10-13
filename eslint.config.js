@@ -31,18 +31,18 @@ export default defineConfig([
       // and CI logs without failing `eslint .`. cognitive-complexity keeps its
       // default threshold of 15.
       ...Object.fromEntries(
-        Object.keys(sonarjs.configs.recommended.rules ?? {}).map(name => [name, 'warn']),
+        Object.keys(sonarjs.configs.recommended.rules ?? {}).map((name) => [name, 'warn']),
       ),
       // Silence SonarJS rules that are stylistic policy or false-positive noise,
       // not code-quality signals -- they otherwise bury the findings that matter.
-      'sonarjs/file-header': 'off',                  // wants a licence header on every file
-      'sonarjs/arrow-function-convention': 'off',    // pure formatting (single-param parens)
+      'sonarjs/file-header': 'off', // wants a licence header on every file
+      'sonarjs/arrow-function-convention': 'off', // pure formatting (single-param parens)
       'sonarjs/declarations-in-global-scope': 'off', // misfires on ESM/.d.ts module declarations
-      'sonarjs/cyclomatic-complexity': 'off',        // gate on cognitive-complexity instead
-      'sonarjs/no-reference-error': 'off',           // false-positives on type-only refs and DOM
-                                                     // lib globals; tsc + typescript-eslint catch
-                                                     // genuine reference errors (this rule can't
-                                                     // see types).
+      'sonarjs/cyclomatic-complexity': 'off', // gate on cognitive-complexity instead
+      'sonarjs/no-reference-error': 'off', // false-positives on type-only refs and DOM
+      // lib globals; tsc + typescript-eslint catch
+      // genuine reference errors (this rule can't
+      // see types).
       '@typescript-eslint/no-unused-vars': [
         'error',
         { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },

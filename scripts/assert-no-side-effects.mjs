@@ -33,7 +33,9 @@ try {
 
 assert.ok(imported, `dist/index.js threw on import: ${importError}`)
 assert.deepEqual(writes, [], `module-level console output during import: ${writes.join('; ')}`)
-const leaked = Object.getOwnPropertyNames(globalThis).filter(name => !globalsBefore.has(name))
+const leaked = Object.getOwnPropertyNames(globalThis).filter((name) => !globalsBefore.has(name))
 assert.deepEqual(leaked, [], `module-level global mutations during import: ${leaked.join(', ')}`)
 
-console.log('OK dist/index.js imports with no console output and no global mutations (the JS side of the sideEffects claim holds)')
+console.log(
+  'OK dist/index.js imports with no console output and no global mutations (the JS side of the sideEffects claim holds)',
+)

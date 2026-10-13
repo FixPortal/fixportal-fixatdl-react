@@ -84,20 +84,39 @@ For a workbench with preview and rule inspection, use the state hook and control
 
 ```tsx
 import {
-  PanelRenderer, useAtdlFormState, mapControlValuesToParameters,
-  emitStrategyParametersGrp, type AtdlStrategyDto,
+  PanelRenderer,
+  useAtdlFormState,
+  mapControlValuesToParameters,
+  emitStrategyParametersGrp,
+  type AtdlStrategyDto,
 } from '@fix-portal/fixatdl-react'
 
 export function Workbench({ strategy }: { strategy: AtdlStrategyDto }) {
-  const { values, setValue, controlState, hasErrors, strategyErrors } =
-    useAtdlFormState(strategy, { clock: () => new Date() })
-  const preview = emitStrategyParametersGrp(strategy, mapControlValuesToParameters(strategy, values))
-  return <>
-    {strategyErrors.map((error, index) => <p role="alert" key={index}>{error}</p>)}
-    <PanelRenderer panel={strategy.panel} values={values} setValue={setValue}
-      state={controlState} highlightedControlId={null} onHighlightControl={() => {}} />
-    <output>{hasErrors ? 'Correct the highlighted fields.' : JSON.stringify(preview)}</output>
-  </>
+  const { values, setValue, controlState, hasErrors, strategyErrors } = useAtdlFormState(strategy, {
+    clock: () => new Date(),
+  })
+  const preview = emitStrategyParametersGrp(
+    strategy,
+    mapControlValuesToParameters(strategy, values),
+  )
+  return (
+    <>
+      {strategyErrors.map((error, index) => (
+        <p role="alert" key={index}>
+          {error}
+        </p>
+      ))}
+      <PanelRenderer
+        panel={strategy.panel}
+        values={values}
+        setValue={setValue}
+        state={controlState}
+        highlightedControlId={null}
+        onHighlightControl={() => {}}
+      />
+      <output>{hasErrors ? 'Correct the highlighted fields.' : JSON.stringify(preview)}</output>
+    </>
+  )
 }
 ```
 
@@ -136,7 +155,7 @@ Keep owning the stylesheet and scan the installed package instead (`@theme` / `@
 are v4 syntax; Tailwind v3 will not pick them up). For a stylesheet at `src/index.css`:
 
 ```css
-@import "tailwindcss";
+@import 'tailwindcss';
 
 @theme {
   --color-text: #1f2937;

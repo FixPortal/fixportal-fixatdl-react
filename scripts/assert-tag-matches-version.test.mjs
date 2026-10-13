@@ -27,13 +27,13 @@ describe('release tag must name the package version exactly', () => {
     expect(tagVersionMismatch('0.2.0', '0.2.0')).not.toBeNull()
   })
 
-  it.each([undefined, '', null])('refuses to publish when the tag name is %s', ref => {
+  it.each([undefined, '', null])('refuses to publish when the tag name is %s', (ref) => {
     // An unset GITHUB_REF_NAME must FAIL, never pass by comparing undefined to
     // undefined. This is the regression that would let any ref publish.
     expect(tagVersionMismatch(ref, '0.2.0')).not.toBeNull()
   })
 
-  it.each([undefined, ''])('refuses to publish when package.json has version %s', version => {
+  it.each([undefined, ''])('refuses to publish when package.json has version %s', (version) => {
     expect(tagVersionMismatch('v0.2.0', version)).not.toBeNull()
   })
 

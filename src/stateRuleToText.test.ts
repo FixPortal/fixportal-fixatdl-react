@@ -2,15 +2,21 @@ import { describe, it, expect } from 'vitest'
 import { stateRuleToText, stateRuleToTree } from './stateRuleToText.js'
 import type { StateRuleAstNode } from './stateRuleAst.js'
 
-const cmp = (operator: string, field: string, value: unknown): StateRuleAstNode =>
-  ({ kind: 'compare', operator: operator as never, field, value })
+const cmp = (operator: string, field: string, value: unknown): StateRuleAstNode => ({
+  kind: 'compare',
+  operator: operator as never,
+  field,
+  value,
+})
 
 describe('stateRuleToText', () => {
-  it.each([true, false, null])('distinguishes %s from a string literal', value => {
+  it.each([true, false, null])('distinguishes %s from a string literal', (value) => {
     expect(stateRuleToText(cmp('==', 'a', value))).toBe(`a == ${String(value)}`)
   })
   it('renders malformed compound children without throwing', () => {
-    expect(stateRuleToText({ kind: 'and', children: [null] } as unknown as StateRuleAstNode)).toContain('(invalid rule)')
+    expect(
+      stateRuleToText({ kind: 'and', children: [null] } as unknown as StateRuleAstNode),
+    ).toContain('(invalid rule)')
   })
   it('renders a literal comparison with quoted string value', () => {
     expect(stateRuleToText(cmp('==', 'OrdType', '1'))).toBe('OrdType == "1"')
@@ -25,7 +31,10 @@ describe('stateRuleToText', () => {
   it('parenthesises compound children inside AND/OR', () => {
     const node: StateRuleAstNode = {
       kind: 'or',
-      children: [cmp('==', 'OrdType', '1'), { kind: 'and', children: [cmp('==', 'TimeInForce', 'GTC'), cmp('>', 'Price', 100)] }],
+      children: [
+        cmp('==', 'OrdType', '1'),
+        { kind: 'and', children: [cmp('==', 'TimeInForce', 'GTC'), cmp('>', 'Price', 100)] },
+      ],
     }
     expect(stateRuleToText(node)).toBe('OrdType == "1" OR (TimeInForce == "GTC" AND Price > 100)')
   })
@@ -33,7 +42,10 @@ describe('stateRuleToText', () => {
     expect(stateRuleToText({ kind: 'not', children: [cmp('==', 'X', '1')] })).toBe('NOT (X == "1")')
   })
   it('joins XOR children with the XOR keyword', () => {
-    const node: StateRuleAstNode = { kind: 'xor', children: [cmp('==', 'A', '1'), cmp('==', 'B', '2')] }
+    const node: StateRuleAstNode = {
+      kind: 'xor',
+      children: [cmp('==', 'A', '1'), cmp('==', 'B', '2')],
+    }
     expect(stateRuleToText(node)).toBe('A == "1" XOR B == "2"')
   })
 })
@@ -53,7 +65,10 @@ describe('stateRuleToTree', () => {
   it('emits operator parents and comparison leaves with depth', () => {
     const node: StateRuleAstNode = {
       kind: 'or',
-      children: [cmp('==', 'OrdType', '1'), { kind: 'and', children: [cmp('==', 'TimeInForce', 'GTC'), cmp('>', 'Price', 100)] }],
+      children: [
+        cmp('==', 'OrdType', '1'),
+        { kind: 'and', children: [cmp('==', 'TimeInForce', 'GTC'), cmp('>', 'Price', 100)] },
+      ],
     }
     expect(stateRuleToTree(node)).toEqual([
       { depth: 0, text: 'OR', isOperator: true },

@@ -78,45 +78,49 @@ panel children carry the discriminator explicitly:
 {
   "name": "DemoStrategy",
   "description": "Synthetic example",
-  "parameters": [{
-    "name": "OrderQty",
-    "fixTag": 38,
-    "type": "Int_t",
-    "enumValues": null,
-    "min": 1,
-    "max": 1000000,
-    "precision": null,
-    "mutableOnCxlRpl": true,
-    "useValue": "required",
-    "defaultValue": null
-  }],
+  "parameters": [
+    {
+      "name": "OrderQty",
+      "fixTag": 38,
+      "type": "Int_t",
+      "enumValues": null,
+      "min": 1,
+      "max": 1000000,
+      "precision": null,
+      "mutableOnCxlRpl": true,
+      "useValue": "required",
+      "defaultValue": null
+    }
+  ],
   "panel": {
     "title": null,
     "border": "None",
     "orientation": "Vertical",
     "collapsible": false,
     "collapsed": false,
-    "children": [{
-      "kind": "control",
-      "id": "orderQty",
-      "type": "SingleSpinner_t",
-      "label": "Order quantity",
-      "parameterRef": "OrderQty",
-      "parameter": {
-        "name": "OrderQty",
-        "fixTag": 38,
-        "type": "Int_t",
-        "min": 1,
-        "max": 1000000,
-        "mutableOnCxlRpl": true,
-        "useValue": "required"
-      },
-      "listItems": null,
-      "initValue": null,
-      "stateRules": [],
-      "tooltip": null,
-      "increment": 1
-    }]
+    "children": [
+      {
+        "kind": "control",
+        "id": "orderQty",
+        "type": "SingleSpinner_t",
+        "label": "Order quantity",
+        "parameterRef": "OrderQty",
+        "parameter": {
+          "name": "OrderQty",
+          "fixTag": 38,
+          "type": "Int_t",
+          "min": 1,
+          "max": 1000000,
+          "mutableOnCxlRpl": true,
+          "useValue": "required"
+        },
+        "listItems": null,
+        "initValue": null,
+        "stateRules": [],
+        "tooltip": null,
+        "increment": 1
+      }
+    ]
   },
   "sourceXml": "<Strategy name=\"DemoStrategy\" />",
   "strategyEdits": []
@@ -165,52 +169,52 @@ state to parameter values.
 
 ## `AtdlStrategyDto`
 
-| Field | Required | Maps from |
-|---|---|---|
-| `name` | yes | `Strategy_t.Name` |
-| `description` | no | `Strategy_t.Description` text |
-| `parameters` | yes | `Strategy_t.Parameters` |
-| `panel` | yes | `Strategy_t.StrategyLayout.StrategyPanel` |
-| `sourceXml` | yes | Original strategy XML fragment (identity; state resets when it changes) |
-| `strategyEdits` | no | `Strategy_t.StrategyEdits` |
+| Field           | Required | Maps from                                                               |
+| --------------- | -------- | ----------------------------------------------------------------------- |
+| `name`          | yes      | `Strategy_t.Name`                                                       |
+| `description`   | no       | `Strategy_t.Description` text                                           |
+| `parameters`    | yes      | `Strategy_t.Parameters`                                                 |
+| `panel`         | yes      | `Strategy_t.StrategyLayout.StrategyPanel`                               |
+| `sourceXml`     | yes      | Original strategy XML fragment (identity; state resets when it changes) |
+| `strategyEdits` | no       | `Strategy_t.StrategyEdits`                                              |
 
 ## `AtdlParameterDto`
 
-| Field | Maps from | Notes |
-|---|---|---|
-| `name` | `IParameter.Name` | Emitter keys on **parameter name**, not control id. |
-| `fixTag` | `IParameter.FixTag` | `null` = local to the form, never emitted. |
-| `type` | parameter `xsi:type` local name | `Int_t`, `UTCTimestamp_t`, … |
-| `enumValues` | `EnumPair` collection | `{ enumId, wireValue }` |
-| `min` / `max` | parameter bounds | Native type; percentages are the **wire** fraction unless `multiplyBy100`. |
-| `precision` | decimal precision | |
-| `mutableOnCxlRpl` | `MutableOnCxlRpl` | `false` locks the control when `isAmendment`. |
-| `useValue` | `Use_t` | `"required"` / `"optional"` / `null`. |
-| `defaultValue` | parameter default | Used only when the control has no `initValue`. A checkbox or radio with neither starts unchecked. |
-| `trueWireValue` / `falseWireValue` | Boolean mappings | |
-| `invertOnWire` | inverted list | |
-| `constValue` | constant parameter | **Wins** over filled form values in the preview emitter. |
-| `minLength` / `maxLength` | string length | |
-| `multiplyBy100` | `Percentage_t` display | |
-| `localMktTz` | IANA zone | Daily bounds and clocks. |
+| Field                              | Maps from                       | Notes                                                                                             |
+| ---------------------------------- | ------------------------------- | ------------------------------------------------------------------------------------------------- |
+| `name`                             | `IParameter.Name`               | Emitter keys on **parameter name**, not control id.                                               |
+| `fixTag`                           | `IParameter.FixTag`             | `null` = local to the form, never emitted.                                                        |
+| `type`                             | parameter `xsi:type` local name | `Int_t`, `UTCTimestamp_t`, …                                                                      |
+| `enumValues`                       | `EnumPair` collection           | `{ enumId, wireValue }`                                                                           |
+| `min` / `max`                      | parameter bounds                | Native type; percentages are the **wire** fraction unless `multiplyBy100`.                        |
+| `precision`                        | decimal precision               |                                                                                                   |
+| `mutableOnCxlRpl`                  | `MutableOnCxlRpl`               | `false` locks the control when `isAmendment`.                                                     |
+| `useValue`                         | `Use_t`                         | `"required"` / `"optional"` / `null`.                                                             |
+| `defaultValue`                     | parameter default               | Used only when the control has no `initValue`. A checkbox or radio with neither starts unchecked. |
+| `trueWireValue` / `falseWireValue` | Boolean mappings                |                                                                                                   |
+| `invertOnWire`                     | inverted list                   |                                                                                                   |
+| `constValue`                       | constant parameter              | **Wins** over filled form values in the preview emitter.                                          |
+| `minLength` / `maxLength`          | string length                   |                                                                                                   |
+| `multiplyBy100`                    | `Percentage_t` display          |                                                                                                   |
+| `localMktTz`                       | IANA zone                       | Daily bounds and clocks.                                                                          |
 
 ## `AtdlControlDto`
 
-| Field | Maps from | Notes |
-|---|---|---|
-| `id` | `Control_t.Id` | Must be nonempty and unique in the strategy. |
-| `type` | control `xsi:type` | One of the 15 names in the registry. |
-| `label` | `Label` | Rendered as React text, never HTML. |
-| `parameterRef` / `parameter` | `ParameterRef` | Embed the resolved parameter DTO when present. |
-| `listItems` | `ListItem`s | `{ enumId, uiRep }` |
-| `initValue` | `InitValue` | |
-| `stateRules` | `StateRule`s | See below. |
-| `tooltip` | `ToolTip` | |
-| `checkedEnumRef` / `uncheckedEnumRef` | binary enum refs | |
-| `radioGroup` | `RadioButton_t.RadioGroup` | Shared-parameter radios. |
-| `increment` / `innerIncrement` / `outerIncrement` | spinner/slider | |
-| `initPolicy` / `initFixField` / `initValueMode` | `UseFixField` init | `initValueMode=1` needs a host `clock`. |
-| `localMktTz` | clock zone | |
+| Field                                             | Maps from                  | Notes                                          |
+| ------------------------------------------------- | -------------------------- | ---------------------------------------------- |
+| `id`                                              | `Control_t.Id`             | Must be nonempty and unique in the strategy.   |
+| `type`                                            | control `xsi:type`         | One of the 15 names in the registry.           |
+| `label`                                           | `Label`                    | Rendered as React text, never HTML.            |
+| `parameterRef` / `parameter`                      | `ParameterRef`             | Embed the resolved parameter DTO when present. |
+| `listItems`                                       | `ListItem`s                | `{ enumId, uiRep }`                            |
+| `initValue`                                       | `InitValue`                |                                                |
+| `stateRules`                                      | `StateRule`s               | See below.                                     |
+| `tooltip`                                         | `ToolTip`                  |                                                |
+| `checkedEnumRef` / `uncheckedEnumRef`             | binary enum refs           |                                                |
+| `radioGroup`                                      | `RadioButton_t.RadioGroup` | Shared-parameter radios.                       |
+| `increment` / `innerIncrement` / `outerIncrement` | spinner/slider             |                                                |
+| `initPolicy` / `initFixField` / `initValueMode`   | `UseFixField` init         | `initValueMode=1` needs a host `clock`.        |
+| `localMktTz`                                      | clock zone                 |                                                |
 
 ## Panels
 

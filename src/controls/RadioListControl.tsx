@@ -20,7 +20,9 @@ export function RadioListControl({ control, value, onChange, state }: ControlPro
         <div className="text-xs text-muted font-medium">
           {control.label}
           {state.required && (
-            <span className="text-bad-text ml-1" aria-hidden="true">*</span>
+            <span className="text-bad-text ml-1" aria-hidden="true">
+              *
+            </span>
           )}
         </div>
       )}
@@ -33,10 +35,7 @@ export function RadioListControl({ control, value, onChange, state }: ControlPro
         className="flex flex-col gap-1"
       >
         {options.map((opt) => (
-          <label
-            key={opt.enumId}
-            className="flex items-center gap-2 cursor-pointer select-none"
-          >
+          <label key={opt.enumId} className="flex items-center gap-2 cursor-pointer select-none">
             <input
               type="radio"
               name={errorId}
@@ -54,7 +53,9 @@ export function RadioListControl({ control, value, onChange, state }: ControlPro
       {hasError && (
         <ul id={errorId} className="space-y-0.5">
           {state.errors.map((err, index) => (
-            <li key={index} className="text-xs text-bad-text">{err}</li>
+            <li key={index} className="text-xs text-bad-text">
+              {err}
+            </li>
           ))}
         </ul>
       )}

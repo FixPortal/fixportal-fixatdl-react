@@ -35,14 +35,38 @@ function cloneStrategyWithSourceXml(nextSourceXml: string): AtdlStrategyDto {
 // ---------------------------------------------------------------------------
 
 describe('FormRenderer', () => {
-  it.each(['TextField_t', 'DoubleSpinner_t', 'DropDownList_t', 'CheckBox_t', 'RadioButtonList_t', 'EditableDropDownList_t', 'Clock_t', 'Slider_t', 'MultiSelectList_t'])('renders duplicate errors without React key collisions: %s', type => {
+  it.each([
+    'TextField_t',
+    'DoubleSpinner_t',
+    'DropDownList_t',
+    'CheckBox_t',
+    'RadioButtonList_t',
+    'EditableDropDownList_t',
+    'Clock_t',
+    'Slider_t',
+    'MultiSelectList_t',
+  ])('renders duplicate errors without React key collisions: %s', (type) => {
     const spy = vi.spyOn(console, 'error').mockImplementation(() => {})
     try {
       const Component = controlRegistry[type]
-      render(<Component control={{ ...control, type }} value={null} onChange={vi.fn()} state={{ visible: true, enabled: true, required: false, errors: ['Invalid rule.', 'Invalid rule.'] }} />)
+      render(
+        <Component
+          control={{ ...control, type }}
+          value={null}
+          onChange={vi.fn()}
+          state={{
+            visible: true,
+            enabled: true,
+            required: false,
+            errors: ['Invalid rule.', 'Invalid rule.'],
+          }}
+        />,
+      )
       expect(screen.getAllByText('Invalid rule.')).toHaveLength(2)
       expect(spy).not.toHaveBeenCalled()
-    } finally { spy.mockRestore() }
+    } finally {
+      spy.mockRestore()
+    }
   })
   it('keeps the shipped percentage slider in whole-percent display units', () => {
     renderForm()
@@ -50,35 +74,117 @@ describe('FormRenderer', () => {
   })
   const control = flattenControls(strategy)[0]
   function single(overrides: Partial<AtdlControlDto>): AtdlStrategyDto {
-    return { ...strategy, parameters: [], panel: { ...strategy.panel, children: [{ ...control, ...overrides, kind: 'control' }] } }
+    return {
+      ...strategy,
+      parameters: [],
+      panel: { ...strategy.panel, children: [{ ...control, ...overrides, kind: 'control' }] },
+    }
   }
-  const hidden = { effect: 'visible', targetValue: false, targetStringValue: null, expression: { kind: 'and', children: [], field: null, operator: null, value: null } }
+  const hidden = {
+    effect: 'visible',
+    targetValue: false,
+    targetStringValue: null,
+    expression: { kind: 'and', children: [], field: null, operator: null, value: null },
+  }
 
   it('does not repeat a visible control error for a hidden sibling on the same parameter', () => {
-    const parameter = { ...strategy.parameters[0], name: 'Venues', enumValues: [{ enumId: 'a', wireValue: 'A' }] }
+    const parameter = {
+      ...strategy.parameters[0],
+      name: 'Venues',
+      enumValues: [{ enumId: 'a', wireValue: 'A' }],
+    }
     const base = flattenControls(strategy)[0]
-    const child = (id: string, type: string, label: string) => ({ ...base, id, type, label, parameter, parameterRef: parameter.name, initValue: 'nope', stateRules: [], kind: 'control' as const })
-    const document = { ...strategy, parameters: [parameter], panel: { ...strategy.panel, children: [child('shown', 'TextField_t', 'Shown'), child('hidden', 'HiddenField_t', 'Hidden copy')] } }
+    const child = (id: string, type: string, label: string) => ({
+      ...base,
+      id,
+      type,
+      label,
+      parameter,
+      parameterRef: parameter.name,
+      initValue: 'nope',
+      stateRules: [],
+      kind: 'control' as const,
+    })
+    const document = {
+      ...strategy,
+      parameters: [parameter],
+      panel: {
+        ...strategy.panel,
+        children: [
+          child('shown', 'TextField_t', 'Shown'),
+          child('hidden', 'HiddenField_t', 'Hidden copy'),
+        ],
+      },
+    }
     render(<FormRenderer strategy={document} />)
     expect(screen.queryByRole('alert')).not.toBeInTheDocument()
     expect(screen.getByText('Must be a declared enumeration value.')).toBeInTheDocument()
   })
 
   it('shows a hidden enumeration error when the editable dropdown accepts the same text', () => {
-    const parameter = { ...strategy.parameters[0], name: 'Venues', enumValues: [{ enumId: 'a', wireValue: 'A' }] }
+    const parameter = {
+      ...strategy.parameters[0],
+      name: 'Venues',
+      enumValues: [{ enumId: 'a', wireValue: 'A' }],
+    }
     const base = flattenControls(strategy)[0]
-    const child = (id: string, type: string, label: string) => ({ ...base, id, type, label, parameter, parameterRef: parameter.name, initValue: 'BOGUS', stateRules: [], kind: 'control' as const })
-    const document = { ...strategy, parameters: [parameter], panel: { ...strategy.panel, children: [child('shown', 'EditableDropDownList_t', 'Shown'), child('hidden', 'HiddenField_t', 'Hidden copy')] } }
+    const child = (id: string, type: string, label: string) => ({
+      ...base,
+      id,
+      type,
+      label,
+      parameter,
+      parameterRef: parameter.name,
+      initValue: 'BOGUS',
+      stateRules: [],
+      kind: 'control' as const,
+    })
+    const document = {
+      ...strategy,
+      parameters: [parameter],
+      panel: {
+        ...strategy.panel,
+        children: [
+          child('shown', 'EditableDropDownList_t', 'Shown'),
+          child('hidden', 'HiddenField_t', 'Hidden copy'),
+        ],
+      },
+    }
     const ref = createRef<FormRendererHandle>()
     render(<FormRenderer ref={ref} strategy={document} />)
-    expect(screen.getByRole('alert')).toHaveTextContent('Hidden copy: Must be a declared enumeration value.')
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      'Hidden copy: Must be a declared enumeration value.',
+    )
     expect(ref.current!.isValid()).toBe(false)
   })
 
   it('keeps focus and an open panel when a replacement strategy has the same content', () => {
-    const panel = { title: 'Section', border: 'None', orientation: 'Vertical', collapsible: true, collapsed: true, children: [] as AtdlStrategyDto['panel']['children'] }
-    const control = { kind: 'control' as const, id: 'name', type: 'TextField_t', label: 'Name', parameterRef: null, parameter: null, listItems: null, initValue: 'seed', stateRules: [], tooltip: null }
-    const document: AtdlStrategyDto = { name: 'S', parameters: [], panel: { ...panel, children: [control] }, sourceXml: '<Strategy />' }
+    const panel = {
+      title: 'Section',
+      border: 'None',
+      orientation: 'Vertical',
+      collapsible: true,
+      collapsed: true,
+      children: [] as AtdlStrategyDto['panel']['children'],
+    }
+    const control = {
+      kind: 'control' as const,
+      id: 'name',
+      type: 'TextField_t',
+      label: 'Name',
+      parameterRef: null,
+      parameter: null,
+      listItems: null,
+      initValue: 'seed',
+      stateRules: [],
+      tooltip: null,
+    }
+    const document: AtdlStrategyDto = {
+      name: 'S',
+      parameters: [],
+      panel: { ...panel, children: [control] },
+      sourceXml: '<Strategy />',
+    }
     const { rerender } = render(<FormRenderer strategy={document} />)
     const details = screen.getByText('Section').closest('details')
     expect(details).not.toBeNull()
@@ -86,7 +192,20 @@ describe('FormRenderer', () => {
     const input = screen.getByLabelText('Name')
     fireEvent.change(input, { target: { value: 'edited' } })
     input.focus()
-    const equivalent: AtdlStrategyDto = { sourceXml: '<Strategy />', description: null, panel: { children: [{ ...control, tooltip: null }], collapsed: true, collapsible: true, orientation: 'Vertical', border: 'None', title: 'Section' }, parameters: [], name: 'S' }
+    const equivalent: AtdlStrategyDto = {
+      sourceXml: '<Strategy />',
+      description: null,
+      panel: {
+        children: [{ ...control, tooltip: null }],
+        collapsed: true,
+        collapsible: true,
+        orientation: 'Vertical',
+        border: 'None',
+        title: 'Section',
+      },
+      parameters: [],
+      name: 'S',
+    }
     rerender(<FormRenderer strategy={equivalent} />)
     expect(screen.getByLabelText('Name')).toBe(input)
     expect(input).toHaveValue('edited')
@@ -95,16 +214,32 @@ describe('FormRenderer', () => {
     expect(details!.open).toBe(true)
   })
 
-  it.each(['TextField_t', 'HiddenField_t'])('surfaces a hidden required control error with its label: %s', type => {
-    const ref = createRef<FormRendererHandle>()
-    const document = single({ type, label: 'Hidden quantity', initValue: null, parameter: { ...strategy.parameters[0], useValue: 'required' }, stateRules: type === 'HiddenField_t' ? [] : [hidden] })
-    render(<FormRenderer ref={ref} strategy={document} />)
-    expect(screen.getByRole('alert')).toHaveTextContent('Hidden quantity: This field is required.')
-    expect(ref.current!.isValid()).toBe(false)
-  })
+  it.each(['TextField_t', 'HiddenField_t'])(
+    'surfaces a hidden required control error with its label: %s',
+    (type) => {
+      const ref = createRef<FormRendererHandle>()
+      const document = single({
+        type,
+        label: 'Hidden quantity',
+        initValue: null,
+        parameter: { ...strategy.parameters[0], useValue: 'required' },
+        stateRules: type === 'HiddenField_t' ? [] : [hidden],
+      })
+      render(<FormRenderer ref={ref} strategy={document} />)
+      expect(screen.getByRole('alert')).toHaveTextContent(
+        'Hidden quantity: This field is required.',
+      )
+      expect(ref.current!.isValid()).toBe(false)
+    },
+  )
   it('routes why clicks to the host inspector', () => {
     const onHighlightControl = vi.fn()
-    render(<FormRenderer strategy={single({ stateRules: [hidden] })} onHighlightControl={onHighlightControl} />)
+    render(
+      <FormRenderer
+        strategy={single({ stateRules: [hidden] })}
+        onHighlightControl={onHighlightControl}
+      />,
+    )
     fireEvent.click(screen.getByRole('button', { name: 'why?' }))
     expect(onHighlightControl).toHaveBeenCalledWith(control.id)
   })
@@ -112,10 +247,13 @@ describe('FormRenderer', () => {
     render(<FormRenderer strategy={single({ stateRules: [hidden] })} />)
     expect(screen.queryByRole('button', { name: 'why?' })).not.toBeInTheDocument()
   })
-  it.each(['constructor', '__proto__'])('renders an unsupported-control placeholder for %s', type => {
-    render(<FormRenderer strategy={single({ type })} />)
-    expect(screen.getByText(type)).toBeInTheDocument()
-  })
+  it.each(['constructor', '__proto__'])(
+    'renders an unsupported-control placeholder for %s',
+    (type) => {
+      render(<FormRenderer strategy={single({ type })} />)
+      expect(screen.getByText(type)).toBeInTheDocument()
+    },
+  )
   it('fails validation for an unregistered control type, naming the type', () => {
     // The renderer placeholder is only half the contract: a host gating
     // submission on the imperative handle must see the form as invalid, or the
@@ -127,18 +265,51 @@ describe('FormRenderer', () => {
   })
   it('displays an unmatched required selection without selecting option zero', () => {
     const ref = createRef<FormRendererHandle>()
-    render(<FormRenderer ref={ref} strategy={single({ type: 'DropDownList_t', initValue: 'missing', listItems: [{ enumId: 'a', uiRep: 'A' }], parameter: { ...strategy.parameters[0], useValue: 'required' } })} />)
+    render(
+      <FormRenderer
+        ref={ref}
+        strategy={single({
+          type: 'DropDownList_t',
+          initValue: 'missing',
+          listItems: [{ enumId: 'a', uiRep: 'A' }],
+          parameter: { ...strategy.parameters[0], useValue: 'required' },
+        })}
+      />,
+    )
     expect(screen.getByRole('combobox')).toHaveValue('missing')
     fireEvent.change(screen.getByRole('combobox'), { target: { value: 'a' } })
     expect(ref.current!.getValues()[control.id]).toBe('a')
   })
   it('announces required checkbox groups', () => {
-    render(<FormRenderer strategy={single({ type: 'CheckBoxList_t', label: 'Venues', parameter: { ...strategy.parameters[0], useValue: 'required' }, listItems: [{ enumId: 'a', uiRep: 'A' }] })} />)
+    render(
+      <FormRenderer
+        strategy={single({
+          type: 'CheckBoxList_t',
+          label: 'Venues',
+          parameter: { ...strategy.parameters[0], useValue: 'required' },
+          listItems: [{ enumId: 'a', uiRep: 'A' }],
+        })}
+      />,
+    )
     expect(screen.getByRole('group', { name: 'Venues (Required)' })).toBeInTheDocument()
   })
   it('exposes strategy validation to both the user and the submit handle', () => {
     const ref = createRef<FormRendererHandle>()
-    const invalid = { ...strategy, strategyEdits: [{ errorMessage: 'Choose a valid combination.', expression: { kind: 'compare', operator: '==', field: strategy.parameters[0].name, value: 'impossible', children: null } }] }
+    const invalid = {
+      ...strategy,
+      strategyEdits: [
+        {
+          errorMessage: 'Choose a valid combination.',
+          expression: {
+            kind: 'compare',
+            operator: '==',
+            field: strategy.parameters[0].name,
+            value: 'impossible',
+            children: null,
+          },
+        },
+      ],
+    }
     render(<FormRenderer ref={ref} strategy={invalid} />)
     expect(screen.getByRole('alert')).toHaveTextContent('Choose a valid combination.')
     expect(ref.current!.isValid()).toBe(false)
@@ -265,24 +436,32 @@ describe('FormRenderer', () => {
     expect(values?.['ctrl_name']).toBe('handle-test')
   })
 
-  it.each([false, true])('reseeds form state when the strategy identity changes (in-place: %s)', inPlace => {
-    const document = structuredClone(strategy)
-    const { rerender } = render(<FormRenderer strategy={document} />)
-    const input = screen.getByLabelText('Strategy Name')
-    const initialValue = (input as HTMLInputElement).value
+  it.each([false, true])(
+    'reseeds form state when the strategy identity changes (in-place: %s)',
+    (inPlace) => {
+      const document = structuredClone(strategy)
+      const { rerender } = render(<FormRenderer strategy={document} />)
+      const input = screen.getByLabelText('Strategy Name')
+      const initialValue = (input as HTMLInputElement).value
 
-    fireEvent.change(input, { target: { value: 'edited-name' } })
-    expect(input).toHaveValue('edited-name')
+      fireEvent.change(input, { target: { value: 'edited-name' } })
+      expect(input).toHaveValue('edited-name')
 
-    const updated = cloneStrategyWithSourceXml('<Strategy name="TWAP" version="2" />')
-    rerender(<FormRenderer strategy={inPlace ? Object.assign(document, updated) : updated} />)
+      const updated = cloneStrategyWithSourceXml('<Strategy name="TWAP" version="2" />')
+      rerender(<FormRenderer strategy={inPlace ? Object.assign(document, updated) : updated} />)
 
-    expect(screen.getByLabelText('Strategy Name')).toHaveValue(initialValue)
-    expect(screen.getByLabelText('Strategy Name')).not.toBe(input)
-  })
+      expect(screen.getByLabelText('Strategy Name')).toHaveValue(initialValue)
+      expect(screen.getByLabelText('Strategy Name')).not.toBe(input)
+    },
+  )
   it('isolates DOM identities and radio groups between simultaneous editors', () => {
-    const { container } = render(<><FormRenderer strategy={strategy} /><FormRenderer strategy={strategy} /></>)
-    const ids = [...container.querySelectorAll('[id]')].map(element => element.id)
+    const { container } = render(
+      <>
+        <FormRenderer strategy={strategy} />
+        <FormRenderer strategy={strategy} />
+      </>,
+    )
+    const ids = [...container.querySelectorAll('[id]')].map((element) => element.id)
     expect(new Set(ids).size).toBe(ids.length)
     const groups = screen.getAllByRole('radiogroup', { name: 'Algorithm' })
     expect(groups[0].querySelector('input')?.name).not.toBe(groups[1].querySelector('input')?.name)

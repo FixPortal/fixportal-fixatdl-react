@@ -1,5 +1,10 @@
 import type { AtdlControlDto, AtdlPanelDto, AtdlStrategyDto } from './types.js'
-import { controlParameterValue, isBinaryControl, isUnfilledAtdlValue, normalizeControlValue } from './atdlValue.js'
+import {
+  controlParameterValue,
+  isBinaryControl,
+  isUnfilledAtdlValue,
+  normalizeControlValue,
+} from './atdlValue.js'
 import { clockRuleValue, createClockValue, clockWireValue } from './atdlClock.js'
 import { formatDecimal } from './decimalValue.js'
 
@@ -57,31 +62,55 @@ export function mapControlValuesToParameters(
       const value = controlParameterValue(source, controlValues[source.id])
       // An unmapped unchecked radio contributes no parameter value; its selected
       // sibling supplies it regardless of their document order.
-      if (control.type === 'RadioButton_t' && value == null && Object.hasOwn(out, paramName)) continue
+      if (control.type === 'RadioButton_t' && value == null && Object.hasOwn(out, paramName))
+        continue
       out[paramName] = value
     }
   }
   return out
 }
 
-export function parameterValueSource(strategy: AtdlStrategyDto, values: Record<string, unknown>, control: AtdlControlDto, controls = flattenControls(strategy)): AtdlControlDto {
+export function parameterValueSource(
+  strategy: AtdlStrategyDto,
+  values: Record<string, unknown>,
+  control: AtdlControlDto,
+  controls = flattenControls(strategy),
+): AtdlControlDto {
   if (control.type !== 'RadioButton_t' || !control.radioGroup) return control
   const name = control.parameterRef ?? control.parameter?.name
-  return controls.find(candidate => candidate.type === 'RadioButton_t' &&
-    candidate.radioGroup === control.radioGroup && (candidate.parameterRef ?? candidate.parameter?.name) === name && values[candidate.id] === true) ?? control
+  return (
+    controls.find(
+      (candidate) =>
+        candidate.type === 'RadioButton_t' &&
+        candidate.radioGroup === control.radioGroup &&
+        (candidate.parameterRef ?? candidate.parameter?.name) === name &&
+        values[candidate.id] === true,
+    ) ?? control
+  )
 }
 
-export function controlValuesForRules(strategy: AtdlStrategyDto, values: Record<string, unknown>): Record<string, unknown> {
+export function controlValuesForRules(
+  strategy: AtdlStrategyDto,
+  values: Record<string, unknown>,
+): Record<string, unknown> {
   const result = { ...values }
   for (const control of flattenControls(strategy)) {
-    if (isBinaryControl(control)) result[control.id] = controlParameterValue(control, values[control.id])
+    if (isBinaryControl(control))
+      result[control.id] = controlParameterValue(control, values[control.id])
     if (control.type === 'Clock_t') result[control.id] = clockRuleValue(values[control.id])
   }
   return result
 }
 
 /** Assign through the same parameter/radio relationships for user edits and value rules. */
-export function assignControlValue(strategy: AtdlStrategyDto, values: Record<string, unknown>, control: AtdlControlDto, value: unknown, readonlyIds: ReadonlySet<string>, now?: Date): boolean {
+export function assignControlValue(
+  strategy: AtdlStrategyDto,
+  values: Record<string, unknown>,
+  control: AtdlControlDto,
+  value: unknown,
+  readonlyIds: ReadonlySet<string>,
+  now?: Date,
+): boolean {
   if (readonlyIds.has(control.id)) return false
   const controls = flattenControls(strategy)
   if (isLockedRadio(control, controls, values, readonlyIds)) return false
@@ -92,17 +121,40 @@ export function assignControlValue(strategy: AtdlStrategyDto, values: Record<str
     if (readonlyIds.has(sibling.id)) continue
     let next = values[sibling.id]
     if (sibling.id === control.id) next = value
-    else if (control.type === 'RadioButton_t' && value === true && control.radioGroup && sibling.type === 'RadioButton_t' && sibling.radioGroup === control.radioGroup) next = false
+    else if (
+      control.type === 'RadioButton_t' &&
+      value === true &&
+      control.radioGroup &&
+      sibling.type === 'RadioButton_t' &&
+      sibling.radioGroup === control.radioGroup
+    )
+      next = false
     else if (parameterName && parameterName === (sibling.parameterRef ?? sibling.parameter?.name)) {
       next = normalizeControlValue(sibling, parameterValue)
-      if (isBinaryControl(sibling) && (sibling.checkedEnumRef || sibling.uncheckedEnumRef)) next = parameterValue == null ? null : parameterValue === sibling.checkedEnumRef
-      if (sibling.parameter?.type === 'Percentage_t' && !sibling.parameter.enumValues?.length) next = isUnfilledAtdlValue(parameterValue) ? null : formatDecimal(parameterValue, null, -2) ?? parameterValue
+      if (isBinaryControl(sibling) && (sibling.checkedEnumRef || sibling.uncheckedEnumRef))
+        next = parameterValue == null ? null : parameterValue === sibling.checkedEnumRef
+      if (sibling.parameter?.type === 'Percentage_t' && !sibling.parameter.enumValues?.length)
+        next = isUnfilledAtdlValue(parameterValue)
+          ? null
+          : (formatDecimal(parameterValue, null, -2) ?? parameterValue)
       if (sibling.type === 'Clock_t') {
-        try { next = createClockValue(sibling, control.type === 'Clock_t' ? clockWireValue(value) : parameterValue, now, 'wire') }
-        catch { continue } // Partial text stays on the edited control for validation.
+        try {
+          next = createClockValue(
+            sibling,
+            control.type === 'Clock_t' ? clockWireValue(value) : parameterValue,
+            now,
+            'wire',
+          )
+        } catch {
+          continue
+        } // Partial text stays on the edited control for validation.
       }
     }
-    const equal = Object.is(values[sibling.id], next) || (Array.isArray(values[sibling.id]) && Array.isArray(next) && JSON.stringify(values[sibling.id]) === JSON.stringify(next))
+    const equal =
+      Object.is(values[sibling.id], next) ||
+      (Array.isArray(values[sibling.id]) &&
+        Array.isArray(next) &&
+        JSON.stringify(values[sibling.id]) === JSON.stringify(next))
     if (!equal) {
       if (next === undefined) delete values[sibling.id]
       else values[sibling.id] = next
@@ -112,7 +164,21 @@ export function assignControlValue(strategy: AtdlStrategyDto, values: Record<str
   return changed
 }
 
-export function isLockedRadio(control: AtdlControlDto, controls: AtdlControlDto[], values: Record<string, unknown>, readonlyIds: ReadonlySet<string>): boolean {
-  return control.type === 'RadioButton_t' && !!control.radioGroup && controls.some(sibling =>
-    sibling.radioGroup === control.radioGroup && sibling.type === 'RadioButton_t' && values[sibling.id] === true && readonlyIds.has(sibling.id))
+export function isLockedRadio(
+  control: AtdlControlDto,
+  controls: AtdlControlDto[],
+  values: Record<string, unknown>,
+  readonlyIds: ReadonlySet<string>,
+): boolean {
+  return (
+    control.type === 'RadioButton_t' &&
+    !!control.radioGroup &&
+    controls.some(
+      (sibling) =>
+        sibling.radioGroup === control.radioGroup &&
+        sibling.type === 'RadioButton_t' &&
+        values[sibling.id] === true &&
+        readonlyIds.has(sibling.id),
+    )
+  )
 }

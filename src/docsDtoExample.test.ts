@@ -10,7 +10,9 @@ import { useAtdlFormState } from './useAtdlFormState.js'
  * drops required/min/max enforcement. This pins that the documented DTO, exactly as
  * written, enforces the constraints it declares.
  */
-const json = docs.slice(docs.indexOf('## Hosts that are not .NET')).match(/```json\n([\s\S]*?)\n```/)?.[1]
+const json = docs
+  .slice(docs.indexOf('## Hosts that are not .NET'))
+  .match(/```json\n([\s\S]*?)\n```/)?.[1]
 const strategy = JSON.parse(json ?? 'null') as AtdlStrategyDto
 
 describe('docs/getting-a-strategy.md non-.NET DTO example', () => {

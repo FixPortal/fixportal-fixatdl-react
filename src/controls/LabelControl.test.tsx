@@ -25,5 +25,4 @@ describe('LabelControl', () => {
     render(<LabelControl control={BASE_CONTROL} value={null} onChange={vi.fn()} state={ENABLED} />)
     expect(screen.getByText('Read-only note')).toBeInTheDocument()
   })
-
 })

@@ -1,5 +1,9 @@
 import { describe, it, expect } from 'vitest'
-import { flattenControls, mapControlValuesToParameters, assignControlValue } from './atdlControls.js'
+import {
+  flattenControls,
+  mapControlValuesToParameters,
+  assignControlValue,
+} from './atdlControls.js'
 import type { AtdlPanelChildDto, AtdlPanelDto, AtdlStrategyDto, AtdlParameterDto } from './types.js'
 
 function control(id: string, parameterRef: string | null) {
@@ -35,17 +39,32 @@ function strategy(p: AtdlPanelDto): AtdlStrategyDto {
 
 describe('flattenControls', () => {
   it('returns controls from nested panels in document order', () => {
-    const s = strategy(panel([
-      control('c_A', 'A'),
-      panel([control('c_B', 'B'), control('c_C', 'C')]),
-    ]))
-    expect(flattenControls(s).map(c => c.id)).toEqual(['c_A', 'c_B', 'c_C'])
+    const s = strategy(
+      panel([control('c_A', 'A'), panel([control('c_B', 'B'), control('c_C', 'C')])]),
+    )
+    expect(flattenControls(s).map((c) => c.id)).toEqual(['c_A', 'c_B', 'c_C'])
   })
 })
 
 describe('mapControlValuesToParameters', () => {
-  it.each([['bad', 'bad'], ['12.5', '12.5'], ['', null], [null, null]])('preserves invalid linked percentage input: %s', (value, expected) => {
-    const parameter: AtdlParameterDto = { name: 'P', type: 'Percentage_t', fixTag: 9001, enumValues: null, min: null, max: null, precision: null, mutableOnCxlRpl: true, useValue: 'optional', defaultValue: null }
+  it.each([
+    ['bad', 'bad'],
+    ['12.5', '12.5'],
+    ['', null],
+    [null, null],
+  ])('preserves invalid linked percentage input: %s', (value, expected) => {
+    const parameter: AtdlParameterDto = {
+      name: 'P',
+      type: 'Percentage_t',
+      fixTag: 9001,
+      enumValues: null,
+      min: null,
+      max: null,
+      precision: null,
+      mutableOnCxlRpl: true,
+      useValue: 'optional',
+      defaultValue: null,
+    }
     const first = { ...control('first', 'P'), parameter }
     const second = { ...control('second', 'P'), parameter }
     const values: Record<string, unknown> = {}
@@ -53,7 +72,9 @@ describe('mapControlValuesToParameters', () => {
     expect(values.second).toBe(expected)
   })
   it('rekeys control-id values to their parameter names', () => {
-    const s = strategy(panel([control('c_StartTime', 'StartTime'), control('c_Part', 'Participation')]))
+    const s = strategy(
+      panel([control('c_StartTime', 'StartTime'), control('c_Part', 'Participation')]),
+    )
     const out = mapControlValuesToParameters(s, { c_StartTime: '09:30', c_Part: '25' })
     expect(out).toEqual({ StartTime: '09:30', Participation: '25' })
   })
