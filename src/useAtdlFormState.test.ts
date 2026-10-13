@@ -775,7 +775,6 @@ it('blocks edits to an amended control after it becomes immutable', () => {
   const { result } = renderHook(() => useAtdlFormState(strategy, { isAmendment: true }))
   act(() => result.current.setValue('ctrl1', 'blocked'))
   expect(result.current.values.ctrl1).toBe('value')
-  expect(result.current.values.ctrl1).not.toBe('blocked')
 })
 
 it('allows edits again when an amended control becomes mutable', () => {
@@ -891,4 +890,22 @@ it('preserves a UTC clock constant when displaying it in a market timezone', () 
   const { result } = renderHook(() => useAtdlFormState(strategy))
   expect(result.current.values.ctrl1).toMatchObject({ instant: '20260912-09:00:00', localDateTime: '20260912-10:00:00' })
   expect(result.current.controlState.ctrl1.enabled).toBe(false)
+})
+
+it('ignores setValue for an id that is not a control, leaving values and errors untouched', () => {
+  const strategy = makeStrategy([makeControl({ initValue: 'kept' })])
+  const { result } = renderHook(() => useAtdlFormState(strategy))
+  act(() => result.current.setValue('no-such-control', 'x'))
+  expect(result.current.values).toEqual({ ctrl1: 'kept' })
+  expect(result.current.hasErrors).toBe(false)
+})
+
+it.each([
+  ['single enum wire value', 'DropDownList_t', 'bad', [{ enumId: 'bad', wireValue: 'a\u0001b' }]],
+  ['multi-value enum wire value', 'MultiSelectList_t', ['bad'], [{ enumId: 'bad', wireValue: 'a\u0001b' }]],
+])('rejects the FIX delimiter arriving through a %s', (_name, type, initValue, enumValues) => {
+  const parameter = makeParam({ type: type === 'MultiSelectList_t' ? 'MultipleStringValue_t' : 'String_t', enumValues })
+  const strategy = makeStrategy([makeControl({ type, parameter, initValue })])
+  const { result } = renderHook(() => useAtdlFormState(strategy))
+  expect(result.current.controlState.ctrl1.errors).toContain('A value cannot contain the FIX field delimiter.')
 })

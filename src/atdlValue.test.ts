@@ -69,3 +69,9 @@ it('decodes a non-inverted multi-value wire string to its enum ids', () => {
   const definition = { ...parameter, type: 'MultipleStringValue_t', enumValues: [{ enumId: 'a', wireValue: 'A' }, { enumId: 'b', wireValue: 'B' }, { enumId: 'c', wireValue: 'C' }] }
   expect(parameterFromWire(definition, 'A C')).toEqual(['a', 'c'])
 })
+
+it.each([[false, 1, '0.123'], [true, 1, '12.3']])('widens Percentage precision by two only without multiplyBy100 (multiplyBy100=%s)', (multiplyBy100, precision, expected) => {
+  // Without multiplyBy100 the wire form is the fraction, which needs two more decimals than the percent precision.
+  const definition = { ...parameter, type: 'Percentage_t', multiplyBy100, precision }
+  expect(parameterWireValue(definition, '0.123456')).toBe(expected)
+})

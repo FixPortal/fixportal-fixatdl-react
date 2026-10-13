@@ -151,12 +151,13 @@ describe('FormRenderer', () => {
     const expected = structuredClone(ref.current!.getValues())
     const snapshot = ref.current!.getValues()
     snapshot.ctrl_name = 'external mutation'
-    const selections = Object.values(snapshot).find(Array.isArray)
-    expect(selections).toBeDefined()
-    selections!.push('external venue')
+    const selections = snapshot.ctrl_venues as string[]
+    expect(selections).toEqual(expected.ctrl_venues)
+    expect(selections).not.toHaveLength(0)
+    selections.push('external venue')
     fireEvent.change(screen.getByLabelText('Participation %'), { target: { value: '20' } })
     expect(ref.current!.getValues().ctrl_name).toBe(expected.ctrl_name)
-    expect(Object.values(ref.current!.getValues()).find(Array.isArray)).toEqual(Object.values(expected).find(Array.isArray))
+    expect(ref.current!.getValues().ctrl_venues).toEqual(expected.ctrl_venues)
   })
   it('renders every major control type from the fixture DTO', () => {
     renderForm()

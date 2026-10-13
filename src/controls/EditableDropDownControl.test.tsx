@@ -107,7 +107,6 @@ describe('EditableDropDownControl', () => {
     expect(document.querySelector('datalist')).not.toBeNull()
     const options = document.querySelectorAll('datalist option')
     const values = Array.from(options).map((o) => (o as HTMLOptionElement).value)
-    expect(values).toContain('A')
-    expect(values).toContain('B')
+    expect(values).toEqual(['A', 'B'])
   })
 })
