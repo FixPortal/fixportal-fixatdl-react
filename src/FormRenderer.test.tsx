@@ -321,14 +321,14 @@ describe('FormRenderer', () => {
     fireEvent.click(screen.getByRole('checkbox', { name: 'NYSE' }))
     const expected = structuredClone(ref.current!.getValues())
     const snapshot = ref.current!.getValues()
-    snapshot.ctrl_name = 'external mutation'
-    const selections = snapshot.ctrl_venues as string[]
-    expect(selections).toEqual(expected.ctrl_venues)
+    snapshot['ctrl_name'] = 'external mutation'
+    const selections = snapshot['ctrl_venues'] as string[]
+    expect(selections).toEqual(expected['ctrl_venues'])
     expect(selections).not.toHaveLength(0)
     selections.push('external venue')
     fireEvent.change(screen.getByLabelText('Participation %'), { target: { value: '20' } })
-    expect(ref.current!.getValues().ctrl_name).toBe(expected.ctrl_name)
-    expect(ref.current!.getValues().ctrl_venues).toEqual(expected.ctrl_venues)
+    expect(ref.current!.getValues()['ctrl_name']).toBe(expected['ctrl_name'])
+    expect(ref.current!.getValues()['ctrl_venues']).toEqual(expected['ctrl_venues'])
   })
   it('renders every major control type from the fixture DTO', () => {
     renderForm()
@@ -433,7 +433,7 @@ describe('FormRenderer', () => {
     // Pull values via the handle
     const values = ref.current?.getValues()
     expect(values).toBeDefined()
-    expect(values?.ctrl_name).toBe('handle-test')
+    expect(values?.['ctrl_name']).toBe('handle-test')
   })
 
   it.each([false, true])(

@@ -64,6 +64,9 @@ export default defineConfig([
       // False-positives on type-only refs and DOM lib globals; tsc + typescript-eslint
       // catch genuine reference errors (this rule cannot see types).
       'sonarjs/no-reference-error': 'off',
+      // noPropertyAccessFromIndexSignature (tsconfig) requires bracket access on index
+      // signatures; without this option dot-notation would autofix it straight back.
+      '@typescript-eslint/dot-notation': ['error', { allowIndexSignaturePropertyAccess: true }],
       '@typescript-eslint/no-unused-vars': [
         'error',
         { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
