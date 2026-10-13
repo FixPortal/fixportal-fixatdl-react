@@ -176,6 +176,21 @@ export default defineConfig([
     files: ['**/*.config.ts'],
     rules: { 'no-restricted-syntax': ['error', noEnum, noBareNewDate] },
   },
+  {
+    // The workbench imports the BUILT package (@fix-portal/fixatdl-react resolves to dist).
+    // CI lints before the build, so the types do not resolve there and every use reports as
+    // an error-typed `any` (39 errors, all in App.tsx); a local checkout with a stale dist
+    // passes. Its types are checked after the build by the workbench typecheck and build.
+    files: ['examples/workbench/**/*.{ts,tsx}'],
+    rules: {
+      '@typescript-eslint/no-unsafe-assignment': 'off',
+      '@typescript-eslint/no-unsafe-call': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'off',
+      '@typescript-eslint/no-unsafe-argument': 'off',
+      '@typescript-eslint/no-unsafe-return': 'off',
+      '@typescript-eslint/no-redundant-type-constituents': 'off',
+    },
+  },
   // Add narrowly-scoped project overrides below (e.g. generated code: max-lines
   // off; demo/mock generators: pseudo-random off). Keep each block commented with
   // WHY it is off -- a silenced rule with no rationale rots into cargo-cult config.
