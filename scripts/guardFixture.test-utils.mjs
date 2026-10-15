@@ -46,10 +46,12 @@ export function withGuardFixture(guardUrl, inspect) {
       throw new Error('The fixture must run an unchanged copy of the actual guard')
     }
     result = inspect({
+      root,
       write,
-      run: () =>
+      run: ({ env = {} } = {}) =>
         spawnSync(process.execPath, [guard], {
           cwd: root,
+          env: { ...process.env, ...env },
           encoding: 'utf8',
           timeout: 15_000,
         }),
