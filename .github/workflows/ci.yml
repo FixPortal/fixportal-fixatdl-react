@@ -29,6 +29,14 @@ jobs:
           node-version: '24'
           cache: npm
       - run: npm ci
+      - run: node scripts/assert-stryker-compat.mjs --canary
+      - name: Retain mutation compatibility canary (node24)
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: mutation-canary-node24
+          path: reports/mutation-canary/
+          if-no-files-found: warn
       - run: npm run format
       - run: npm run docs:check
       - run: npm run typecheck
@@ -122,6 +130,14 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci
+      - run: node scripts/assert-stryker-compat.mjs --canary
+      - name: Retain mutation compatibility canary (node22)
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: mutation-canary-node22
+          path: reports/mutation-canary/
+          if-no-files-found: warn
       - run: npm run typecheck
       - run: npm run test
       - run: npm run build

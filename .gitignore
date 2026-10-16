@@ -13,3 +13,7 @@ test-results/
 
 contract-tests/producer/bin/
 contract-tests/producer/obj/
+
+# Generated mutation compatibility receipts and current-run scratch.
+reports/mutation-canary/
+.mutation-canary-tmp/
