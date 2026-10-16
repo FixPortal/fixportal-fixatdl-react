@@ -206,6 +206,19 @@ export async function runCanary(project) {
     removeOwnedCanary(owned, resolved, cache)
   }
 }
+export function runMutation(project, cli) {
+  const root = fs.realpathSync(project)
+  const executable = contained(
+    root,
+    fs.realpathSync(cli ?? path.join(root, 'node_modules/@stryker-mutator/core/bin/stryker.js')),
+  )
+  const child = spawn(process.execPath, [executable, 'run'], { cwd: root, stdio: 'inherit' })
+  return new Promise((resolve, reject) => {
+    child.on('error', reject)
+    // Signals have no numeric code; they must never become successful wrapper exits.
+    child.on('close', (code) => resolve(code ?? 1))
+  })
+}
 async function main() {
   const root = fs.realpathSync(path.join(path.dirname(fileURLToPath(import.meta.url)), '..'))
   const mode = process.argv[2]
@@ -214,15 +227,7 @@ async function main() {
   ensureCompatibility(root)
   await runCanary(root)
   if (mode === '--run') {
-    const child = spawn(
-      process.execPath,
-      [path.join(root, 'node_modules/@stryker-mutator/core/bin/stryker.js'), 'run'],
-      { cwd: root, stdio: 'inherit' },
-    )
-    process.exitCode = await new Promise((resolve, reject) => {
-      child.on('error', reject)
-      child.on('close', resolve)
-    })
+    process.exitCode = await runMutation(root)
   }
 }
 if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1]))
