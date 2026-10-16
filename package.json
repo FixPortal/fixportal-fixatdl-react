@@ -69,6 +69,7 @@
     "browser:smoke": "node scripts/browser-smoke.mjs",
     "lint": "eslint .",
     "test": "vitest run",
+    "test:producer-contract": "node scripts/test-producer-contract.mjs",
     "test:coverage": "vitest run --coverage",
     "build": "vite build && tsc -p tsconfig.build.json && tailwindcss -i styles/index.css -o dist/styles.css",
     "prepack": "npm run build",

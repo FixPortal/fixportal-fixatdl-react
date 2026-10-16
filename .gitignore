@@ -7,3 +7,6 @@ coverage/
 !.claude/review-policy.json
 .semgrep/
 .github/**/__pycache__/
+
+contract-tests/producer/bin/
+contract-tests/producer/obj/

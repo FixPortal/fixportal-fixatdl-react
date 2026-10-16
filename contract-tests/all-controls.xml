@@ -1,0 +1,27 @@
+<Strategies xmlns="http://www.fixprotocol.org/FIXatdl-1-1/Core" xmlns:lay="http://www.fixprotocol.org/FIXatdl-1-1/Layout" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" strategyIdentifierTag="5001">
+  <Strategy name="AllControls" version="1" wireValue="ALL" uiRep="All controls" providerID="TEST">
+    <Parameter name="Hidden" xsi:type="String_t" fixTag="7006" constValue="producer-hidden"/>
+    <Parameter name="Text" xsi:type="String_t" fixTag="7001"/>
+    <Parameter name="Number" xsi:type="Int_t" fixTag="7002"/>
+    <Parameter name="Flag" xsi:type="Boolean_t" fixTag="7003"/>
+    <Parameter name="Time" xsi:type="UTCTimeOnly_t" fixTag="7004"/>
+    <Parameter name="Choice" xsi:type="String_t" fixTag="7005"><EnumPair enumID="A" wireValue="ALPHA"/><EnumPair enumID="B" wireValue="BETA"/></Parameter>
+    <lay:StrategyLayout><lay:StrategyPanel title="Root" orientation="VERTICAL"><lay:StrategyPanel title="Nested controls" orientation="VERTICAL">
+      <lay:Control ID="c_TextField" xsi:type="lay:TextField_t" parameterRef="Text" label="Producer TextField" initValue="Producer text"></lay:Control>
+      <lay:Control ID="c_DoubleSpinner" xsi:type="lay:DoubleSpinner_t" parameterRef="Number" label="Producer DoubleSpinner" initValue="8" innerIncrement="1" outerIncrement="5"></lay:Control>
+      <lay:Control ID="c_SingleSpinner" xsi:type="lay:SingleSpinner_t" parameterRef="Number" label="Producer SingleSpinner" initValue="7" increment="2"></lay:Control>
+      <lay:Control ID="c_DropDownList" xsi:type="lay:DropDownList_t" parameterRef="Choice" label="Producer DropDownList"><lay:ListItem enumID="A" uiRep="Alpha option"/><lay:ListItem enumID="B" uiRep="Beta option"/></lay:Control>
+      <lay:Control ID="c_SingleSelectList" xsi:type="lay:SingleSelectList_t" parameterRef="Choice" label="Producer SingleSelectList"><lay:ListItem enumID="A" uiRep="Alpha option"/><lay:ListItem enumID="B" uiRep="Beta option"/></lay:Control>
+      <lay:Control ID="c_CheckBox" xsi:type="lay:CheckBox_t" parameterRef="Flag" label="Producer CheckBox"></lay:Control>
+      <lay:Control ID="c_RadioButton" xsi:type="lay:RadioButton_t" parameterRef="Flag" label="Producer RadioButton"></lay:Control>
+      <lay:Control ID="c_RadioButtonList" xsi:type="lay:RadioButtonList_t" parameterRef="Choice" label="Producer RadioButtonList"><lay:ListItem enumID="A" uiRep="Alpha option"/><lay:ListItem enumID="B" uiRep="Beta option"/></lay:Control>
+      <lay:Control ID="c_Label" xsi:type="lay:Label_t" parameterRef="Text" label="Producer Label"></lay:Control>
+      <lay:Control ID="c_HiddenField" xsi:type="lay:HiddenField_t" parameterRef="Hidden" label="Producer HiddenField"></lay:Control>
+      <lay:Control ID="c_EditableDropDownList" xsi:type="lay:EditableDropDownList_t" parameterRef="Choice" label="Producer EditableDropDownList"><lay:ListItem enumID="A" uiRep="Alpha option"/><lay:ListItem enumID="B" uiRep="Beta option"/></lay:Control>
+      <lay:Control ID="c_Clock" xsi:type="lay:Clock_t" parameterRef="Time" label="Producer Clock" initValue="08:15:30" localMktTz="Europe/Berlin"></lay:Control>
+      <lay:Control ID="c_Slider" xsi:type="lay:Slider_t" parameterRef="Number" label="Producer Slider"></lay:Control>
+      <lay:Control ID="c_MultiSelectList" xsi:type="lay:MultiSelectList_t" parameterRef="Choice" label="Producer MultiSelectList"><lay:ListItem enumID="A" uiRep="Alpha option"/><lay:ListItem enumID="B" uiRep="Beta option"/></lay:Control>
+      <lay:Control ID="c_CheckBoxList" xsi:type="lay:CheckBoxList_t" parameterRef="Choice" label="Producer CheckBoxList"><lay:ListItem enumID="A" uiRep="Alpha option"/><lay:ListItem enumID="B" uiRep="Beta option"/></lay:Control>
+    </lay:StrategyPanel></lay:StrategyPanel></lay:StrategyLayout>
+  </Strategy>
+</Strategies>
