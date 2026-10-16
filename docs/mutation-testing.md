@@ -87,8 +87,21 @@ closed before running mutation tests.
 The historical manual run 38849487101 (57.63411279229711%, 727 valid mutants)
 remains a raw measurement made with this compatibility limitation. It does not
 establish a corrected score. The existing 55 floor, production mutation scope and
-30-minute scheduled job cap are unchanged; a full corrected measurement remains
-a separate qualification.
+30-minute scheduled job cap are unchanged.
+
+The corrected [manual run 38877208375](https://github.com/FixPortal/fixportal-fixatdl-react/actions/runs/38877208375)
+at `a26f3bcd63bdb386609788aba58faaab2f4d5f8d` completed its mutation step in
+26m32s and passed the conclusive nonempty-report guard. It measured
+76.89133425034387% on the same 727 valid mutants: 555 Killed, 4 Timeout,
+162 Survived, 6 NoCoverage and 341 CompileError excluded from the valid count.
+Killed-only score is 76.34112792297113%. All 1068 generated mutants match the
+historical report by file/span/mutator/replacement, with identical source strings;
+139 formerly Survived are Killed and one is Timeout. This is manual evidence,
+not a scheduled-run history or proof that each remaining survivor is a test gap.
+
+The entrypoint propagates the full mutation child's exit status. A child killed
+by a signal fails with status 1; its missing numeric code cannot become success.
+This is separate from report validation, which cannot replace honest child status.
 
 This mutation entrypoint currently requires **Linux** for bounded process-group
 cleanup; Windows mutation execution is not qualified. Ordinary package tests

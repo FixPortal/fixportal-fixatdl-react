@@ -1,9 +1,17 @@
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
+import assert from 'node:assert/strict'
+import { pathToFileURL } from 'node:url'
 import { afterEach, describe, expect, it } from 'vitest'
 import { parse } from 'yaml'
-import { ensureCompatibility, ownedDirectory, sha, targets } from './assert-stryker-compat.mjs'
+import {
+  boundedRun,
+  ensureCompatibility,
+  ownedDirectory,
+  sha,
+  targets,
+} from './assert-stryker-compat.mjs'
 
 const originals = targets.map(([name, original]) => {
   const text = fs
@@ -129,3 +137,25 @@ it('requires the real canary in both supported Node jobs and mutation entrypoint
     ),
   ).toBe(true)
 })
+
+for (const [label, body, expected] of [
+  ['zero', 'process.exitCode = 0', 0],
+  ['nonzero', 'process.exitCode = 7', 7],
+  ['signal', "process.kill(process.pid, 'SIGTERM')", 1],
+]) {
+  it(`propagates actual full-run ${label} child exit`, async () => {
+    const { root } = fixture()
+    const cli = path.join(root, 'owned-cli.mjs')
+    const driver = path.join(root, 'owned-driver.mjs')
+    fs.writeFileSync(cli, body)
+    const production = pathToFileURL(path.resolve('scripts/assert-stryker-compat.mjs')).href
+    fs.writeFileSync(
+      driver,
+      `import { runMutation } from ${JSON.stringify(production)};
+process.exitCode = await runMutation(${JSON.stringify(root)}, ${JSON.stringify(cli)});
+`,
+    )
+    const result = await boundedRun([driver], process.cwd(), process.env, 5_000)
+    assert.equal(result.code, expected, result.output.toString('utf8'))
+  })
+}
