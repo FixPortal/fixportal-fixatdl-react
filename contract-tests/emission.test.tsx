@@ -1,9 +1,15 @@
 // @vitest-environment node
 import { readFileSync } from 'node:fs'
 import { expect, it } from 'vitest'
-import { emitStrategyParametersGrp } from '@fix-portal/fixatdl-react'
-import type { AtdlStrategyDto, FixTag } from '@fix-portal/fixatdl-react'
+import type { AtdlStrategyDto } from '../src/types.js'
+import type { FixTag } from '../src/output/fixPreviewEmitter.js'
 import { parameterFromWire } from '../src/atdlValue.js'
+
+// Ordinary package CI typechecks before dist exists. Runtime still resolves the built public export.
+const packageName = '@fix-portal/fixatdl-react'
+const { emitStrategyParametersGrp } = (await import(
+  packageName
+)) as typeof import('../src/index.js')
 
 interface EmissionInput {
   id: string
