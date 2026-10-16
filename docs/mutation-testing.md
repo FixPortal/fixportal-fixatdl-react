@@ -42,6 +42,9 @@ baseline after changing its scope, tests, checker or runner.
 
 The report guard rejects missing results, zero valid mutants, unknown/incomplete
 statuses, runtime errors, invalid threshold ordering and a score below the floor.
+Thresholds must be finite numbers, and report paths must exactly match the four
+configured targets. Eight new negative cases failed against the initial guard
+and passed after these checks; all 20 CLI/workflow cases now pass.
 Its CLI tests exercise these failures and pin its invocation after Stryker in the
 actual bounded workflow. Removing the zero-result check, runtime-error check or
 workflow invocation independently fails those assertions. The real baseline report
@@ -49,7 +52,7 @@ fails at a temporary floor of 58 and passes again at 55.
 
 ## Integration validation and limits
 
-The final package gate passed 715 tests with zero skips, unchanged source coverage
+The final package gate passed 723 tests with zero skips, unchanged source coverage
 floors, typecheck, build, package dry-run and all five distribution checks. ESLint
 reported zero errors and 116 existing warnings. The first post-mutation lint attempt
 also scanned retained generated mutants; `.stryker-tmp` and mutation reports are now

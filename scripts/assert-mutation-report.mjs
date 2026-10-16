@@ -3,7 +3,10 @@ import { readFileSync, writeFileSync } from 'node:fs'
 const report = JSON.parse(readFileSync(process.argv[2] ?? 'reports/mutation/mutation.json', 'utf8'))
 const config = JSON.parse(readFileSync('stryker.config.json', 'utf8'))
 const { high, low, break: floor } = config.thresholds
-if (!(0 <= floor && floor <= low && low <= high && high <= 100)) {
+if (
+  ![floor, low, high].every(Number.isFinite) ||
+  !(0 <= floor && floor <= low && low <= high && high <= 100)
+) {
   throw new Error('Mutation thresholds must satisfy 0 <= break <= low <= high <= 100')
 }
 const counts = {
@@ -16,6 +19,17 @@ const counts = {
   Ignored: 0,
 }
 if (!report.files || typeof report.files !== 'object') throw new Error('Missing mutation files')
+if (!Array.isArray(config.mutate) || config.mutate.length === 0) {
+  throw new Error('Missing configured mutation scope')
+}
+const reported = Object.keys(report.files).sort()
+const configured = [...config.mutate].sort()
+if (
+  reported.length !== configured.length ||
+  reported.some((path, index) => path !== configured[index])
+) {
+  throw new Error('Report files do not match the configured mutation scope')
+}
 for (const file of Object.values(report.files)) {
   if (!Array.isArray(file.mutants)) throw new Error('Missing mutant results')
   for (const mutant of file.mutants) {
