@@ -18,6 +18,7 @@
     ".github/canonical-assets.json",
     ".github/scripts/assert_canonical_assets.py",
     "scripts/assert-*.mjs",
+    "scripts/test-producer-contract.mjs",
     "scripts/browser-smoke.mjs"
   ],
   "low": [

@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="$(FixAtdlSourceRoot)/src/FixPortal.FixAtdl.Contracts/FixPortal.FixAtdl.Contracts.csproj" />
+  </ItemGroup>
+  <Target Name="RequireProducerSource" BeforeTargets="ResolveProjectReferences">
+    <Error Condition="'$(FixAtdlSourceRoot)' == ''" Text="Set FixAtdlSourceRoot to the pinned producer checkout." />
+  </Target>
+</Project>
