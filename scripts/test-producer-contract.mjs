@@ -19,6 +19,7 @@ function run(command, args) {
   if (result.status !== 0) throw new Error(`${command} exited ${result.status}`)
 }
 try {
+  run(process.execPath, ['scripts/assert-shared-corpora.mjs'])
   run('dotnet', [
     'run',
     '--project',
