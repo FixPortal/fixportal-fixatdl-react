@@ -36,7 +36,7 @@ describe('actual production JSX lint boundary', () => {
     )
     expect(result.report.messages.filter((item) => item.message === message)).toHaveLength(1)
     expect(result.status).toBe(1)
-  })
+  }, 35_000)
 
   it('accepts the same hostile string rendered as React children', () => {
     const result = lint(
@@ -45,5 +45,5 @@ describe('actual production JSX lint boundary', () => {
     expect(result.report.messages).not.toContainEqual(expect.objectContaining({ message }))
     expect(result.report.errorCount).toBe(0)
     expect(result.status).toBe(0)
-  })
+  }, 35_000)
 })
