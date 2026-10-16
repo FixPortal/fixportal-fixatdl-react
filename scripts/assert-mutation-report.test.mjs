@@ -6,11 +6,11 @@ import { describe, expect, it } from 'vitest'
 import { parse } from 'yaml'
 
 const script = resolve('scripts/assert-mutation-report.mjs')
-function run(statuses, thresholds = { high: 80, low: 55, break: 55 }) {
+function run(statuses, thresholds = { high: 80, low: 55, break: 55 }, mutate = ['src/example.ts']) {
   const cwd = mkdtempSync(join(tmpdir(), 'mutation-report-contract-'))
   try {
     mkdirSync(join(cwd, 'reports/mutation'), { recursive: true })
-    writeFileSync(join(cwd, 'stryker.config.json'), JSON.stringify({ thresholds }))
+    writeFileSync(join(cwd, 'stryker.config.json'), JSON.stringify({ thresholds, mutate }))
     writeFileSync(
       join(cwd, 'reports/mutation/mutation.json'),
       JSON.stringify({
@@ -85,4 +85,23 @@ describe('actual mutation report CLI', () => {
     expect(result.status).not.toBe(0)
     expect(result.stderr).toContain('Mutation thresholds must satisfy')
   })
+  it.each([
+    ['break', null],
+    ['break', '55'],
+    ['low', '55'],
+    ['high', '80'],
+    ['break', false],
+  ])('rejects a nonnumeric %s threshold (%j)', (name, value) => {
+    const result = run(['Killed'], { high: 80, low: 55, break: 55, [name]: value })
+    expect(result.status).not.toBe(0)
+    expect(result.stderr).toContain('Mutation thresholds must satisfy')
+  })
+  it.each([['src/example.ts', 'src/missing.ts'], ['src/other.ts'], []])(
+    'rejects a report outside the configured scope: %j',
+    (...mutate) => {
+      const result = run(['Killed'], undefined, mutate)
+      expect(result.status).not.toBe(0)
+      expect(result.stderr).toContain('configured mutation scope')
+    },
+  )
 })

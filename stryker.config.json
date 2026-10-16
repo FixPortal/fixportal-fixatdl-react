@@ -15,6 +15,9 @@
     "src/stateTransitions.ts"
   ],
   "reporters": ["clear-text", "progress", "html", "json"],
+  "htmlReporter": {
+    "fileName": "reports/mutation/mutation.html"
+  },
   "concurrency": 2,
   "timeoutMS": 10000,
   "timeoutFactor": 1.5,
