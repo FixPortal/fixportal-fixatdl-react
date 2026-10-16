@@ -1,5 +1,7 @@
 dist
 coverage
+reports/mutation
+.stryker-tmp
 
 # Detail and reasons: scaffold-ci/references/ci-workflow.md (ai-smells bullet).
 # Canonical scaffold-ci assets listed in its manifest; reformatting reads as DIVERGED.

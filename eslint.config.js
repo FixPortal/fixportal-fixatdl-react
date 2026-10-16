@@ -25,7 +25,7 @@ const noBareNewDate = {
 }
 
 export default defineConfig([
-  globalIgnores(['.claude/**', 'dist', 'coverage']),
+  globalIgnores(['.claude/**', 'dist', 'coverage', '.stryker-tmp/**', 'reports/mutation/**']),
   {
     files: ['**/*.{ts,tsx}'],
     extends: [
