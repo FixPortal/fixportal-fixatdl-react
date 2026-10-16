@@ -23,7 +23,8 @@
     "scripts/assert-*.mjs",
     "scripts/test-producer-contract.mjs",
     "scripts/browser-smoke.mjs",
-    "scripts/fixtures/stryker-canary/**"
+    "scripts/fixtures/stryker-canary/**",
+    "contract-tests/producer/Program.cs"
   ],
   "low": [
     "docs/**",

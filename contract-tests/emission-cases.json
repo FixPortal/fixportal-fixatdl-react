@@ -1,0 +1,51 @@
+[
+  {
+    "id": "empty",
+    "wireValues": {}
+  },
+  {
+    "id": "text",
+    "wireValues": {
+      "Text": "hello"
+    }
+  },
+  {
+    "id": "integer",
+    "wireValues": {
+      "Amount": "5"
+    }
+  },
+  {
+    "id": "decimal",
+    "wireValues": {
+      "OtherAmount": "1.5"
+    }
+  },
+  {
+    "id": "boolean-true",
+    "wireValues": {
+      "Enabled": "T"
+    }
+  },
+  {
+    "id": "boolean-false",
+    "wireValues": {
+      "Enabled": "F"
+    }
+  },
+  {
+    "id": "enum",
+    "wireValues": {
+      "Mode": "H"
+    }
+  },
+  {
+    "id": "declaration-order",
+    "wireValues": {
+      "OtherAmount": "1.5",
+      "Mode": "L",
+      "Text": "hello",
+      "Amount": "5"
+    }
+  }
+]

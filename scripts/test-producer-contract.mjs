@@ -10,10 +10,11 @@ if (!source) throw new Error('FIXATDL_SOURCE_ROOT must name the pinned producer 
 mkdirSync('node_modules/.cache', { recursive: true })
 const owned = mkdtempSync(path.resolve('node_modules/.cache/producer-contract-'))
 const output = path.join(owned, 'contracts.json')
+const emissionOutput = path.join(owned, 'emissions.json')
 function run(command, args) {
   const result = spawnSync(command, args, {
     stdio: 'inherit',
-    env: { ...process.env, PRODUCER_CONTRACT_JSON: output },
+    env: { ...process.env, PRODUCER_CONTRACT_JSON: output, PRODUCER_EMISSION_JSON: emissionOutput },
   })
   if (result.error) throw result.error
   if (result.status !== 0) throw new Error(`${command} exited ${result.status}`)
@@ -31,6 +32,8 @@ try {
     path.resolve(source),
     path.resolve('contract-tests/all-controls.xml'),
     output,
+    path.resolve('contract-tests/emission-cases.json'),
+    emissionOutput,
   ])
   const bytes = readFileSync(output)
   const cases = JSON.parse(bytes.toString('utf8'))
