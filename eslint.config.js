@@ -23,6 +23,10 @@ const noBareNewDate = {
   selector: "NewExpression[callee.name='Date'][arguments.length=0]",
   message: 'Do not read the clock directly. Take a Clock (src/**/clock.ts) as a parameter.',
 }
+const noRawHtml = {
+  selector: "JSXAttribute[name.name='dangerouslySetInnerHTML']",
+  message: 'Do not use dangerouslySetInnerHTML. Render untrusted content as React children.',
+}
 
 export default defineConfig([
   globalIgnores(['.claude/**', 'dist', 'coverage', '.stryker-tmp/**', 'reports/mutation/**']),
@@ -114,7 +118,14 @@ export default defineConfig([
     // The boundary clock file reads the system clock with new Date(); Date.now() stays
     // banned even there (no-restricted-properties is not overridden), matching scaffold-typescript.
     files: ['src/**/clock.{ts,tsx}'],
-    rules: { 'no-restricted-syntax': ['error', noEnum, noDefaultExport] },
+    rules: { 'no-restricted-syntax': ['error', noEnum, noDefaultExport, noRawHtml] },
+  },
+  {
+    files: ['src/**/*.tsx'],
+    ignores: ['src/**/clock.tsx', '**/*.{test,spec}.tsx'],
+    rules: {
+      'no-restricted-syntax': ['error', noEnum, noDefaultExport, noBareNewDate, noRawHtml],
+    },
   },
   {
     // Build/codegen scripts run under Node (ESM), not the browser. Give them Node
