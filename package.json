@@ -37,6 +37,9 @@
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
+    "@stryker-mutator/core": "10.0.0",
+    "@stryker-mutator/typescript-checker": "10.0.0",
+    "@stryker-mutator/vitest-runner": "10.0.0",
     "@tailwindcss/cli": "4.3.3",
     "@testing-library/dom": "10.4.2",
     "@testing-library/jest-dom": "7.0.1",
@@ -76,7 +79,8 @@
     "dev": "npm run build && npm run dev --workspace @fix-portal/fixatdl-react-workbench",
     "format": "prettier --check .",
     "format:write": "prettier --write .",
-    "gate": "npm run format && npm run lint && npm run typecheck && npm run test"
+    "gate": "npm run format && npm run lint && npm run typecheck && npm run test",
+    "test:mutation": "stryker run"
   },
   "publishConfig": {
     "registry": "https://registry.npmjs.org",
@@ -85,6 +89,7 @@
   "overrides": {
     "@tailwindcss/cli": {
       "@parcel/watcher": "2.6.0"
-    }
+    },
+    "qs": "6.16.0"
   }
 }
