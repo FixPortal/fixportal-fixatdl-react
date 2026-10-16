@@ -66,3 +66,33 @@ tool's new transitive dependency; it is not a runtime package dependency.
 The first local measurement does not establish hosted runtime or scheduled-run
 history. Retain each hosted result with its commit, statuses and duration before
 making either claim. A manual hosted run is not scheduled evidence.
+
+## Temporary Stryker 10 / Vitest 5 compatibility guard
+
+`npm run test:mutation` explicitly checks the project-local installed versions and
+full hashes of both Stryker Vitest runner name collectors, applies a narrow fix,
+and runs a real nested-test mutation canary before the unchanged four-module run.
+Required Node 22 and Node 24 CI also run this canary. No install hook is used.
+
+Vitest 5 matches test names joined with `>`; Stryker 10.0.0 joins nested names
+with spaces. This can silently skip nested assertions during per-test mutation
+runs ([Vitest migration guide](https://vitest.dev/guide/migration/#testnamepattern-matches-the-joined-full-name),
+[upstream issue 6210](https://github.com/stryker-mutator/stryker-js/issues/6210),
+[upstream fix 6214](https://github.com/stryker-mutator/stryker-js/pull/6214)).
+The canary requires its known false-condition mutant to be killed by the nested
+literal assertion, with an active-mutant/hit/failure witness. A successful tool
+exit alone is insufficient. Unknown versions, hashes or mixed patch states fail
+closed before running mutation tests.
+
+The historical manual run 38849487101 (57.63411279229711%, 727 valid mutants)
+remains a raw measurement made with this compatibility limitation. It does not
+establish a corrected score. The existing 55 floor, production mutation scope and
+30-minute scheduled job cap are unchanged; a full corrected measurement remains
+a separate qualification.
+
+This mutation entrypoint currently requires **Linux** for bounded process-group
+cleanup; Windows mutation execution is not qualified. Ordinary package tests
+retain their existing platform support. Remove the temporary shim after an
+official released runner passes the same real canary **without patching**, then
+qualify the production scope. Version or hash changes require explicit review,
+not a silent fallback or automatic installation.

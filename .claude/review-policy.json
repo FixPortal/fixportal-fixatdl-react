@@ -22,7 +22,8 @@
     ".github/scripts/assert_canonical_assets.py",
     "scripts/assert-*.mjs",
     "scripts/test-producer-contract.mjs",
-    "scripts/browser-smoke.mjs"
+    "scripts/browser-smoke.mjs",
+    "scripts/fixtures/stryker-canary/**"
   ],
   "low": [
     "docs/**",
