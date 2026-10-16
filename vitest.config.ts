@@ -5,6 +5,8 @@ export default defineConfig({
   plugins: [react()],
   test: {
     environment: 'jsdom',
+    reporters: ['default', 'junit'],
+    outputFile: { junit: './test-results/junit.xml' },
     setupFiles: ['./src/test/setup.ts'],
     // scripts/ holds the CI gate scripts. Their tests run in the normal suite so a
     // broken gate fails the same way a broken source file does; coverage `include`
@@ -20,16 +22,15 @@ export default defineConfig({
       // denominator and the thresholds below pass vacuously. With the include,
       // adding a src file with no test correctly drags coverage down.
       include: ['src/**'],
-      reporter: ['text', 'html'],
-      // Start realistic for the project's current maturity and ratchet up over
-      // time. A failing threshold should fail CI, so keep these honest. Set the
-      // floors from a real `--coverage` run over ALL of src (the include above),
-      // not the smaller test-touched-only number.
+      reporter: ['text', 'html', 'json-summary'],
+      // Calibrated below the measured 94.53/89.55/99.48/95.8 baseline
+      // (statements/branches/functions/lines), with at least two points of headroom.
+      // Keep ALL source in the denominator when reviewing future changes.
       thresholds: {
-        statements: 70,
-        branches: 70,
-        functions: 70,
-        lines: 70,
+        statements: 92,
+        branches: 87,
+        functions: 97,
+        lines: 93,
       },
     },
   },

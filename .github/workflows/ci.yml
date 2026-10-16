@@ -34,6 +34,15 @@ jobs:
       - run: npm run typecheck
       - run: npm run lint
       - run: npm run test:coverage
+      - name: Retain test timings and coverage summary
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: test-measurements
+          path: |
+            test-results/junit.xml
+            coverage/coverage-summary.json
+          if-no-files-found: error
       - run: npm run build
       - run: node scripts/assert-react-external.mjs
       - run: node scripts/assert-public-dts.mjs
