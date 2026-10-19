@@ -42,7 +42,7 @@ function fixture() {
     '@stryker-mutator/core': '10.0.0',
     '@stryker-mutator/vitest-runner': '10.0.0',
     '@stryker-mutator/typescript-checker': '10.0.0',
-    vitest: '5.0.3',
+    vitest: '5.0.5',
     typescript: '6.0.3',
   })) {
     const dir = path.join(root, 'node_modules', name)
