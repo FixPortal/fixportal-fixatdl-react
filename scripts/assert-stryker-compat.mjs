@@ -22,7 +22,7 @@ const versions = {
   '@stryker-mutator/core': '10.0.0',
   '@stryker-mutator/vitest-runner': '10.0.0',
   '@stryker-mutator/typescript-checker': '10.0.0',
-  vitest: '5.0.3',
+  vitest: '5.0.5',
   typescript: '6.0.3',
 }
 export const sha = (value) => createHash('sha256').update(value).digest('hex')
