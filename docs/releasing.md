@@ -19,11 +19,11 @@ changelog entry, GitHub release, and npm `latest` version must agree.
 Create and push the version tag from the merged `main` commit:
 
 ```powershell
-git tag v0.3.0
-git push origin v0.3.0
+git tag v<version>
+git push origin v<version>
 ```
 
-Replace `0.3.0` with the version in `package.json`. The release workflow
+Replace `<version>` with the version in `package.json` (for example `0.4.1`). The release workflow
 verifies that the tag is reachable from `main`, matches `package.json`, passes
 the package gate, and publishes through npm trusted publishing with provenance.
 Do not run `npm publish` manually for a normal release.
@@ -36,7 +36,7 @@ section as its notes. Confirm the release is not a draft.
 ```powershell
 npm view @fix-portal/fixatdl-react version dist-tags --json
 gh run list --repo FixPortal/fixportal-fixatdl-react --limit 5
-gh release view v0.3.0 --repo FixPortal/fixportal-fixatdl-react
+gh release view v<version> --repo FixPortal/fixportal-fixatdl-react
 ```
 
 Run the verification commands after creating the release. Confirm npm `latest`
