@@ -67,22 +67,24 @@ The first local measurement does not establish hosted runtime or scheduled-run
 history. Retain each hosted result with its commit, statuses and duration before
 making either claim. A manual hosted run is not scheduled evidence.
 
-## Temporary Stryker 10 / Vitest 5 compatibility guard
+## Stryker 10 / Vitest 5 compatibility guard
 
-`npm run test:mutation` explicitly checks the project-local installed versions and
-full hashes of both Stryker Vitest runner name collectors, applies a narrow fix,
-and runs a real nested-test mutation canary before the unchanged four-module run.
-Required Node 22 and Node 24 CI also run this canary. No install hook is used.
+`npm run test:mutation` explicitly checks the project-local installed versions
+(Stryker 10.1.1, Vitest 5.0.5, TypeScript 6.0.3) and runs a real nested-test
+mutation canary before the unchanged four-module run. Required Node 22 and Node 24
+CI also run this canary. No install hook is used and nothing in `node_modules` is
+patched.
 
-Vitest 5 matches test names joined with `>`; Stryker 10.0.0 joins nested names
-with spaces. This can silently skip nested assertions during per-test mutation
+Vitest 5 matches test names joined with `>`; Stryker 10.0.0 joined nested names
+with spaces, which could silently skip nested assertions during per-test mutation
 runs ([Vitest migration guide](https://vitest.dev/guide/migration/#testnamepattern-matches-the-joined-full-name),
 [upstream issue 6210](https://github.com/stryker-mutator/stryker-js/issues/6210),
 [upstream fix 6214](https://github.com/stryker-mutator/stryker-js/pull/6214)).
-The canary requires its known false-condition mutant to be killed by the nested
-literal assertion, with an active-mutant/hit/failure witness. A successful tool
-exit alone is insufficient. Unknown versions, hashes or mixed patch states fail
-closed before running mutation tests.
+Stryker 10.1.0 (re-released as 10.1.1) ships the fix, so the local runner patch and
+its file-hash pins were removed. The canary requires its known false-condition
+mutant to be killed by the nested literal assertion, with an active-mutant/hit/failure
+witness. A successful tool exit alone is insufficient. Unknown versions fail closed
+before running mutation tests.
 
 The historical manual run 38849487101 (57.63411279229711%, 727 valid mutants)
 remains a raw measurement made with this compatibility limitation. It does not
@@ -105,7 +107,5 @@ This is separate from report validation, which cannot replace honest child statu
 
 This mutation entrypoint currently requires **Linux** for bounded process-group
 cleanup; Windows mutation execution is not qualified. Ordinary package tests
-retain their existing platform support. Remove the temporary shim after an
-official released runner passes the same real canary **without patching**, then
-qualify the production scope. Version or hash changes require explicit review,
-not a silent fallback or automatic installation.
+retain their existing platform support. Version changes require explicit review
+against the canary, not a silent fallback or automatic installation.
