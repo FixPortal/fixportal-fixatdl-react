@@ -23,6 +23,9 @@ export default defineConfig({
       // adding a src file with no test correctly drags coverage down.
       include: ['src/**'],
       reporter: ['text', 'html', 'json-summary'],
+      // Vitest skips the coverage reporters when a test fails. CI uploads the summary
+      // with `if: always()` to keep measurements from failed runs, so write it anyway.
+      reportOnFailure: true,
       // Calibrated below the measured 94.53/89.55/99.48/95.8 baseline
       // (statements/branches/functions/lines), with at least two points of headroom.
       // Keep ALL source in the denominator when reviewing future changes.
