@@ -26,7 +26,7 @@ function fixture() {
     '@stryker-mutator/core': '10.1.1',
     '@stryker-mutator/vitest-runner': '10.1.1',
     '@stryker-mutator/typescript-checker': '10.1.1',
-    vitest: '5.0.5',
+    vitest: '5.1.0',
     typescript: '6.0.3',
   })) {
     const dir = path.join(root, 'node_modules', name)
