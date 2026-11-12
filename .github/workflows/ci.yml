@@ -166,9 +166,11 @@ jobs:
           node-version: '24'
           cache: npm
           cache-dependency-path: react/package-lock.json
+      # No dotnet-version: setup-dotnet installs from global.json, the single SDK pin.
+      # global-json-file is needed because the repo is checked out to the react/ subpath.
       - uses: actions/setup-dotnet@v6
         with:
-          dotnet-version: '10.0.x'
+          global-json-file: react/global.json
       - run: npm ci
       - run: npm run build
       - run: npm run test:producer-contract
