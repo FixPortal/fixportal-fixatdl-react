@@ -12,6 +12,7 @@
     ".github/scripts/assert_workflow_hygiene.py",
     ".github/dependabot.yml",
     ".npmrc",
+    "global.json",
     "src/StateRuleEvaluator.ts",
     "src/useAtdlFormState.ts",
     "src/output/fixPreviewEmitter.ts",
