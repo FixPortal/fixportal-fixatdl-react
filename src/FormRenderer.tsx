@@ -1,4 +1,4 @@
-import { useImperativeHandle } from 'react'
+import { useImperativeHandle, useState } from 'react'
 import type { Ref } from 'react'
 import type { AtdlControlDto, AtdlPanelDto, AtdlStrategyDto } from './types.js'
 import { PanelRenderer } from './PanelRenderer.js'
@@ -50,15 +50,22 @@ function parameterName(control: AtdlControlDto): string | null {
   return control.parameterRef ?? control.parameter?.name ?? null
 }
 
-/** Ids of controls inside a panel that starts closed: their inline errors are not on screen. */
-function collapsedControlIds(panel: AtdlPanelDto, inClosed = false, ids = new Set<string>()) {
-  const closed = inClosed || (panel.collapsible && panel.collapsed)
-  for (const child of panel.children ?? []) {
+/** Ids of controls inside a closed panel: their inline errors are not on screen.
+ * `open` holds panels the user toggled, by position path; the DTO value is only the start. */
+function collapsedControlIds(
+  panel: AtdlPanelDto,
+  open: Record<string, boolean>,
+  path = '0',
+  inClosed = false,
+  ids = new Set<string>(),
+) {
+  const closed = inClosed || (panel.collapsible && !(open[path] ?? !panel.collapsed))
+  ;(panel.children ?? []).forEach((child, i) => {
     // Same structural fallback as PanelChild: a child without `kind` is a panel if it has children.
     if (child.kind === 'panel' || 'children' in child)
-      collapsedControlIds(child as AtdlPanelDto, closed, ids)
+      collapsedControlIds(child as AtdlPanelDto, open, `${path}/${i}`, closed, ids)
     else if (closed) ids.add((child as AtdlControlDto).id)
-  }
+  })
   return ids
 }
 
@@ -68,9 +75,10 @@ function collapsedControlIds(panel: AtdlPanelDto, inClosed = false, ids = new Se
 function hiddenSummaryErrors(
   strategy: AtdlStrategyDto,
   controlState: Record<string, ControlFormState>,
+  openPanels: Record<string, boolean>,
 ): string[] {
   const controls = flattenControls(strategy)
-  const collapsed = collapsedControlIds(strategy.panel)
+  const collapsed = collapsedControlIds(strategy.panel, openPanels)
   // A Label_t renders no error list, so its errors are never on screen either.
   const showsNoErrors = (control: AtdlControlDto) =>
     control.type === 'HiddenField_t' || control.type === 'Label_t' || collapsed.has(control.id)
@@ -107,7 +115,12 @@ function FormRendererInner({
     strategy,
     options,
   )
-  const summaryErrors = [...strategyErrors, ...hiddenSummaryErrors(strategy, controlState)]
+  // Keyed remount of this component on a strategy change resets it with the form.
+  const [openPanels, setOpenPanels] = useState<Record<string, boolean>>({})
+  const summaryErrors = [
+    ...strategyErrors,
+    ...hiddenSummaryErrors(strategy, controlState, openPanels),
+  ]
 
   // WHY [values] dependency: the closure must capture the latest values map
   // so getValues() always returns current state, not a stale snapshot from
@@ -141,6 +154,9 @@ function FormRendererInner({
         state={controlState}
         highlightedControlId={highlightedControlId ?? null}
         onHighlightControl={onHighlightControl}
+        onPanelToggle={(path, open) => {
+          setOpenPanels((current) => ({ ...current, [path]: open }))
+        }}
       />
     </>
   )
