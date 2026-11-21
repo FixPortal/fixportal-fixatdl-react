@@ -45,6 +45,17 @@ describe('the actual import side-effect guard', () => {
     })
   })
 
+  it.each([
+    ['overwrites', 'globalThis.fetch = () => 1\n'],
+    ['deletes', 'delete globalThis.fetch\n'],
+  ])('rejects a bundle that %s a global that already existed', (_verb, source) => {
+    runBundle(source, (result) => {
+      expect(result.status).toBe(1)
+      expect(result.stderr).toContain('module-level global mutations during import')
+      expect(result.stderr).toContain('fetch')
+    })
+  })
+
   it('rejects an ESM bundle that throws during import', () => {
     runBundle("throw new Error('fixture-import-failed')\n", (result) => {
       expect(result.status).toBe(1)
