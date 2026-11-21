@@ -119,11 +119,12 @@ function equals(left: unknown, right: unknown, type?: string | null): boolean {
     return left.includes(right)
   }
   if (Array.isArray(right)) return right.includes(left)
-  if ((!type || type === 'Boolean_t') && typeof left === 'string' && typeof right === 'boolean')
-    return equals(right, left)
-  if ((!type || type === 'Boolean_t') && typeof left === 'boolean' && typeof right === 'string') {
+  // Contracts TryCompareBoolText: applies under every comparison type.
+  if (typeof left === 'string' && typeof right === 'boolean') return equals(right, left)
+  if (typeof left === 'boolean' && typeof right === 'string') {
     if (['Y', 'TRUE'].includes(right.toUpperCase())) return left
     if (['N', 'FALSE'].includes(right.toUpperCase())) return !left
+    return false
   }
   if (type && temporalTypes.has(type)) {
     const order = compareTemporal(left, right)
@@ -156,8 +157,11 @@ function compareValues(left: unknown, right: unknown, type?: string | null): num
   if (type === 'Boolean_t' && typeof left === 'boolean' && typeof right === 'boolean')
     return Number(left) - Number(right)
   if (type && temporalTypes.has(type)) return compareTemporal(left, right)
-  if (type && ordinalTypes.has(type))
-    return typeof left === 'string' && typeof right === 'string' ? ordinal(left, right) : null
+  if (type && ordinalTypes.has(type)) {
+    const a = textOperand(left)
+    const b = textOperand(right)
+    return typeof a === 'string' && typeof b === 'string' ? ordinal(a, b) : null
+  }
   return compareUntyped(left, right)
 }
 
@@ -174,6 +178,10 @@ function compareUntyped(left: unknown, right: unknown): number | null {
   }
   return null
 }
+
+// Contracts UnwrapToString: text comparison types compare numbers and booleans as invariant text.
+const textOperand = (value: unknown) =>
+  typeof value === 'number' || typeof value === 'boolean' ? String(value) : value
 
 function ordinal(left: string, right: string): number {
   if (left === right) return 0
