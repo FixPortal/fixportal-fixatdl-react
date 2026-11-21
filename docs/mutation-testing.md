@@ -2,8 +2,18 @@
 
 Run `npm run test:mutation`, then `node scripts/assert-mutation-report.mjs`.
 The weekly/manual `Scoped mutation` workflow runs both commands, has a 30-minute
-job cap, and retains HTML, JSON and the status-count summary even on failure.
-It does not run mutation testing in the pull-request lane.
+job cap, and uploads `reports/mutation/` even when a step fails. The upload
+step runs under `if: always()`; the report guard step does not, and it is the
+only writer of the status-count summary (`reports/mutation/summary.json`).
+What a failed run retains therefore depends on where it failed. If the version
+check or canary fails, or the mutation child fails, the guard step is skipped
+and the summary is not written; whatever Stryker already wrote to
+`reports/mutation/` (HTML, JSON) is uploaded, and when that directory is empty
+the upload step fails because `if-no-files-found` is `error`. If the guard
+rejects an inconclusive report (no valid mutants, a runtime error or an unknown
+status), it throws before writing the summary. Only a score below the floor
+throws after the summary is written. It does not run mutation testing in the
+pull-request lane.
 
 The scope is four pure value/state modules: `decimalValue.ts`, `atdlValue.ts`,
 `StateRuleEvaluator.ts` and `stateTransitions.ts`. This is not a whole-library,
@@ -60,7 +70,7 @@ explicitly ignored by Git, formatting and linting. Application source coverage a
 lint scope are unchanged.
 
 The tools add development dependencies only. Existing locked package versions are
-unchanged. A `qs` 6.16.0 override fixes the advisories introduced by the mutation
+unchanged. A `qs` 6.16.1 override fixes the advisories introduced by the mutation
 tool's new transitive dependency; it is not a runtime package dependency.
 
 The first local measurement does not establish hosted runtime or scheduled-run
@@ -70,7 +80,7 @@ making either claim. A manual hosted run is not scheduled evidence.
 ## Stryker 10 / Vitest 5 compatibility guard
 
 `npm run test:mutation` explicitly checks the project-local installed versions
-(Stryker 10.1.1, Vitest 5.0.5, TypeScript 6.0.3) and runs a real nested-test
+(Stryker 10.1.1, Vitest 5.1.0, TypeScript 6.0.3) and runs a real nested-test
 mutation canary before the unchanged four-module run. Required Node 22 and Node 24
 CI also run this canary. No install hook is used and nothing in `node_modules` is
 patched.
@@ -92,8 +102,9 @@ establish a corrected score. The existing 55 floor, production mutation scope an
 30-minute scheduled job cap are unchanged.
 
 The corrected [manual run 38877208375](https://github.com/FixPortal/fixportal-fixatdl-react/actions/runs/38877208375)
-at `a26f3bcd63bdb386609788aba58faaab2f4d5f8d` completed its mutation step in
-26m32s and passed the conclusive nonempty-report guard. It measured
+at `a26f3bcd63bdb386609788aba58faaab2f4d5f8d` (whose `package.json` pins Vitest
+5.0.3, before the bump to the 5.1.0 the guard now requires) completed its
+mutation step in 26m32s and passed the conclusive nonempty-report guard. It measured
 76.89133425034387% on the same 727 valid mutants: 555 Killed, 4 Timeout,
 162 Survived, 6 NoCoverage and 341 CompileError excluded from the valid count.
 Killed-only score is 76.34112792297113%. All 1068 generated mutants match the
