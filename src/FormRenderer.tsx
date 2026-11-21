@@ -1,6 +1,6 @@
 import { useImperativeHandle } from 'react'
 import type { Ref } from 'react'
-import type { AtdlControlDto, AtdlStrategyDto } from './types.js'
+import type { AtdlControlDto, AtdlPanelDto, AtdlStrategyDto } from './types.js'
 import { PanelRenderer } from './PanelRenderer.js'
 import { strategyContentKey, useAtdlFormState } from './useAtdlFormState.js'
 import type { AtdlFormOptions, ControlFormState } from './useAtdlFormState.js'
@@ -50,6 +50,18 @@ function parameterName(control: AtdlControlDto): string | null {
   return control.parameterRef ?? control.parameter?.name ?? null
 }
 
+/** Ids of controls inside a panel that starts closed: their inline errors are not on screen. */
+function collapsedControlIds(panel: AtdlPanelDto, inClosed = false, ids = new Set<string>()) {
+  const closed = inClosed || (panel.collapsible && panel.collapsed)
+  for (const child of panel.children ?? []) {
+    // Same structural fallback as PanelChild: a child without `kind` is a panel if it has children.
+    if (child.kind === 'panel' || 'children' in child)
+      collapsedControlIds(child as AtdlPanelDto, closed, ids)
+    else if (closed) ids.add((child as AtdlControlDto).id)
+  }
+  return ids
+}
+
 /** A hidden control repeats a visible sibling's message when they share a parameter.
  * An error only the hidden control has still belongs in the summary: an editable
  * dropdown accepts free text, and the hidden copy of that parameter does not. */
@@ -58,18 +70,22 @@ function hiddenSummaryErrors(
   controlState: Record<string, ControlFormState>,
 ): string[] {
   const controls = flattenControls(strategy)
+  const collapsed = collapsedControlIds(strategy.panel)
+  // A Label_t renders no error list, so its errors are never on screen either.
+  const showsNoErrors = (control: AtdlControlDto) =>
+    control.type === 'HiddenField_t' || control.type === 'Label_t' || collapsed.has(control.id)
   const visibleErrorsByParameter = new Map<string, Set<string>>()
   for (const control of controls) {
     const state = controlState[control.id]
     const name = parameterName(control)
-    if (control.type === 'HiddenField_t' || !state?.visible || !name) continue
+    if (showsNoErrors(control) || !state?.visible || !name) continue
     const errors = visibleErrorsByParameter.get(name) ?? new Set<string>()
     for (const error of state.errors) errors.add(error)
     visibleErrorsByParameter.set(name, errors)
   }
   return controls.flatMap((control) => {
     const state = controlState[control.id]
-    const hidden = control.type === 'HiddenField_t' || !state?.visible
+    const hidden = showsNoErrors(control) || !state?.visible
     if (!hidden) return []
     const name = parameterName(control)
     if (!state) return []

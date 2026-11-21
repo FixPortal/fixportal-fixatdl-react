@@ -35,21 +35,21 @@ describe('NumericFieldControl in-progress decimal text', () => {
   // Raw input.value, not toHaveValue: jest-dom coerces number inputs, so it passes on the bug.
   it.each(['1.0', '0.0', '-0', '05', '1.5'])('leaves %s in the field', (text) => {
     render(<Harness />)
-    const input = screen.getByLabelText('Rate') as HTMLInputElement
+    const input = screen.getByLabelText<HTMLInputElement>('Rate')
     fireEvent.change(input, { target: { value: text } })
     expect(input.value).toBe(text)
   })
 
   it('types 1.05 key by key', async () => {
     render(<Harness />)
-    const input = screen.getByLabelText('Rate') as HTMLInputElement
+    const input = screen.getByLabelText<HTMLInputElement>('Rate')
     await userEvent.type(input, '1.05')
     expect(input.value).toBe('1.05')
   })
 
   it('types -0.05 key by key', async () => {
     render(<Harness />)
-    const input = screen.getByLabelText('Rate') as HTMLInputElement
+    const input = screen.getByLabelText<HTMLInputElement>('Rate')
     await userEvent.type(input, '-0.05')
     expect(input.value).toBe('-0.05')
   })

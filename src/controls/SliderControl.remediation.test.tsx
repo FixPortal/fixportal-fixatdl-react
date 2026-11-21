@@ -40,7 +40,13 @@ describe('SliderControl parameter-level enums (S3-AR-7)', () => {
       <SliderControl
         control={{
           ...CONTROL,
-          parameter: { ...PARAM, enumValues: [{ enumId: 'LOW' }, { enumId: 'HIGH' }] },
+          parameter: {
+            ...PARAM,
+            enumValues: [
+              { enumId: 'LOW', wireValue: 'L' },
+              { enumId: 'HIGH', wireValue: 'H' },
+            ],
+          },
         }}
         value="HIGH"
         onChange={onChange}

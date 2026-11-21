@@ -169,7 +169,20 @@ function PanelChild({
     ? controlRegistry[control.type]
     : undefined
 
+  // WHY: fall back to a permissive default rather than crashing when a control
+  // has no state entry - this can happen during the first render tick before
+  // useAtdlFormState finishes its initial derivation. Own-property only, so an id
+  // such as "constructor" cannot resolve an inherited Object.prototype member.
+  const controlState = (Object.hasOwn(state, control.id) ? state[control.id] : undefined) ?? {
+    enabled: true,
+    visible: true,
+    required: false,
+    errors: [],
+  }
+
   if (!Component) {
+    // A rule-hidden unknown control stays hidden; the form summary carries its error.
+    if (!controlState.visible) return null
     // WHY: unknown control types must not silently vanish - they indicate an
     // ATDL version mismatch or an unimplemented extension. Surface a visible
     // placeholder so the strategy still renders partially rather than crashing.
@@ -178,16 +191,6 @@ function PanelChild({
         <span {...unsupportedT.attrs}>{unsupportedT.value}</span> {control.type}
       </div>
     )
-  }
-
-  // WHY: fall back to a permissive default rather than crashing when a control
-  // has no state entry - this can happen during the first render tick before
-  // useAtdlFormState finishes its initial derivation.
-  const controlState = state[control.id] ?? {
-    enabled: true,
-    visible: true,
-    required: false,
-    errors: [],
   }
 
   // WHY: a control that a state rule has currently disabled or hidden is the one
@@ -205,7 +208,7 @@ function PanelChild({
     >
       <Component
         control={control}
-        value={values[control.id]}
+        value={Object.hasOwn(values, control.id) ? values[control.id] : undefined}
         onChange={(next) => {
           setValue(control.id, next)
         }}

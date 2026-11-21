@@ -42,9 +42,7 @@ export function SliderControl({ control, value, onChange, state }: ControlProps)
   const index = items.findIndex((item) => item.enumId === value)
   const unset = isUnfilledAtdlValue(value) || (discrete && index < 0)
   const current = discrete ? String(Math.max(0, index)) : unset ? min : String(value)
-  const display = discrete
-    ? (items[Number(current)]?.label ?? '')
-    : current
+  const display = discrete ? (items[Number(current)]?.label ?? '') : current
   // The native range input clamps the thumb, so a screen reader would announce the bound.
   const outOfRange =
     !discrete &&
