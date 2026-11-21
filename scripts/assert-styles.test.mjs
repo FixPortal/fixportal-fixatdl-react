@@ -82,6 +82,18 @@ describe('the actual published stylesheet guard', () => {
     )
   })
 
+  it('does not let a longer class name stand in for a missing one', () => {
+    rejects(
+      {
+        css: validCss.replace(
+          '.flex { display: flex; }\n',
+          '.flex-col { flex-direction: column; }\n',
+        ),
+      },
+      'src emits 1 class name(s) with no rule in dist/styles.css: flex',
+    )
+  })
+
   it('rejects Tailwind preflight in the optional library stylesheet', () => {
     rejects({ css: validCss + '@layer base { body { margin: 0; } }\n' }, 'contains a base layer')
   })
