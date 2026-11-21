@@ -122,16 +122,17 @@ export function useAtdlFormState(
   )
   const initialize = () => {
     const seeded = seedValues(strategy, options)
+    const settled = settleValueRules(
+      strategy,
+      seeded.values,
+      undefined,
+      readonlyIds,
+      seeded.now,
+      externalValues,
+    )
     return {
-      ...settleValueRules(
-        strategy,
-        seeded.values,
-        undefined,
-        readonlyIds,
-        seeded.now,
-        externalValues,
-      ),
-      inputErrors: seeded.errors,
+      ...settled,
+      inputErrors: dropRewrittenErrors(seeded.errors, seeded.values, settled.values),
       documentKey,
       contextKey,
     }
@@ -140,11 +141,22 @@ export function useAtdlFormState(
   if (runtime.documentKey !== documentKey) setRuntime(initialize())
   else if (runtime.contextKey !== contextKey) {
     const now = clock?.()
-    setRuntime((previous) => ({
-      ...previous,
-      ...settleValueRules(strategy, previous.values, previous, readonlyIds, now, externalValues),
-      contextKey,
-    }))
+    setRuntime((previous) => {
+      const settled = settleValueRules(
+        strategy,
+        previous.values,
+        previous,
+        readonlyIds,
+        now,
+        externalValues,
+      )
+      return {
+        ...previous,
+        ...settled,
+        inputErrors: dropRewrittenErrors(previous.inputErrors, previous.values, settled.values),
+        contextKey,
+      }
+    })
   }
   const values = runtime.values
   const setValue = useCallback(
@@ -186,10 +198,11 @@ export function useAtdlFormState(
           inputErrors[controlId] = error instanceof Error ? error.message : String(error)
           return { ...previous, inputErrors }
         }
+        const settled = settleValueRules(strategy, next, previous, readonlyIds, now, externalValues)
         return {
           ...previous,
-          ...settleValueRules(strategy, next, previous, readonlyIds, now, externalValues),
-          inputErrors,
+          ...settled,
+          inputErrors: dropRewrittenErrors(inputErrors, previous.values, settled.values),
         }
       })
     },
@@ -214,6 +227,24 @@ export function useAtdlFormState(
       strategyErrors.length > 0 ||
       Object.values(controlState).some((state) => state.errors.length > 0),
   }
+}
+
+/** Sibling sync and value rules rewrite other controls; a rewritten control's input error is stale. */
+function dropRewrittenErrors(
+  errors: Record<string, string>,
+  before: Record<string, unknown>,
+  after: Record<string, unknown>,
+): Record<string, string> {
+  const kept = Object.create(null) as Record<string, string>
+  for (const [id, error] of Object.entries(errors)) {
+    const a = before[id]
+    const b = after[id]
+    const same =
+      Object.is(a, b) ||
+      (Array.isArray(a) && Array.isArray(b) && JSON.stringify(a) === JSON.stringify(b))
+    if (same) kept[id] = error
+  }
+  return kept
 }
 
 function validateExternalValues(input: Record<string, unknown> = {}) {

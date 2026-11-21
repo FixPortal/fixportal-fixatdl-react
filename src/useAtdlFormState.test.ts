@@ -238,6 +238,80 @@ describe('useAtdlFormState', () => {
     })
   })
 
+  it('clears a stale input error on a radio its selected sibling rewrites', () => {
+    const parameter = makeParam({
+      enumValues: [
+        { enumId: 'buy', wireValue: '1' },
+        { enumId: 'sell', wireValue: '2' },
+      ],
+    })
+    const strategy = makeStrategy(
+      ['buy', 'sell'].map((id) =>
+        makeControl({
+          id,
+          type: 'RadioButton_t',
+          radioGroup: 'side',
+          checkedEnumRef: id,
+          parameter,
+        }),
+      ),
+    )
+    const { result } = renderHook(() =>
+      useAtdlFormState(strategy, { isAmendment: true, initialFixValues: { 9001: '9' } }),
+    )
+    expect(result.current.controlState['buy'].errors).not.toEqual([])
+    act(() => {
+      result.current.setValue('sell', true)
+    })
+    expect(result.current.values).toEqual({ buy: false, sell: true })
+    expect(result.current.controlState['buy'].errors).toEqual([])
+    expect(result.current.hasErrors).toBe(false)
+  })
+
+  it('clears a linked clock input error once a sibling edit synchronizes it', () => {
+    const parameter = makeParam({ type: 'UTCTimestamp_t' })
+    const strategy = makeStrategy([
+      makeControl({ id: 'clock', type: 'Clock_t', parameter, localMktTz: 'UTC' }),
+      makeControl({ id: 'text', parameter }),
+    ])
+    const { result } = renderHook(() => useAtdlFormState(strategy))
+    act(() => {
+      result.current.setValue('clock', '10:00')
+    })
+    expect(result.current.controlState['clock'].errors.join(' ')).toContain('host clock')
+    act(() => {
+      result.current.setValue('text', '20260912-13:00:00')
+    })
+    expect(result.current.values['clock']).toMatchObject({ instant: '20260912-13:00:00' })
+    expect(result.current.controlState['clock'].errors).toEqual([])
+    expect(result.current.hasErrors).toBe(false)
+  })
+
+  it('clears a seed input error on a control an initial value rule rewrites', () => {
+    const strategy = makeStrategy([
+      makeControl({ id: 'trigger', initValue: 'on' }),
+      makeControl({
+        id: 'target',
+        type: 'SingleSpinner_t',
+        parameter: makeParam({ type: 'Float_t' }),
+        stateRules: [
+          {
+            effect: 'value',
+            targetValue: false,
+            targetStringValue: '5',
+            expression: makeEqExpression('trigger', 'on'),
+          },
+        ],
+      }),
+    ])
+    const { result } = renderHook(() =>
+      useAtdlFormState(strategy, { isAmendment: true, initialFixValues: { 9001: 'abc' } }),
+    )
+    expect(result.current.values['target']).toBe('5')
+    expect(result.current.controlState['target'].errors).toEqual([])
+    expect(result.current.hasErrors).toBe(false)
+  })
+
   it('allows partial typing beside a linked clock and synchronizes the completed timestamp', () => {
     const parameter = makeParam({ type: 'UTCTimestamp_t' })
     const strategy = makeStrategy([
