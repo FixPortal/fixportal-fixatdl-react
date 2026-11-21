@@ -1,9 +1,10 @@
-import { mkdtempSync, mkdirSync, writeFileSync, rmSync, readFileSync } from 'node:fs'
+import { mkdtempSync, mkdirSync, writeFileSync, readFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import { spawnSync } from 'node:child_process'
 import { describe, expect, it } from 'vitest'
 import { parse } from 'yaml'
+import { removeOwnedTemp } from './removeOwnedTemp.test-utils.mjs'
 
 const script = resolve('scripts/assert-mutation-report.mjs')
 function run(statuses, thresholds = { high: 80, low: 55, break: 55 }, mutate = ['src/example.ts']) {
@@ -26,7 +27,7 @@ function run(statuses, thresholds = { high: 80, low: 55, break: 55 }, mutate = [
           : null,
     }
   } finally {
-    rmSync(cwd, { recursive: true, force: true })
+    removeOwnedTemp(cwd, 'mutation-report-contract-')
   }
 }
 

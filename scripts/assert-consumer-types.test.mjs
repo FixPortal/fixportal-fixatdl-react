@@ -1,9 +1,10 @@
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import ts from 'typescript'
 import { scopedTypeDiagnostics } from './assert-consumer-types.mjs'
+import { removeOwnedTemp } from './removeOwnedTemp.test-utils.mjs'
 
 const nodeNext = {
   module: ts.ModuleKind.NodeNext,
@@ -37,7 +38,7 @@ describe('consumer declaration resolution', () => {
       const problems = scopedTypeDiagnostics(root, [join(root, 'consumer.ts')], nodeNext)
       expect(problems.join('\n')).toMatch(/explicit file extensions/i)
     } finally {
-      rmSync(root, { recursive: true, force: true })
+      removeOwnedTemp(root, 'fixatdl-consumer-types-')
     }
   }, 30_000)
 
@@ -47,7 +48,7 @@ describe('consumer declaration resolution', () => {
       const problems = scopedTypeDiagnostics(root, [join(root, 'absent.ts')], nodeNext)
       expect(problems.join('\n')).toMatch(/<global>/)
     } finally {
-      rmSync(root, { recursive: true, force: true })
+      removeOwnedTemp(root, 'fixatdl-consumer-types-')
     }
   }, 30_000)
 
@@ -56,7 +57,7 @@ describe('consumer declaration resolution', () => {
     try {
       expect(scopedTypeDiagnostics(root, [join(root, 'consumer.ts')], nodeNext)).toEqual([])
     } finally {
-      rmSync(root, { recursive: true, force: true })
+      removeOwnedTemp(root, 'fixatdl-consumer-types-')
     }
   }, 30_000)
 })

@@ -1,8 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'node:fs'
+import { mkdtempSync, mkdirSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { tmpdir } from 'node:os'
 import { checkDocumentation, localLinkProblems, publicExportNames } from './assert-docs.mjs'
+import { removeOwnedTemp } from './removeOwnedTemp.test-utils.mjs'
 
 describe('public documentation contract', () => {
   it('finds the DTO wildcard export whatever its quote style', () => {
@@ -29,7 +30,7 @@ describe('public documentation contract', () => {
       expect(localLinkProblems(root, 'README.md', markdown)).toEqual(['README.md -> %ZZ'])
       expect(localLinkProblems(root, 'docs/deep/api.md', '[root](/README.md)')).toEqual([])
     } finally {
-      rmSync(root, { recursive: true, force: true })
+      removeOwnedTemp(root, 'fixatdl-docs-')
     }
   })
 })
