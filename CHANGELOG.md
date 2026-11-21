@@ -14,6 +14,54 @@ with the pre-release history.
 
 ## [Unreleased]
 
+### Fixed
+
+- Spinner inputs no longer rewrite in-progress decimal text. Typing `1.05`
+  or `-0.05` key by key used to leave `15` and `5` in the field and in the
+  tag-960 value, with no validation error.
+- State rules with a text comparison type (`String_t`, `Char_t`, the
+  multi-value types, `Boolean_t`, `EnumState`) compare number and boolean
+  operands as invariant text, as `FixPortal.FixAtdl.Contracts` does. A host
+  passing `FIX_OrdType: 2` now matches a rule written against `"2"`.
+- State-rule numeric inference no longer reads thousands separators or
+  exponents (`"1,000"`, `"1e3"`) as numbers, matching core and Contracts.
+- A state rule or StrategyEdit typed `UTCTimestamp_t`, `UTCTimeOnly_t`,
+  `UTCDateOnly_t` or `LocalMktDate_t` with an unparsable operand is reported
+  as invalid instead of evaluating to a verdict.
+- A `CheckBox_t` or `RadioButton_t` with only one of `checkedEnumRef` /
+  `uncheckedEnumRef` enters state rules as a boolean, as core does. Its
+  parameter output is unchanged.
+- A Clock bound to `LocalMktDate_t` or `UTCDateOnly_t` reloads the date-only
+  value it emits, so an amendment no longer opens in error.
+- A Clock rejects a wire value whose timezone offset moves it outside years
+  1-9999.
+- A Clock linked to another control on the same parameter syncs from the
+  parameter's canonical value, and shows an error instead of silently keeping
+  a stale value when it cannot represent the edit.
+- An input error on a control is cleared when a sibling sync or a value rule
+  rewrites that control's value.
+- Multi-select and checkbox-list controls show a selected value that is
+  missing from their list as a removable "Unknown selection" row, and report
+  "Must be a listed selection." for it.
+- A `Percentage_t` control bound by `parameterRef` without its inline
+  `parameter` reports a control error instead of emitting a value 100 times
+  off.
+- `Slider_t` uses parameter-level enums when it has no `ListItems`, including
+  when an amendment is loaded, and an out-of-range numeric slider announces
+  its real value to assistive technology.
+- Errors on controls inside an initially collapsed panel, and on `Label_t`
+  controls, appear in the form's alert summary. A rule-hidden unsupported
+  control no longer shows its placeholder.
+- `PanelRenderer` reads `state` and `values` by own property, so a control id
+  such as `constructor` cannot resolve an inherited member of a host-supplied
+  map.
+- `dist/styles.css` no longer carries generic utilities harvested from tests
+  and fixtures (`.container`, `.invert`, `.transition`).
+- Documentation: the README `Workbench` example guards the preview emitter,
+  the pre-PR check lists include every step that blocks CI, the 0.2.1 entry
+  below is corrected, and the seed-precedence and mutation-testing notes
+  state what the code does.
+
 ## [0.4.1] - 2026-10-07
 
 ### Fixed
