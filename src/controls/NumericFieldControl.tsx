@@ -66,7 +66,8 @@ export function NumericFieldControl({ control, value, onChange, state }: Control
       <input
         id={inputId}
         type="number"
-        value={value == null ? '' : String(value)}
+        // A number passes through so React's loose compare keeps "1.0" and "-0" as typed.
+        value={value == null ? '' : typeof value === 'number' ? value : String(value)}
         onChange={(e) => {
           onChange(decimalInputValue(e.target.value))
         }}
