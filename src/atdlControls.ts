@@ -95,7 +95,12 @@ export function controlValuesForRules(
 ): Record<string, unknown> {
   const result = { ...values }
   for (const control of flattenControls(strategy)) {
-    if (isBinaryControl(control))
+    // Core compares enum IDs only when both refs are set (HasEnumeratedState); otherwise booleans.
+    if (
+      isBinaryControl(control) &&
+      control.checkedEnumRef != null &&
+      control.uncheckedEnumRef != null
+    )
       result[control.id] = controlParameterValue(control, values[control.id])
     if (control.type === 'Clock_t') result[control.id] = clockRuleValue(values[control.id])
   }

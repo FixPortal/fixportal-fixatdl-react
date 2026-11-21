@@ -3,6 +3,7 @@ import {
   flattenControls,
   mapControlValuesToParameters,
   assignControlValue,
+  controlValuesForRules,
 } from './atdlControls.js'
 import type { AtdlPanelChildDto, AtdlPanelDto, AtdlStrategyDto, AtdlParameterDto } from './types.js'
 
@@ -43,6 +44,24 @@ describe('flattenControls', () => {
       panel([control('c_A', 'A'), panel([control('c_B', 'B'), control('c_C', 'C')])]),
     )
     expect(flattenControls(s).map((c) => c.id)).toEqual(['c_A', 'c_B', 'c_C'])
+  })
+})
+
+describe('controlValuesForRules', () => {
+  // Core swaps in the enum ID only when both refs are set (BinaryControlBase.HasEnumeratedState).
+  it.each([
+    ['checked only', { checkedEnumRef: 'Agency' }, true, true],
+    ['unchecked only', { uncheckedEnumRef: 'Agency' }, false, false],
+    ['both', { checkedEnumRef: 'Agency', uncheckedEnumRef: 'Principal' }, true, 'Agency'],
+    ['both', { checkedEnumRef: 'Agency', uncheckedEnumRef: 'Principal' }, false, 'Principal'],
+  ])('feeds a binary control with %s enum ref as core does', (_label, refs, value, expected) => {
+    const box = { ...control('box', 'P'), type: 'CheckBox_t', ...refs }
+    expect(controlValuesForRules(strategy(panel([box])), { box: value })['box']).toBe(expected)
+    // Parameter output still needs the enum ID for a one-ref control.
+    if ('checkedEnumRef' in refs && value)
+      expect(mapControlValuesToParameters(strategy(panel([box])), { box: value })['P']).toBe(
+        'Agency',
+      )
   })
 })
 
