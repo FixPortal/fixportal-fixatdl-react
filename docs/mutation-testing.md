@@ -80,7 +80,7 @@ making either claim. A manual hosted run is not scheduled evidence.
 ## Stryker 10 / Vitest 5 compatibility guard
 
 `npm run test:mutation` explicitly checks the project-local installed versions
-(Stryker 10.1.1, Vitest 5.1.0, TypeScript 6.0.3) and runs a real nested-test
+(Stryker 10.1.1, Vitest 5.1.1, TypeScript 6.0.3) and runs a real nested-test
 mutation canary before the unchanged four-module run. Required Node 22 and Node 24
 CI also run this canary. No install hook is used and nothing in `node_modules` is
 patched.
@@ -103,7 +103,7 @@ establish a corrected score. The existing 55 floor, production mutation scope an
 
 The corrected [manual run 38877208375](https://github.com/FixPortal/fixportal-fixatdl-react/actions/runs/38877208375)
 at `a26f3bcd63bdb386609788aba58faaab2f4d5f8d` (whose `package.json` pins Vitest
-5.0.3, before the bump to the 5.1.0 the guard now requires) completed its
+5.0.3, before the bumps to the 5.1.1 the guard now requires) completed its
 mutation step in 26m32s and passed the conclusive nonempty-report guard. It measured
 76.89133425034387% on the same 727 valid mutants: 555 Killed, 4 Timeout,
 162 Survived, 6 NoCoverage and 341 CompileError excluded from the valid count.
