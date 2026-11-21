@@ -53,7 +53,7 @@ for (const token of TOKENS) {
 }
 
 // --- 2. every class the controls actually emit -----------------------------
-// Only literal className strings are collected. A class assembled at runtime from
+// Only literal strings are collected. A class assembled at runtime from
 // fragments would not be found by this scan OR by Tailwind's, which is the point:
 // both see the same literals, so agreement here means agreement in the browser.
 function* walk(dir) {
@@ -68,11 +68,16 @@ const used = new Set()
 for (const path of walk(fileURLToPath(new URL('src', root)))) {
   if (!path.endsWith('.tsx') || /\.(test|spec)\.tsx$/.test(path)) continue
   const source = readFileSync(path, 'utf8')
-  // className="..." and the `const base = '...'` / template fragments beside it.
-  for (const match of source.matchAll(
-    /(?:className=|=\s*)(?:"([^"\n]*)"|'([^'\n]*)'|`([^`]*)`)/g,
-  )) {
+  collect(source)
+}
+
+// Every string and template literal, wherever it sits (attribute, ternary branch,
+// template hole): which strings are classes is decided by the prefix list below, not
+// by where they appear, so state-dependent classes are not skipped.
+function collect(text) {
+  for (const match of text.matchAll(/"([^"\n]*)"|'([^'\n]*)'|`([^`]*)`/g)) {
     const literal = match[1] ?? match[2] ?? match[3] ?? ''
+    if (match[3] !== undefined) collect(literal) // strings inside `${...}` holes
     for (const candidate of literal.split(/[\s`]+/)) {
       // Skip template holes and anything that cannot be a utility.
       if (!candidate || candidate.includes('${') || !/^[a-z]/.test(candidate)) continue
@@ -111,14 +116,26 @@ const REQUIRED_PREFIXES = [
   'ml-',
   'mb-',
   'p-',
+  'inline-',
+  'min-h-',
+  'justify-',
+  'focus-visible:',
 ]
+// A prefix ending in `-` or `:` matches by startsWith; a bare one (`flex`) matches
+// only itself or `flex-...`, so the words `flexible` or `blocked` are not utilities.
+const isUtility = (candidate) =>
+  REQUIRED_PREFIXES.some((prefix) =>
+    /[-:]$/.test(prefix)
+      ? candidate.startsWith(prefix)
+      : candidate === prefix || candidate.startsWith(`${prefix}-`),
+  )
 // Exact membership: a substring match would let `.rounded-md` stand in for `.rounded`.
 const selectors = new Set(
   [...css.matchAll(/\.((?:\\.|[\w-])+)/g)].map((match) => match[1].replace(/\\(.)/g, '$1')),
 )
 const missing = []
 for (const candidate of [...used].sort()) {
-  if (!REQUIRED_PREFIXES.some((prefix) => candidate.startsWith(prefix))) continue
+  if (!isUtility(candidate)) continue
   if (!selectors.has(candidate)) missing.push(candidate)
 }
 if (missing.length > 0) {
