@@ -1658,3 +1658,60 @@ it('loads an amendment into a slider whose enums live only on its parameter', ()
   expect(result.current.controlState['ctrl1'].errors).toEqual([])
   expect(result.current.values['ctrl1']).toBe('high')
 })
+
+it('rejects a date-only market date that its timezone skipped', () => {
+  const parameter = makeParam({ type: 'LocalMktDate_t' })
+  const strategy = makeStrategy([
+    makeControl({ id: 'clock', type: 'Clock_t', parameter, localMktTz: 'Pacific/Apia' }),
+  ])
+  // Samoa moved across the date line and had no 30 December 2011.
+  const { result } = renderHook(() =>
+    useAtdlFormState(strategy, { isAmendment: true, initialFixValues: { 9001: '20111230' } }),
+  )
+  expect(result.current.controlState['clock'].errors.join(' ')).toContain(
+    'Invalid FIXatdl clock value',
+  )
+})
+
+it('keeps the market date when clocks in different zones share a LocalMktDate_t parameter', () => {
+  const parameter = makeParam({ type: 'LocalMktDate_t' })
+  const strategy = makeStrategy([
+    makeControl({ id: 'tokyo', type: 'Clock_t', parameter, localMktTz: 'Asia/Tokyo' }),
+    makeControl({ id: 'utc', type: 'Clock_t', parameter, localMktTz: 'UTC' }),
+  ])
+  const { result } = renderHook(() =>
+    useAtdlFormState(strategy, { isAmendment: true, initialFixValues: { 9001: '20260602' } }),
+  )
+  act(() => {
+    result.current.setValue('tokyo', '08:00')
+  })
+  expect(mapControlValuesToParameters(strategy, result.current.values)).toEqual({ P1: '20260602' })
+})
+
+it('reports a value rule whose valid value a linked clock cannot hold', () => {
+  const parameter = makeParam({ type: 'UTCTimeOnly_t' })
+  const strategy = makeStrategy([
+    makeControl({ id: 'trigger', initValue: 'off' }),
+    makeControl({
+      id: 'text',
+      parameter,
+      stateRules: [
+        {
+          effect: 'value',
+          targetValue: false,
+          targetStringValue: '14:00:00',
+          expression: makeEqExpression('trigger', 'on'),
+        },
+      ],
+    }),
+    makeControl({ id: 'clock', type: 'Clock_t', parameter, localMktTz: 'UTC' }),
+  ])
+  const { result } = renderHook(() =>
+    useAtdlFormState(strategy, { initialValues: { clock: '20260912-13:00:00' } }),
+  )
+  expect(result.current.strategyErrors).toEqual([])
+  act(() => {
+    result.current.setValue('trigger', 'on')
+  })
+  expect(result.current.strategyErrors.join(' ')).toContain('host clock')
+})
