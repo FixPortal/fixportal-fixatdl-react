@@ -1,8 +1,28 @@
-import { describe, expect, it } from 'vitest'
+// @vitest-environment node
+import { describe, expect, it, vi } from 'vitest'
 import { resolve } from 'node:path'
+import { Server } from 'node:http'
 import { mkdtempSync, writeFileSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
-import { createStaticServer, resolveStaticFile } from './browser-smoke.mjs'
+import { createStaticServer, resolveStaticFile, runBrowserSmoke } from './browser-smoke.mjs'
+
+describe('workbench smoke launch failure', () => {
+  it('closes the static server when the browser fails to launch', async () => {
+    const appDist = mkdtempSync(resolve(tmpdir(), 'fixatdl-smoke-launch-'))
+    writeFileSync(resolve(appDist, 'index.html'), 'ok')
+    const close = vi.spyOn(Server.prototype, 'close')
+    try {
+      await expect(
+        runBrowserSmoke({ appDist, launch: () => Promise.reject(new Error('no browser')) }),
+      ).rejects.toThrow('no browser')
+      expect(close).toHaveBeenCalledTimes(1)
+    } finally {
+      close.mockRestore()
+      console.info(`Removing current-test fixture: ${appDist}`)
+      rmSync(appDist, { recursive: true })
+    }
+  })
+})
 
 describe('workbench smoke server path handling', () => {
   const dist = resolve(tmpdir(), 'fixatdl-smoke-dist')

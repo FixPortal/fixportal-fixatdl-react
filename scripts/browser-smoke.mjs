@@ -48,9 +48,10 @@ export function createStaticServer(dist) {
 }
 
 /** Render the built workbench and exercise one valid and invalid edit. */
-export async function runBrowserSmoke() {
-  const root = fileURLToPath(new URL('../', import.meta.url))
-  const appDist = join(root, 'examples', 'workbench', 'dist')
+export async function runBrowserSmoke({
+  appDist = join(fileURLToPath(new URL('../', import.meta.url)), 'examples', 'workbench', 'dist'),
+  launch = () => chromium.launch(),
+} = {}) {
   if (!existsSync(join(appDist, 'index.html'))) {
     throw new Error(
       'workbench is not built; run npm run build --workspace @fix-portal/fixatdl-react-workbench first',
@@ -60,14 +61,19 @@ export async function runBrowserSmoke() {
   const server = createStaticServer(appDist)
   await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve))
   const address = server.address()
-  const browser = await chromium.launch()
+  let browser
   try {
+    browser = await launch()
     const page = await browser.newPage({ viewport: { width: 1440, height: 1100 } })
     await page.goto(`http://127.0.0.1:${address.port}/index.html`, { waitUntil: 'networkidle' })
     await expectWorkbench(page)
   } finally {
-    await browser.close()
-    server.close()
+    // A failed launch leaves no browser to close; the server must still be closed.
+    try {
+      await browser?.close()
+    } finally {
+      server.close()
+    }
   }
 }
 
