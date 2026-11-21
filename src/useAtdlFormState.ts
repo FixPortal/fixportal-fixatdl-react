@@ -422,15 +422,20 @@ function deriveControlState(
       required: control.parameter?.useValue === 'required',
       errors: [] as string[],
     }
+    // An active rule decides its effect; a false condition applies the inverse attribute,
+    // including at initialization, only while no rule with the same effect is active.
+    const decided = { enabled: false, visible: false }
     for (const rule of control.stateRules ?? []) {
-      // False conditions apply the inverse enabled/visible attribute, including at initialization.
       const active = tryEvaluateStateRule(rule.expression as StateRuleAstNode, ruleValues)
       if (active === null) {
         state.errors.push('Invalid or unsupported state rule.')
         continue
       }
-      if (rule.effect === 'enabled') state.enabled = active ? rule.targetValue : !rule.targetValue
-      if (rule.effect === 'visible') state.visible = active ? rule.targetValue : !rule.targetValue
+      if (rule.effect !== 'enabled' && rule.effect !== 'visible') continue
+      if (active) {
+        state[rule.effect] = rule.targetValue
+        decided[rule.effect] = true
+      } else if (!decided[rule.effect]) state[rule.effect] = !rule.targetValue
     }
     if (readonlyIds.has(control.id) || isLockedRadio(control, controls, values, readonlyIds))
       state.enabled = false
