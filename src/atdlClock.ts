@@ -158,6 +158,8 @@ export function createClockValue(
   const parsed = parseClock(raw, date)
   if (source === 'wire') {
     const epoch = parsed.epoch - (parsed.offsetMinutes ?? 0) * 60_000
+    const year = new Date(epoch).getUTCFullYear()
+    if (year < 1 || year > 9999) throw new Error(`Invalid FIXatdl clock value: ${raw}`)
     return fromInstant(epoch, zone, parsed.fraction, utcText(epoch, parsed.fraction))
   }
   if (parsed.offsetMinutes !== undefined)
