@@ -1,8 +1,20 @@
 /** Compare decimal text without rounding through JavaScript's binary number type. */
 export function compareDecimals(left: unknown, right: unknown): number | null {
-  // Core Edit numeric inference accepts invariant grouping; UI/wire formatting does not.
-  const a = decimal(left, true)
-  const b = decimal(right, true)
+  // Lenient for form validation (grouping, exponents). Core rejects both; rules use compareFixDecimals.
+  return compareParsed(decimal(left, true), decimal(right, true))
+}
+
+/** Rule-path compare: text uses core's FixDecimalStyles alphabet, with no grouping or exponent. */
+export function compareFixDecimals(left: unknown, right: unknown): number | null {
+  const fix = (value: unknown) =>
+    typeof value === 'string' && /[eE]/.test(value) ? null : decimal(value)
+  return compareParsed(fix(left), fix(right))
+}
+
+function compareParsed(
+  a: ReturnType<typeof decimal>,
+  b: ReturnType<typeof decimal>,
+): number | null {
   if (!a || !b) return null
   const scale = Math.max(a.scale, b.scale)
   const x = a.coefficient * 10n ** BigInt(scale - a.scale)

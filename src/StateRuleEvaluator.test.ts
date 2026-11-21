@@ -37,13 +37,18 @@ it.each([
   ).toBe(expected)
 })
 
-it('retains core numeric grouping inference in edits', () => {
+// Core and Contracts parse Edit operands with FixDecimalStyles: no grouping, no exponent.
+it.each([
+  ['1,2', '==', 12, false],
+  ['1e3', '==', 1000, false],
+  ['1E2', '==', '100', false],
+  ['1,000', '>', 5, false],
+  [' +1.50 ', '==', '1.5', true],
+  ['1.', '==', 1, true],
+] as const)('reads %j %s %j with the FIX decimal alphabet', (left, operator, right, expected) => {
   expect(
-    evaluateStateRule(
-      { kind: 'compare', field: 'text', operator: '==', value: 12 },
-      { text: '1,2' },
-    ),
-  ).toBe(true)
+    evaluateStateRule({ kind: 'compare', field: 'text', operator, value: right }, { text: left }),
+  ).toBe(expected)
 })
 
 describe('StateRuleEvaluator (shared C# corpus)', () => {
