@@ -4,6 +4,7 @@
 // against. Runs after `npm run build`, locally and in CI - a vitest test cannot
 // do this honestly because CI runs the suite before the build exists.
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs'
+import { relative, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const dist = new URL('../dist/', import.meta.url)
@@ -117,14 +118,18 @@ const contentMarkers = [
 // developer gets a raw stack instead of the diagnostic written for them.
 for (const path of existsSync(dist) ? walk(fileURLToPath(dist)) : []) {
   if (!path.endsWith('.d.ts')) continue
+  // Relative to dist, so a checkout under a `test/` or `__fixtures__` parent is not flagged.
+  const relativePath = relative(fileURLToPath(dist), path).split(sep).join('/')
   for (const marker of leakMarkers) {
-    if (marker.test(path))
-      problems.push(`test or fixture declaration leaked into the build: ${path}`)
+    if (marker.test(relativePath))
+      problems.push(`test or fixture declaration leaked into the build: ${relativePath}`)
   }
   const text = readFileSync(path, 'utf8')
   for (const marker of contentMarkers) {
     if (text.includes(marker))
-      problems.push(`${path} references ${marker} - test-only types reached the declarations`)
+      problems.push(
+        `${relativePath} references ${marker} - test-only types reached the declarations`,
+      )
   }
 }
 
