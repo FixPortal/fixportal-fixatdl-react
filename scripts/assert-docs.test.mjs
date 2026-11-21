@@ -2,9 +2,18 @@ import { describe, expect, it } from 'vitest'
 import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { tmpdir } from 'node:os'
-import { checkDocumentation, localLinkProblems } from './assert-docs.mjs'
+import { checkDocumentation, localLinkProblems, publicExportNames } from './assert-docs.mjs'
 
 describe('public documentation contract', () => {
+  it('finds the DTO wildcard export whatever its quote style', () => {
+    expect(publicExportNames('export type * from "./types.js"')).toContain('AtdlStrategyDto')
+    expect(publicExportNames("export type * from './types.js'")).toContain('AtdlStrategyDto')
+  })
+
+  it('fails when the DTO wildcard export is not found', () => {
+    expect(() => publicExportNames("export { A } from './a.js'")).toThrow(/export type \*/)
+  })
+
   it('matches the package version, public exports, registry count, and local links', () => {
     expect(checkDocumentation()).toEqual([])
   })

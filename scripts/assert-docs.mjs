@@ -10,8 +10,7 @@ function read(relativePath) {
 }
 
 /** Return the public names exported by the package entry point. */
-function publicExportNames() {
-  const index = read('src/index.ts')
+export function publicExportNames(index = read('src/index.ts')) {
   const names = new Set()
 
   for (const match of index.matchAll(/export(?: type)? \{([^}]+)\}/g)) {
@@ -25,10 +24,12 @@ function publicExportNames() {
     }
   }
 
-  if (index.includes("export type * from './types.js'")) {
-    for (const match of read('src/types.ts').matchAll(/^export (?:interface|type)\s+(\w+)/gm)) {
-      names.add(match[1])
-    }
+  // Same quote-tolerant pattern as assert-public-dts.mjs; a miss must not pass silently.
+  if (!/export\s+type\s+\*\s+from\s*['"]\.\/types\.js['"]/.test(index)) {
+    throw new Error("src/index.ts lost the `export type * from './types.js'` re-export")
+  }
+  for (const match of read('src/types.ts').matchAll(/^export (?:interface|type)\s+(\w+)/gm)) {
+    names.add(match[1])
   }
 
   return [...names].sort()
