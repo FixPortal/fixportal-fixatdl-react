@@ -28,7 +28,10 @@ if (
   reported.length !== configured.length ||
   reported.some((path, index) => path !== configured[index])
 ) {
-  throw new Error('Report files do not match the configured mutation scope')
+  throw new Error(
+    'Report files do not match the configured mutation scope; stryker.config.json `mutate` must list exact file paths (no globs or ranges). ' +
+      `configured: ${JSON.stringify(configured)}; reported: ${JSON.stringify(reported)}`,
+  )
 }
 for (const file of Object.values(report.files)) {
   if (!Array.isArray(file.mutants)) throw new Error('Missing mutant results')
