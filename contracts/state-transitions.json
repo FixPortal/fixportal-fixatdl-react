@@ -403,5 +403,145 @@
         }
       }
     ]
+  },
+  {
+    "name": "same-effect-rules-active-rule-wins",
+    "controls": [
+      {
+        "id": "first",
+        "type": "TextField_t",
+        "initValue": "off",
+        "stateRules": []
+      },
+      {
+        "id": "second",
+        "type": "TextField_t",
+        "initValue": "off",
+        "stateRules": []
+      },
+      {
+        "id": "target",
+        "type": "TextField_t",
+        "initValue": "saved",
+        "stateRules": [
+          {
+            "effect": "enabled",
+            "targetValue": false,
+            "targetStringValue": null,
+            "expression": {
+              "kind": "compare",
+              "operator": "==",
+              "field": "first",
+              "value": "on",
+              "children": null
+            }
+          },
+          {
+            "effect": "enabled",
+            "targetValue": false,
+            "targetStringValue": null,
+            "expression": {
+              "kind": "compare",
+              "operator": "==",
+              "field": "second",
+              "value": "on",
+              "children": null
+            }
+          },
+          {
+            "effect": "visible",
+            "targetValue": false,
+            "targetStringValue": null,
+            "expression": {
+              "kind": "compare",
+              "operator": "==",
+              "field": "first",
+              "value": "on",
+              "children": null
+            }
+          },
+          {
+            "effect": "visible",
+            "targetValue": false,
+            "targetStringValue": null,
+            "expression": {
+              "kind": "compare",
+              "operator": "==",
+              "field": "second",
+              "value": "on",
+              "children": null
+            }
+          }
+        ]
+      }
+    ],
+    "steps": [
+      {
+        "expected": {
+          "states": {
+            "target": {
+              "enabled": true,
+              "visible": true
+            }
+          }
+        }
+      },
+      {
+        "set": {
+          "id": "first",
+          "value": "on"
+        },
+        "expected": {
+          "states": {
+            "target": {
+              "enabled": false,
+              "visible": false
+            }
+          }
+        }
+      },
+      {
+        "set": {
+          "id": "second",
+          "value": "on"
+        },
+        "expected": {
+          "states": {
+            "target": {
+              "enabled": false,
+              "visible": false
+            }
+          }
+        }
+      },
+      {
+        "set": {
+          "id": "first",
+          "value": "off"
+        },
+        "expected": {
+          "states": {
+            "target": {
+              "enabled": false,
+              "visible": false
+            }
+          }
+        }
+      },
+      {
+        "set": {
+          "id": "second",
+          "value": "off"
+        },
+        "expected": {
+          "states": {
+            "target": {
+              "enabled": true,
+              "visible": true
+            }
+          }
+        }
+      }
+    ]
   }
 ]
