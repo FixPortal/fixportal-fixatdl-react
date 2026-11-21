@@ -48,6 +48,22 @@ describe('FIXatdl clock boundary', () => {
   })
 
   it.each([
+    ['99991231-22:30:00-01:00', '99991231-23:30:00'],
+    ['00010101-01:00:00+01:00', '00010101-00:00:00'],
+  ])('keeps an offset wire value %s inside years 1-9999', (raw, instant) => {
+    expect(clockWireValue(createClockValue(control, raw, undefined, 'wire'))).toBe(instant)
+  })
+
+  it.each(['99991231-23:30:00-01:00', '00010101-00:00:00+01:00'])(
+    'rejects an offset wire value %s that leaves years 1-9999',
+    (raw) => {
+      expect(() => createClockValue(control, raw, undefined, 'wire')).toThrow(
+        'Invalid FIXatdl clock value',
+      )
+    },
+  )
+
+  it.each([
     ['TZTimeOnly_t', '08:00:00.1234567Z'],
     ['TZTimestamp_t', '20260601-08:00:00.1234567Z'],
   ])('emits UTC designators for %s', (type, expected) => {
