@@ -18,6 +18,18 @@ if (!existsSync(entry)) {
   for (const match of declaration.matchAll(/export\s+(?:type\s+)?\{([^}]+)\}/g)) {
     for (const name of match[1].split(',')) exported.add(name.trim())
   }
+  // `export type * from './types.js'` re-exports the DTO types; pin them from the
+  // declaration the wildcard points at, so they are checked in both directions.
+  const wildcard = /export\s+type\s+\*\s+from\s*['"]\.\/types\.js['"]/.test(declaration)
+  if (wildcard) {
+    const typesEntry = new URL('./types.d.ts', dist)
+    if (!existsSync(typesEntry)) problems.push('dist/types.d.ts is missing')
+    else
+      for (const match of readFileSync(typesEntry, 'utf8').matchAll(
+        /^export (?:interface|type)\s+(\w+)/gm,
+      ))
+        exported.add(match[1])
+  }
 
   // The value exports pinned by F1, plus every type-only export the package promises.
   const expected = [
@@ -51,6 +63,17 @@ if (!existsSync(entry)) {
     'emitStrategyParametersGrp',
     'fixTypeCodeName',
     'FixTag',
+    // Re-exported through `export type * from './types.js'`.
+    'AtdlStrategyDto',
+    'AtdlStrategyEditDto',
+    'AtdlParameterDto',
+    'AtdlEnumPairDto',
+    'AtdlListItemDto',
+    'AtdlControlDto',
+    'AtdlPanelDto',
+    'AtdlPanelChildDto',
+    'AtdlStateRuleDto',
+    'StateRuleAstNodeDto',
   ]
   for (const name of expected) {
     if (!exported.has(name)) problems.push(`dist/index.d.ts does not export ${name}`)
@@ -67,7 +90,7 @@ if (!existsSync(entry)) {
         `dist/index.d.ts exports ${name}, which is not in the intended public surface - add it to \`expected\` here and to src/index.test.ts if it is deliberate`,
       )
   }
-  if (!/export\s+type\s+\*\s+from\s*['"]\.\/types\.js['"]/.test(declaration)) {
+  if (!wildcard) {
     problems.push("dist/index.d.ts lost the `export type * from './types.js'` re-export")
   }
 }
