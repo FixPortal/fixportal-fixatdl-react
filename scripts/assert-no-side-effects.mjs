@@ -18,7 +18,15 @@ for (const method of ['log', 'info', 'warn', 'error', 'debug']) {
   originals.push([method, console[method]])
   console[method] = (...args) => writes.push(`${method}: ${args.join(' ')}`)
 }
-const globalsBefore = new Set(Object.getOwnPropertyNames(globalThis))
+// Descriptors, not names: an overwritten or deleted existing global is a mutation too.
+const descriptors = () =>
+  new Map(
+    Object.getOwnPropertyNames(globalThis).map((name) => [
+      name,
+      Object.getOwnPropertyDescriptor(globalThis, name),
+    ]),
+  )
+const globalsBefore = descriptors()
 
 let imported = true
 let importError
@@ -33,7 +41,20 @@ try {
 
 assert.ok(imported, `dist/index.js threw on import: ${importError}`)
 assert.deepEqual(writes, [], `module-level console output during import: ${writes.join('; ')}`)
-const leaked = Object.getOwnPropertyNames(globalThis).filter((name) => !globalsBefore.has(name))
+const globalsAfter = descriptors()
+const sameDescriptor = (a, b) =>
+  ['value', 'get', 'set', 'writable', 'enumerable', 'configurable'].every((key) =>
+    Object.is(a[key], b[key]),
+  )
+const leaked = [
+  ...[...globalsAfter].filter(([name]) => !globalsBefore.has(name)).map(([name]) => name),
+  ...[...globalsBefore]
+    .filter(
+      ([name, before]) =>
+        !globalsAfter.has(name) || !sameDescriptor(before, globalsAfter.get(name)),
+    )
+    .map(([name]) => name),
+]
 assert.deepEqual(leaked, [], `module-level global mutations during import: ${leaked.join(', ')}`)
 
 console.log(
