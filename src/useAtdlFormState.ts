@@ -440,6 +440,18 @@ function deriveControlState(
       state.errors.push(...validateControl(source, values[source.id], state.required))
     if (!Object.hasOwn(controlRegistry, control.type))
       state.errors.push(`Unsupported control type: ${control.type}`)
+    // Percent-to-fraction conversion reads control.parameter; without it the value is sent 100x off.
+    const ref = control.parameterRef
+    if (
+      ref &&
+      !control.parameter &&
+      strategy.parameters.some(
+        (item) => item.name === ref && item.type === 'Percentage_t' && !item.enumValues?.length,
+      )
+    )
+      state.errors.push(
+        `Control must carry its Percentage_t parameter ${ref} inline to convert the value.`,
+      )
     result[control.id] = state
   }
   return result

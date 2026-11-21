@@ -238,6 +238,27 @@ describe('useAtdlFormState', () => {
     })
   })
 
+  it('reports a Percentage_t control bound by parameterRef without its inline parameter', () => {
+    const percent = makeParam({ name: 'Rate', type: 'Percentage_t' })
+    const strategy = {
+      ...makeStrategy([makeControl({ id: 'c', parameterRef: 'Rate', initValue: '12.5' })]),
+      parameters: [percent],
+    }
+    const { result } = renderHook(() => useAtdlFormState(strategy))
+    expect(result.current.controlState['c'].errors).toEqual([
+      'Control must carry its Percentage_t parameter Rate inline to convert the value.',
+    ])
+    expect(result.current.hasErrors).toBe(true)
+    const inline = {
+      ...strategy,
+      ...makeStrategy([
+        makeControl({ id: 'c', parameterRef: 'Rate', parameter: percent, initValue: '12.5' }),
+      ]),
+      parameters: [percent],
+    }
+    expect(renderHook(() => useAtdlFormState(inline)).result.current.hasErrors).toBe(false)
+  })
+
   it('clears a stale input error on a radio its selected sibling rewrites', () => {
     const parameter = makeParam({
       enumValues: [
