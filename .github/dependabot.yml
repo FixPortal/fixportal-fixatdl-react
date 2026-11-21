@@ -14,9 +14,11 @@ updates:
       # These packages are pinned to exact versions that
       # scripts/assert-stryker-compat.mjs checks, and CI fails on any other
       # version. A bump must land with that script edit, so keep them out of
-      # the broader groups below; a group takes a dependency by the first
-      # match, which is why this one is listed first. @vitest/coverage-v8 is
-      # pinned to the same version as vitest in package.json.
+      # the broader groups below. @vitest/coverage-v8 peers on the exact vitest
+      # version, so the two must move in one PR. Listing this group first was
+      # not enough: on 2026-11-21 Dependabot put vitest here (#124) and
+      # @vitest/coverage-v8 in npm-minor-and-patch (#125), and each failed
+      # `npm ci` with ERESOLVE. npm-minor-and-patch therefore excludes them.
       mutation-toolchain:
         patterns:
           - '@stryker-mutator/*'
@@ -36,6 +38,13 @@ updates:
           - minor
           - patch
       npm-minor-and-patch:
+        exclude-patterns:
+          - '@stryker-mutator/*'
+          - vitest
+          - '@vitest/*'
+          - typescript
+          - vite
+          - '@vitejs/*'
         update-types:
           - minor
           - patch
