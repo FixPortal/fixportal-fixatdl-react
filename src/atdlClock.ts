@@ -150,6 +150,19 @@ export function createClockValue(
   if (isClockValue(raw)) return raw
   if (typeof raw !== 'string') throw new Error('Clock values must be FIX time strings.')
   const zone = marketZone(control, source)
+  const dateOnlyType = control.parameter?.type
+  if (
+    source === 'wire' &&
+    /^\d{8}$/.test(raw) &&
+    (dateOnlyType === 'LocalMktDate_t' || dateOnlyType === 'UTCDateOnly_t')
+  ) {
+    // Decode what clockWireValue emits: market midnight for LocalMktDate_t, UTC midnight otherwise.
+    const midnight = parseClock(`${raw}-00:00`).epoch
+    return fromInstant(
+      dateOnlyType === 'LocalMktDate_t' ? resolveLocal(midnight, zone) : midnight,
+      zone,
+    )
+  }
   let date: string | undefined
   if (now) {
     const dateEpoch = source === 'wire' ? now.getTime() : zoneEpoch(now.getTime(), zone)

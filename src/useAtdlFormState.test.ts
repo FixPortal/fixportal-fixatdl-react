@@ -214,6 +214,30 @@ describe('useAtdlFormState', () => {
     expect(result.current.controlState['__proto__'].errors.join(' ')).toContain('circular')
   })
 
+  // A time edit keeps the market date, so UTCDateOnly_t uses a zone east of UTC here.
+  it.each([
+    ['LocalMktDate_t', 'America/New_York'],
+    ['UTCDateOnly_t', 'Asia/Tokyo'],
+  ])('round-trips a date-only %s clock through an amendment in %s', (type, localMktTz) => {
+    const parameter = makeParam({ type })
+    const strategy = makeStrategy([
+      makeControl({ id: 'clock', type: 'Clock_t', parameter, localMktTz }),
+    ])
+    const { result } = renderHook(() =>
+      useAtdlFormState(strategy, { isAmendment: true, initialFixValues: { 9001: '20260602' } }),
+    )
+    expect(result.current.hasErrors).toBe(false)
+    expect(mapControlValuesToParameters(strategy, result.current.values)).toEqual({
+      P1: '20260602',
+    })
+    act(() => {
+      result.current.setValue('clock', '10:00')
+    })
+    expect(mapControlValuesToParameters(strategy, result.current.values)).toEqual({
+      P1: '20260602',
+    })
+  })
+
   it('allows partial typing beside a linked clock and synchronizes the completed timestamp', () => {
     const parameter = makeParam({ type: 'UTCTimestamp_t' })
     const strategy = makeStrategy([
