@@ -37,6 +37,8 @@
 @import 'tailwindcss/utilities.css' layer(utilities) source(none);
 
 @source "../src";
+@source not "../src/**/*.test.*";
+@source not "../src/__fixtures__";
 
 @theme {
   --color-text: #1f2937;

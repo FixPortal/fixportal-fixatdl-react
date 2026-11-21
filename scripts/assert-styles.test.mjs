@@ -122,6 +122,13 @@ describe('the actual published stylesheet guard', () => {
     )
   })
 
+  it('rejects a utility no non-test source uses', () => {
+    rejects(
+      { css: validCss + '.container { width: 100%; }\n.invert { filter: invert(1); }\n' },
+      'dist/styles.css carries 2 class(es) that no non-test source mentions: container, invert',
+    )
+  })
+
   it('rejects Tailwind preflight in the optional library stylesheet', () => {
     rejects({ css: validCss + '@layer base { body { margin: 0; } }\n' }, 'contains a base layer')
   })
