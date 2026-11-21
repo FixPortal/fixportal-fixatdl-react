@@ -5,7 +5,7 @@
 // non-.NET example in docs/getting-a-strategy.md. Runs under NodeNext and bundler
 // resolution, because extensionless relative specifiers in the declarations pass
 // bundler and fail NodeNext. Runs after `npm run build`, locally and in CI.
-import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import path from 'node:path'
 import ts from 'typescript'
@@ -67,25 +67,30 @@ function checkBuiltConsumerTypes() {
 
   // Inside node_modules so `@fix-portal/fixatdl-react` resolves through the workspace
   // link to this package, exactly as a dependency would.
-  const dir = new URL('node_modules/.cache/consumer-types/', root)
-  rmSync(dir, { recursive: true, force: true })
-  mkdirSync(dir, { recursive: true })
-  writeFileSync(new URL('package.json', dir), '{ "type": "module" }\n')
-  const file = fileURLToPath(new URL('consumer.ts', dir))
-  writeFileSync(file, consumer)
+  const cache = fileURLToPath(new URL('node_modules/.cache/', root))
+  mkdirSync(cache, { recursive: true })
+  const dir = mkdtempSync(path.join(cache, 'consumer-types-'))
+  try {
+    writeFileSync(path.join(dir, 'package.json'), '{ "type": "module" }\n')
+    const file = path.join(dir, 'consumer.ts')
+    writeFileSync(file, consumer)
 
-  const modes = {
-    NodeNext: {
-      module: ts.ModuleKind.NodeNext,
-      moduleResolution: ts.ModuleResolutionKind.NodeNext,
-    },
-    bundler: { module: ts.ModuleKind.ESNext, moduleResolution: ts.ModuleResolutionKind.Bundler },
+    const modes = {
+      NodeNext: {
+        module: ts.ModuleKind.NodeNext,
+        moduleResolution: ts.ModuleResolutionKind.NodeNext,
+      },
+      bundler: { module: ts.ModuleKind.ESNext, moduleResolution: ts.ModuleResolutionKind.Bundler },
+    }
+    for (const [mode, options] of Object.entries(modes)) {
+      for (const message of scopedTypeDiagnostics(fileURLToPath(root), [file], options))
+        problems.push(`[${mode}] ${message}`)
+    }
+  } finally {
+    // mkdtemp returned this current run's path. Never delete a stale shared cache directory.
+    console.log(`Removing current consumer-types stage ${dir}`)
+    rmSync(dir, { recursive: true, force: false })
   }
-  for (const [mode, options] of Object.entries(modes)) {
-    for (const message of scopedTypeDiagnostics(fileURLToPath(root), [file], options))
-      problems.push(`[${mode}] ${message}`)
-  }
-  rmSync(dir, { recursive: true, force: true })
 
   if (problems.length > 0) {
     console.error(problems.map((problem) => `FAIL consumer types: ${problem}`).join('\n'))
