@@ -126,10 +126,7 @@ function equals(left: unknown, right: unknown, type?: string | null): boolean {
     if (['N', 'FALSE'].includes(right.toUpperCase())) return !left
     return false
   }
-  if (type && temporalTypes.has(type)) {
-    const order = compareTemporal(left, right)
-    return order === 0
-  }
+  if (type && temporalTypes.has(type)) return compareValues(left, right, type) === 0
   const order = compareValues(left, right, type)
   return order === null ? Object.is(left, right) : order === 0
 }
@@ -156,7 +153,13 @@ function compareValues(left: unknown, right: unknown, type?: string | null): num
   }
   if (type === 'Boolean_t' && typeof left === 'boolean' && typeof right === 'boolean')
     return Number(left) - Number(right)
-  if (type && temporalTypes.has(type)) return compareTemporal(left, right)
+  if (type && temporalTypes.has(type)) {
+    const order = compareTemporal(left, right)
+    // Contracts parses the four strict types through Parameter_t and throws; Clock_t stays lenient.
+    // An emptied field ('') never reaches the wire, so it stays a plain mismatch.
+    if (order === null && type !== 'Clock_t' && left !== '' && right !== '') throw new InvalidRule()
+    return order
+  }
   if (type && ordinalTypes.has(type)) {
     const a = textOperand(left)
     const b = textOperand(right)
