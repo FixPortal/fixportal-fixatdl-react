@@ -95,8 +95,9 @@ const server = createServer(async (request, response) => {
 await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve))
 const { port } = server.address()
 
-const browser = await chromium.launch()
+let browser
 try {
+  browser = await chromium.launch()
   const page = await browser.newPage({
     viewport: { width: PANE_WIDTH * 2 + 36, height: PANE_HEIGHT + 24 },
     deviceScaleFactor: 2,
@@ -113,6 +114,10 @@ try {
   await page.screenshot({ path: output })
   console.log(`wrote ${output}`)
 } finally {
-  await browser.close()
-  server.close()
+  // A failed launch leaves no browser to close; the server must still be closed.
+  try {
+    await browser?.close()
+  } finally {
+    server.close()
+  }
 }
