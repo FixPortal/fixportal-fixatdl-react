@@ -11,12 +11,26 @@ updates:
       prefix: chore
       include: scope
     groups:
+      # These packages are pinned to exact versions that
+      # scripts/assert-stryker-compat.mjs checks, and CI fails on any other
+      # version. A bump must land with that script edit, so keep them out of
+      # the broader groups below; a group takes a dependency by the first
+      # match, which is why this one is listed first. @vitest/coverage-v8 is
+      # pinned to the same version as vitest in package.json.
+      mutation-toolchain:
+        patterns:
+          - '@stryker-mutator/*'
+          - vitest
+          - '@vitest/*'
+          - typescript
+        update-types:
+          - major
+          - minor
+          - patch
       vite-toolchain:
         patterns:
           - vite
           - '@vitejs/*'
-          - vitest
-          - '@vitest/*'
         update-types:
           - major
           - minor
