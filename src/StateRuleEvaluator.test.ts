@@ -116,15 +116,39 @@ it.each([false, true])('fails closed for an unknown node kind, nested under NOT:
   expect(evaluateStateRule(node, {})).toBe(false)
 })
 
-it.each(['Data_t', 'data_t', 'Tenor_t', 'MonthYear_t', 'TZTimeOnly_t', 'TZTimestamp_t'])(
-  'reports invalid typed comparisons under NOT: %s',
+it.each([
+  'Data_t',
+  'data_t',
+  'Tenor_t',
+  'MonthYear_t',
+  'TZTimeOnly_t',
+  'TZTimestamp_t',
+  'UTCTimestamp_t',
+  'UTCTimeOnly_t',
+  'UTCDateOnly_t',
+  'LocalMktDate_t',
+])('reports invalid typed comparisons under NOT: %s', (comparisonType) => {
+  const expression: StateRuleAstNode = {
+    kind: 'not',
+    children: [{ kind: 'compare', operator: '==', field: 'a', value: 'invalid', comparisonType }],
+  }
+  expect(tryEvaluateStateRule(expression, { a: 'invalid' })).toBeNull()
+  expect(evaluateStateRule(expression, { a: 'invalid' })).toBe(false)
+})
+
+it.each(['UTCDateOnly_t', 'LocalMktDate_t'])(
+  'reports an unparsable %s ordering operand as invalid',
   (comparisonType) => {
     const expression: StateRuleAstNode = {
-      kind: 'not',
-      children: [{ kind: 'compare', operator: '==', field: 'a', value: 'invalid', comparisonType }],
+      kind: 'compare',
+      operator: '<',
+      field: 'a',
+      value: '20260913',
+      comparisonType,
     }
-    expect(tryEvaluateStateRule(expression, { a: 'invalid' })).toBeNull()
-    expect(evaluateStateRule(expression, { a: 'invalid' })).toBe(false)
+    expect(tryEvaluateStateRule(expression, { a: 'garbage' })).toBeNull()
+    expect(tryEvaluateStateRule(expression, { a: '20260912' })).toBe(true)
+    expect(tryEvaluateStateRule(expression, { a: '' })).toBe(false)
   },
 )
 
