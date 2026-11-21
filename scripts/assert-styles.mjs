@@ -112,11 +112,14 @@ const REQUIRED_PREFIXES = [
   'mb-',
   'p-',
 ]
-const escapeClass = (name) => '.' + name.replace(/[[\]/.:]/g, (ch) => `\\${ch}`)
+// Exact membership: a substring match would let `.rounded-md` stand in for `.rounded`.
+const selectors = new Set(
+  [...css.matchAll(/\.((?:\\.|[\w-])+)/g)].map((match) => match[1].replace(/\\(.)/g, '$1')),
+)
 const missing = []
 for (const candidate of [...used].sort()) {
   if (!REQUIRED_PREFIXES.some((prefix) => candidate.startsWith(prefix))) continue
-  if (!css.includes(escapeClass(candidate))) missing.push(candidate)
+  if (!selectors.has(candidate)) missing.push(candidate)
 }
 if (missing.length > 0) {
   problems.push(
