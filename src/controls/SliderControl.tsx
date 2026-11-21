@@ -2,6 +2,7 @@ import { useId } from 'react'
 import type { ControlProps } from './controlRegistry.js'
 import { addDecimals, compareDecimals, decimalInputValue, formatDecimal } from '../decimalValue.js'
 import { isUnfilledAtdlValue } from '../atdlValue.js'
+import { listOptionsFor } from './listOptions.js'
 
 /**
  * Renders FIXatdl Slider_t as an <input type="range"> with a live value pip.
@@ -17,7 +18,7 @@ export function SliderControl({ control, value, onChange, state }: ControlProps)
 
   const hasError = state.errors.length > 0
 
-  const items = control.listItems ?? []
+  const items = listOptionsFor(control)
   const discrete = items.length > 0
   const shift = control.parameter?.type === 'Percentage_t' && !discrete ? -2 : 0
   const declaredMin = formatDecimal(control.parameter?.min, null, shift)
@@ -42,8 +43,13 @@ export function SliderControl({ control, value, onChange, state }: ControlProps)
   const unset = isUnfilledAtdlValue(value) || (discrete && index < 0)
   const current = discrete ? String(Math.max(0, index)) : unset ? min : String(value)
   const display = discrete
-    ? (items[Number(current)]?.uiRep ?? items[Number(current)]?.enumId ?? '')
+    ? (items[Number(current)]?.label ?? '')
     : current
+  // The native range input clamps the thumb, so a screen reader would announce the bound.
+  const outOfRange =
+    !discrete &&
+    !unset &&
+    (compareDecimals(current, min) === -1 || compareDecimals(current, max) === 1)
   let ariaLabel = control.label == null ? control.id : undefined
   if (state.required) ariaLabel = `${control.label ?? control.id} (Required)`
   const choose = (position: string) => {
@@ -87,7 +93,7 @@ export function SliderControl({ control, value, onChange, state }: ControlProps)
           aria-label={ariaLabel}
           aria-invalid={hasError}
           aria-describedby={hasError ? errorId : undefined}
-          aria-valuetext={unset ? 'Not selected' : discrete ? display : undefined}
+          aria-valuetext={unset ? 'Not selected' : discrete || outOfRange ? display : undefined}
           title={control.tooltip ?? undefined}
           className="flex-1 accent-brand disabled:opacity-50 disabled:cursor-not-allowed"
         />
