@@ -21,7 +21,10 @@ const validCss = `:root {
 .focus\\:bg-brand:focus { background: var(--color-brand); }
 `
 
-function runStyles({ css = validCss, manifest = {}, missingCss = false } = {}, inspect) {
+function runStyles(
+  { css = validCss, manifest = {}, missingCss = false, extraSource } = {},
+  inspect,
+) {
   withGuardFixture(guard, (fixture) => {
     fixture.write(
       'package.json',
@@ -34,6 +37,7 @@ function runStyles({ css = validCss, manifest = {}, missingCss = false } = {}, i
       }),
     )
     fixture.write('src/Control.tsx', '<div className="flex px-2 focus:bg-brand" />\n')
+    if (extraSource) fixture.write('src/Extra.tsx', extraSource)
     // Tests are outside Tailwind's published-control contract.
     fixture.write('src/Ignored.test.tsx', '<div className="bg-only-in-tests" />\n')
     if (!missingCss) fixture.write('dist/styles.css', css)
@@ -91,6 +95,30 @@ describe('the actual published stylesheet guard', () => {
         ),
       },
       'src emits 1 class name(s) with no rule in dist/styles.css: flex',
+    )
+  })
+
+  it('collects class strings from ternaries, including the newer prefix families', () => {
+    rejects(
+      {
+        extraSource:
+          "<div className={on ? 'inline-flex justify-center' : 'min-h-11 focus-visible:ring-2'} />\n",
+      },
+      'src emits 4 class name(s) with no rule in dist/styles.css: focus-visible:ring-2, inline-flex, justify-center, min-h-11',
+    )
+  })
+
+  it('collects class strings from template literals and their holes', () => {
+    rejects(
+      { extraSource: "<div className={`p-3 ${on ? 'outline-2' : ''} gap-9`} />\n" },
+      'src emits 3 class name(s) with no rule in dist/styles.css: gap-9, outline-2, p-3',
+    )
+  })
+
+  it('ignores lowercase strings that only share a prefix with a utility', () => {
+    runStyles(
+      { extraSource: "const a = x === 'flexible' || y === 'blocked' || z === 'borders'\n" },
+      (result) => expect(result.status).toBe(0),
     )
   })
 
