@@ -51,7 +51,8 @@ describe('guarded runner compatibility', () => {
     )
     expect(() => ensureCompatibility(root)).toThrow(`Unsupported ${name} ${version}`)
   })
-  it.each(['.mutation-canary-tmp', 'reports'])(
+  // Directory and file symlinks need privilege a plain Windows account lacks.
+  it.skipIf(process.platform === 'win32').each(['.mutation-canary-tmp', 'reports'])(
     'rejects a symlink escape through %s before creating children',
     (parent) => {
       const { root } = fixture()
@@ -64,15 +65,18 @@ describe('guarded runner compatibility', () => {
       expect(fs.readdirSync(outside)).toEqual([])
     },
   )
-  it('rejects a package file escaping project-local modules', () => {
-    const { root } = fixture()
-    const outside = path.join(root, 'outside.json')
-    const manifest = path.join(root, 'node_modules/@stryker-mutator/core/package.json')
-    fs.writeFileSync(outside, '{"version":"10.1.1"}')
-    fs.unlinkSync(manifest)
-    fs.symlinkSync(outside, manifest)
-    expect(() => ensureCompatibility(root)).toThrow('Path escapes project')
-  })
+  it.skipIf(process.platform === 'win32')(
+    'rejects a package file escaping project-local modules',
+    () => {
+      const { root } = fixture()
+      const outside = path.join(root, 'outside.json')
+      const manifest = path.join(root, 'node_modules/@stryker-mutator/core/package.json')
+      fs.writeFileSync(outside, '{"version":"10.1.1"}')
+      fs.unlinkSync(manifest)
+      fs.symlinkSync(outside, manifest)
+      expect(() => ensureCompatibility(root)).toThrow('Path escapes project')
+    },
+  )
 })
 
 it('requires the real canary in both supported Node jobs and mutation entrypoint', () => {
@@ -109,19 +113,23 @@ for (const [label, body, expected] of [
   ['nonzero', 'process.exitCode = 7', 7],
   ['signal', "process.kill(process.pid, 'SIGTERM')", 1],
 ]) {
-  it(`propagates actual full-run ${label} child exit`, async () => {
-    const { root } = fixture()
-    const cli = path.join(root, 'owned-cli.mjs')
-    const driver = path.join(root, 'owned-driver.mjs')
-    fs.writeFileSync(cli, body)
-    const production = pathToFileURL(path.resolve('scripts/assert-stryker-compat.mjs')).href
-    fs.writeFileSync(
-      driver,
-      `import { runMutation } from ${JSON.stringify(production)};
+  // boundedRun refuses non-Linux hosts.
+  it.skipIf(process.platform !== 'linux')(
+    `propagates actual full-run ${label} child exit`,
+    async () => {
+      const { root } = fixture()
+      const cli = path.join(root, 'owned-cli.mjs')
+      const driver = path.join(root, 'owned-driver.mjs')
+      fs.writeFileSync(cli, body)
+      const production = pathToFileURL(path.resolve('scripts/assert-stryker-compat.mjs')).href
+      fs.writeFileSync(
+        driver,
+        `import { runMutation } from ${JSON.stringify(production)};
 process.exitCode = await runMutation(${JSON.stringify(root)}, ${JSON.stringify(cli)});
 `,
-    )
-    const result = await boundedRun([driver], process.cwd(), process.env, 5_000)
-    assert.equal(result.code, expected, result.output.toString('utf8'))
-  })
+      )
+      const result = await boundedRun([driver], process.cwd(), process.env, 5_000)
+      assert.equal(result.code, expected, result.output.toString('utf8'))
+    },
+  )
 }
