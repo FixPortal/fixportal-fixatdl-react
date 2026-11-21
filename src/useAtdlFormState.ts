@@ -193,7 +193,7 @@ export function useAtdlFormState(
           previous.values,
         )
         try {
-          assignControlValue(strategy, next, control, normalized, readonlyIds, now)
+          assignControlValue(strategy, next, control, normalized, readonlyIds, now, inputErrors)
         } catch (error) {
           inputErrors[controlId] = error instanceof Error ? error.message : String(error)
           return { ...previous, inputErrors }

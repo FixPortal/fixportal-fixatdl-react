@@ -312,6 +312,51 @@ describe('useAtdlFormState', () => {
     expect(result.current.hasErrors).toBe(false)
   })
 
+  it.each([
+    ['20260913', '20260913-00:00:00', false],
+    ['2026-09-13', '20260913-00:00:00', false],
+    ['20260913T13:00:00', '20260913-13:00:00', false],
+    ['20260913', '20260913-00:00:00', true],
+    ['20260913T13:00:00', '20260913-13:00:00', true],
+  ])(
+    'synchronizes a linked clock from the canonical text of %s as %s (host clock: %s)',
+    (typed, instant, withClock) => {
+      const parameter = makeParam({ type: 'UTCTimestamp_t' })
+      const strategy = makeStrategy([
+        makeControl({ id: 'text', parameter }),
+        makeControl({ id: 'clock', type: 'Clock_t', parameter, localMktTz: 'UTC' }),
+      ])
+      const clock = withClock ? () => new Date('2026-09-12T08:00:00Z') : undefined
+      const { result } = renderHook(() => useAtdlFormState(strategy, { clock }))
+      act(() => {
+        result.current.setValue('text', '20260912-13:00:00')
+      })
+      act(() => {
+        result.current.setValue('text', typed)
+      })
+      expect(result.current.values['clock']).toMatchObject({ instant })
+      expect(mapControlValuesToParameters(strategy, result.current.values)).toEqual({ P1: instant })
+    },
+  )
+
+  it('reports an error on a linked clock that cannot hold a valid time-only edit', () => {
+    const parameter = makeParam({ type: 'UTCTimeOnly_t' })
+    const strategy = makeStrategy([
+      makeControl({ id: 'text', parameter }),
+      makeControl({ id: 'clock', type: 'Clock_t', parameter, localMktTz: 'UTC' }),
+    ])
+    const { result } = renderHook(() =>
+      useAtdlFormState(strategy, { initialValues: { clock: '20260912-13:00:00' } }),
+    )
+    expect(result.current.hasErrors).toBe(false)
+    act(() => {
+      result.current.setValue('text', '14:00:00')
+    })
+    expect(result.current.controlState['text'].errors).toEqual([])
+    expect(result.current.controlState['clock'].errors.join(' ')).toContain('host clock')
+    expect(result.current.hasErrors).toBe(true)
+  })
+
   it('allows partial typing beside a linked clock and synchronizes the completed timestamp', () => {
     const parameter = makeParam({ type: 'UTCTimestamp_t' })
     const strategy = makeStrategy([

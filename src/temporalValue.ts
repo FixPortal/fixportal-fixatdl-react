@@ -30,6 +30,16 @@ export function parseTemporal(value: unknown): { date: string | null; time: stri
   }
 }
 
+/** Whether a wire value is valid for a FIX date/time parameter type, as form validation reads it. */
+export function isTemporalWireValue(type: string, value: unknown): boolean {
+  if (type === 'TZTimeOnly_t' || type === 'TZTimestamp_t')
+    return normalizeTzTemporal(value, type) !== null
+  if (!['UTCTimestamp_t', 'UTCTimeOnly_t', 'UTCDateOnly_t', 'LocalMktDate_t'].includes(type))
+    return false
+  const parsed = parseTemporal(value)
+  return !!parsed && (type === 'UTCTimeOnly_t') === !parsed.date
+}
+
 /** Tenor ordering follows core's nominal day magnitudes for different units. */
 export function compareTenor(left: unknown, right: unknown): number | null {
   const a = parseTenor(left)

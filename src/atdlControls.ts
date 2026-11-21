@@ -4,9 +4,11 @@ import {
   isBinaryControl,
   isUnfilledAtdlValue,
   normalizeControlValue,
+  parameterWireValue,
 } from './atdlValue.js'
 import { clockRuleValue, createClockValue, clockWireValue } from './atdlClock.js'
 import { formatDecimal } from './decimalValue.js'
+import { isTemporalWireValue } from './temporalValue.js'
 
 // ---------------------------------------------------------------------------
 // Control-graph utilities shared by the form-state hook and the FIX preview.
@@ -115,6 +117,7 @@ export function assignControlValue(
   value: unknown,
   readonlyIds: ReadonlySet<string>,
   now?: Date,
+  errors?: Record<string, string>,
 ): boolean {
   if (readonlyIds.has(control.id)) return false
   const controls = flattenControls(strategy)
@@ -143,16 +146,21 @@ export function assignControlValue(
           ? null
           : (formatDecimal(parameterValue, null, -2) ?? parameterValue)
       if (sibling.type === 'Clock_t') {
+        const wire =
+          control.type === 'Clock_t'
+            ? clockWireValue(value)
+            : sibling.parameter
+              ? parameterWireValue(sibling.parameter, parameterValue)
+              : parameterValue
         try {
-          next = createClockValue(
-            sibling,
-            control.type === 'Clock_t' ? clockWireValue(value) : parameterValue,
-            now,
-            'wire',
-          )
-        } catch {
+          next = createClockValue(sibling, wire, now, 'wire')
+        } catch (error) {
+          // Partial text stays on the edited control for validation; a value valid for the
+          // parameter that the Clock still cannot hold is reported on the Clock.
+          if (errors && sibling.parameter && isTemporalWireValue(sibling.parameter.type, wire))
+            errors[sibling.id] = error instanceof Error ? error.message : String(error)
           continue
-        } // Partial text stays on the edited control for validation.
+        }
       }
     }
     const equal =
