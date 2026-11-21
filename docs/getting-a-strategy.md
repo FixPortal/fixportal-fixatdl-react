@@ -142,7 +142,11 @@ default. When none of those provides a value, the initial
 value is `control.initValue`, then `parameter.defaultValue`, then `false` for
 a checkbox or radio. A control
 whose `parameter` is missing or `null` still renders, but none of the
-parameter constraints are enforced.
+parameter constraints are enforced and no unit conversion is applied. For a
+`Percentage_t` parameter that would emit a value 100 times off, so the form
+reports a control error on that control instead ("Control must carry its
+Percentage_t parameter … inline to convert the value.") and `hasErrors` is
+true.
 `FixPortal.FixAtdl.Contracts` inlines it for every bound control and emits all
 control-specific fields. Validate the order on the server as well: the form is
 a convenience, not the authority.
