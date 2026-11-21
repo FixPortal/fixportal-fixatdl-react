@@ -25,6 +25,13 @@ with the pre-release history.
   passing `FIX_OrdType: 2` now matches a rule written against `"2"`.
 - State-rule numeric inference no longer reads thousands separators or
   exponents (`"1,000"`, `"1e3"`) as numbers, matching core and Contracts.
+- Ordering non-numeric text against a numeric string (`"VWAP" > "100"`)
+  compares the strings ordinally, as Contracts does, instead of evaluating to
+  false. Text against a JSON number is still false.
+- When several state rules with the same effect target one control, an active
+  rule decides it. An inactive rule's inverse applies only while no other rule
+  with that effect is active, so a later inactive rule no longer re-enables or
+  re-shows a control that an earlier active rule disabled or hid.
 - A state rule or StrategyEdit typed `UTCTimestamp_t`, `UTCTimeOnly_t`,
   `UTCDateOnly_t` or `LocalMktDate_t` with an unparsable operand is reported
   as invalid instead of evaluating to a verdict.

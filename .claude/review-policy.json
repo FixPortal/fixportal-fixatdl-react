@@ -15,6 +15,8 @@
     "src/StateRuleEvaluator.ts",
     "src/useAtdlFormState.ts",
     "src/output/fixPreviewEmitter.ts",
+    "src/atdlValue.ts",
+    "src/decimalValue.ts",
     "vite.config.ts",
     "vitest.config.ts",
     ".github/workflows/review-tier.yml",
