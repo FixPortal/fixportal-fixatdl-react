@@ -1,9 +1,10 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import { execFileSync } from 'node:child_process'
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { mkdtempSync, writeFileSync } from 'node:fs'
 import { devNull, tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { isAncestor } from './assert-release-is-ancestor.mjs'
+import { removeOwnedTemp } from './removeOwnedTemp.test-utils.mjs'
 
 // WHY a real temp git repo, not a mocked child_process: the guard exists to catch a
 // tag cut off a side branch, and the only thing that can prove a wrapper around
@@ -45,7 +46,7 @@ describe('release commit must be an ancestor of main', () => {
   })
 
   afterAll(() => {
-    rmSync(dir, { recursive: true, force: true })
+    removeOwnedTemp(dir, 'fixatdl-ancestor-')
   })
 
   it('returns true when the release commit is an ancestor of main (release cut from main)', () => {

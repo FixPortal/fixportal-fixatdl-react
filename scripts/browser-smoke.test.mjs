@@ -2,9 +2,10 @@
 import { describe, expect, it, vi } from 'vitest'
 import { resolve } from 'node:path'
 import { Server } from 'node:http'
-import { mkdtempSync, writeFileSync, rmSync } from 'node:fs'
+import { mkdtempSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { createStaticServer, resolveStaticFile, runBrowserSmoke } from './browser-smoke.mjs'
+import { removeOwnedTemp } from './removeOwnedTemp.test-utils.mjs'
 
 describe('workbench smoke launch failure', () => {
   it('closes the static server when the browser fails to launch', async () => {
@@ -18,8 +19,7 @@ describe('workbench smoke launch failure', () => {
       expect(close).toHaveBeenCalledTimes(1)
     } finally {
       close.mockRestore()
-      console.info(`Removing current-test fixture: ${appDist}`)
-      rmSync(appDist, { recursive: true })
+      removeOwnedTemp(appDist, 'fixatdl-smoke-launch-')
     }
   })
 })
@@ -56,7 +56,7 @@ describe('workbench smoke server path handling', () => {
       await new Promise((resolveClose, reject) =>
         server.close((error) => (error ? reject(error) : resolveClose())),
       )
-      rmSync(root, { recursive: true, force: true })
+      removeOwnedTemp(root, 'fixatdl-smoke-')
     }
   })
 
@@ -76,7 +76,7 @@ describe('workbench smoke server path handling', () => {
       await new Promise((resolveClose, reject) =>
         server.close((error) => (error ? reject(error) : resolveClose())),
       )
-      rmSync(dist, { recursive: true, force: true })
+      removeOwnedTemp(dist, 'fixatdl-smoke-')
     }
   })
 })
