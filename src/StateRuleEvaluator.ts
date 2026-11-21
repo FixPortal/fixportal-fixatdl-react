@@ -1,7 +1,7 @@
 import type { StateRuleAstNode } from './stateRuleAst.js'
 import { MAX_STATE_RULE_DEPTH } from './stateRuleAst.js'
 import { isUnfilledAtdlValue } from './atdlValue.js'
-import { compareDecimals } from './decimalValue.js'
+import { compareFixDecimals } from './decimalValue.js'
 import {
   compareTemporal,
   compareTenor,
@@ -166,13 +166,13 @@ function compareValues(left: unknown, right: unknown, type?: string | null): num
 }
 
 function compareUntyped(left: unknown, right: unknown): number | null {
-  const numeric = compareDecimals(left, right)
+  const numeric = compareFixDecimals(left, right)
   if (numeric !== null) return numeric
   if (
     typeof left === 'string' &&
     typeof right === 'string' &&
-    compareDecimals(left, left) === null &&
-    compareDecimals(right, right) === null
+    compareFixDecimals(left, left) === null &&
+    compareFixDecimals(right, right) === null
   ) {
     return ordinal(left, right)
   }
