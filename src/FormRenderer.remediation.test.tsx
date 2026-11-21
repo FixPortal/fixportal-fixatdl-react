@@ -1,5 +1,5 @@
 import { describe, it, expect, afterEach, vi } from 'vitest'
-import { render, screen, cleanup } from '@testing-library/react'
+import { render, screen, cleanup, fireEvent } from '@testing-library/react'
 import { FormRenderer } from './FormRenderer.js'
 import { PanelRenderer } from './PanelRenderer.js'
 import type { AtdlControlDto, AtdlPanelDto, AtdlStrategyDto } from './types.js'
@@ -53,6 +53,17 @@ function panelOf(children: AtdlPanelDto['children'], collapsed = false): AtdlPan
   }
 }
 
+function collapsiblePanel(children: AtdlPanelDto['children'], collapsed: boolean): AtdlPanelDto {
+  return { ...panelOf(children), collapsible: true, collapsed, title: 'Section' }
+}
+
+// A browser sets `open` and then fires `toggle`; jsdom does neither on summary click.
+function toggleDetails(open: boolean) {
+  const details = document.querySelector('details')!
+  details.open = open
+  fireEvent(details, new Event('toggle'))
+}
+
 function strategyOf(panel: AtdlPanelDto, parameters = [PARAM]): AtdlStrategyDto {
   return { name: 'S', parameters, panel, sourceXml: '<Strategy />' }
 }
@@ -64,10 +75,21 @@ describe('FormRenderer summary reaches errors the user cannot see', () => {
     expect(screen.getByRole('alert')).toHaveTextContent('Name: This field is required.')
   })
 
-  it('does not list a collapsed-panel error twice once the panel is open', () => {
+  it('lists an error in the summary once the user closes an open panel', () => {
     const required = control({ parameter: PARAM, parameterRef: 'P' })
-    render(<FormRenderer strategy={strategyOf(panelOf([required], false))} />)
+    render(<FormRenderer strategy={strategyOf(collapsiblePanel([required], false))} />)
     expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+    toggleDetails(false)
+    expect(screen.getByRole('alert')).toHaveTextContent('Name: This field is required.')
+  })
+
+  it('does not list an error twice once the user opens a closed panel', () => {
+    const required = control({ parameter: PARAM, parameterRef: 'P' })
+    render(<FormRenderer strategy={strategyOf(collapsiblePanel([required], true))} />)
+    expect(screen.getByRole('alert')).toHaveTextContent('Name: This field is required.')
+    toggleDetails(true)
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+    expect(screen.getAllByText('This field is required.')).toHaveLength(1)
   })
 
   it('lists a Label_t state-rule error (S3-AR-6)', () => {

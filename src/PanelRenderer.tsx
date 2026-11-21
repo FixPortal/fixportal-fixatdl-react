@@ -21,6 +21,10 @@ export interface PanelRendererProps {
   state: Record<string, ControlFormState>
   highlightedControlId: string | null
   onHighlightControl?(id: string | null): void
+  /** Position path of this panel in the tree ("0" for the root, "0/2" for its third child). */
+  panelPath?: string
+  /** Called with a collapsible panel's path whenever the user opens or closes it. */
+  onPanelToggle?(path: string, open: boolean): void
 }
 
 // ---------------------------------------------------------------------------
@@ -44,6 +48,8 @@ export function PanelRenderer({
   highlightedControlId,
   onHighlightControl,
   text,
+  panelPath = '0',
+  onPanelToggle,
 }: PanelRendererProps) {
   const parentInstance = useContext(FormInstance)
   const instanceId = useId()
@@ -73,6 +79,8 @@ export function PanelRenderer({
             highlightedControlId={highlightedControlId}
             onHighlightControl={onHighlightControl}
             text={text}
+            path={`${panelPath}/${i}`}
+            onPanelToggle={onPanelToggle}
           />
         ))}
       </div>
@@ -82,9 +90,12 @@ export function PanelRenderer({
   if (panel.collapsible) {
     return (
       // WHY: <details> open attribute seeds the initial collapsed state from
-      // the DTO. The browser manages toggling from there - no React state
-      // needed for the open/close, keeping the renderer stateless.
-      <details open={!panel.collapsed}>
+      // the DTO. The browser manages toggling from there; the toggle event only
+      // reports it, so the host can keep the error summary in step with the screen.
+      <details
+        open={!panel.collapsed}
+        onToggle={(event) => onPanelToggle?.(panelPath, event.currentTarget.open)}
+      >
         {/* An untitled panel renders an empty <summary>, which is focusable but
             has no accessible name. Only then do we supply a generic one - a
             titled panel keeps its visible title AS its accessible name, so a
@@ -124,6 +135,8 @@ interface PanelChildProps {
   state: Record<string, ControlFormState>
   highlightedControlId: string | null
   onHighlightControl?(id: string | null): void
+  path: string
+  onPanelToggle?(path: string, open: boolean): void
 }
 
 function PanelChild({
@@ -134,6 +147,8 @@ function PanelChild({
   highlightedControlId,
   onHighlightControl,
   text,
+  path,
+  onPanelToggle,
 }: PanelChildProps) {
   const instanceId = useContext(FormInstance)
   const unsupportedT = text?.unsupportedControlType ?? {
@@ -160,6 +175,8 @@ function PanelChild({
         highlightedControlId={highlightedControlId}
         onHighlightControl={onHighlightControl}
         text={text}
+        panelPath={path}
+        onPanelToggle={onPanelToggle}
       />
     )
   }

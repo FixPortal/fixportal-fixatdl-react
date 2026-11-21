@@ -49,8 +49,10 @@ with the pre-release history.
 - `Slider_t` uses parameter-level enums when it has no `ListItems`, including
   when an amendment is loaded, and an out-of-range numeric slider announces
   its real value to assistive technology.
-- Errors on controls inside an initially collapsed panel, and on `Label_t`
-  controls, appear in the form's alert summary. A rule-hidden unsupported
+- Errors on controls inside a collapsed panel, and on `Label_t` controls,
+  appear in the form's alert summary. The summary follows panels the user
+  opens and closes, so an error is listed once, inline or in the summary,
+  never hidden and never both. A rule-hidden unsupported
   control no longer shows its placeholder.
 - `PanelRenderer` reads `state` and `values` by own property, so a control id
   such as `constructor` cannot resolve an inherited member of a host-supplied
