@@ -59,7 +59,7 @@ it('keeps emitter parity in the required ten-minute pinned producer lane', () =>
   expect(runs[0]['continue-on-error']).toBeUndefined()
   expect(runs[0].env.FIXATDL_SOURCE_ROOT).toBe('${{ github.workspace }}/producer')
   const checkout = job.steps.find((step) => step.with?.repository === 'FixPortal/fixportal-fixatdl')
-  expect(checkout.with.ref).toBe('5411d52998b5b05621f2edb72fd0050c9729a91e')
+  expect(checkout.with.ref).toBe('564dd0badb2155b1bf6db9673504f2a8d213269f')
   const config = ts.createSourceFile(
     'producer-contract.config.ts',
     readFileSync(new URL('../producer-contract.config.ts', import.meta.url), 'utf8'),
