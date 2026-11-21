@@ -1643,3 +1643,18 @@ it.each([
     'A value cannot contain the FIX field delimiter.',
   )
 })
+
+it('loads an amendment into a slider whose enums live only on its parameter', () => {
+  const parameter = makeParam({
+    enumValues: [
+      { enumId: 'low', wireValue: 'L' },
+      { enumId: 'high', wireValue: 'H' },
+    ],
+  })
+  const strategy = makeStrategy([makeControl({ type: 'Slider_t', parameter })])
+  const { result } = renderHook(() =>
+    useAtdlFormState(strategy, { isAmendment: true, initialFixValues: { 9001: 'H' } }),
+  )
+  expect(result.current.controlState['ctrl1'].errors).toEqual([])
+  expect(result.current.values['ctrl1']).toBe('high')
+})

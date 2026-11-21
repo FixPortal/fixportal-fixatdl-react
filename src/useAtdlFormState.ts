@@ -383,10 +383,13 @@ function normalizeSeed(
     return createClockValue(control, value, now, fromWire ? 'wire' : 'init')
   const normalized = normalizeControlValue(control, value)
   if (fromWire && !isUnfilledAtdlValue(normalized)) {
+    // A slider is discrete when SliderControl renders it so: listItems or parameter enums.
+    const options =
+      control.type === 'Slider_t' ? listOptionsFor(control) : (control.listItems ?? [])
     const numeric =
       control.type === 'SingleSpinner_t' ||
       control.type === 'DoubleSpinner_t' ||
-      (control.type === 'Slider_t' && !control.listItems?.length)
+      (control.type === 'Slider_t' && !options.length)
     if (numeric && compareDecimals(normalized, normalized) === null)
       throw new Error('Invalid numeric FIX initialization value.')
     if (isBinaryControl(control) && typeof normalized !== 'boolean')
@@ -394,11 +397,7 @@ function normalizeSeed(
     const list = ['DropDownList_t', 'SingleSelectList_t', 'RadioButtonList_t', 'Slider_t'].includes(
       control.type,
     )
-    if (
-      list &&
-      control.listItems?.length &&
-      !control.listItems.some((item) => item.enumId === normalized)
-    )
+    if (list && options.length && !options.some((item) => item.enumId === normalized))
       throw new Error('Unknown list FIX initialization value.')
   }
   return structuredClone(normalized)
