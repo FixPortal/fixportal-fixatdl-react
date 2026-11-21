@@ -140,6 +140,34 @@ it('matches set equality for array values', () => {
   expect(evaluateStateRule(expression, { a: ['A', 'A'] })).toBe(true)
 })
 
+// Contracts stringifies both operands for text comparison types (UnwrapToString) and applies
+// its bool/text coercion whatever the comparison type (TryCompareBoolText).
+it.each([
+  [2, '==', '2', 'String_t', true],
+  [2, '!=', '2', 'String_t', false],
+  ['2', '==', 2, 'Char_t', true],
+  [2.5, '==', '2.5', 'EnumState', true],
+  [2, '==', '2.0', 'String_t', false],
+  [true, '==', 'true', 'String_t', true],
+  [false, '==', 'false', 'MultipleStringValue_t', true],
+  [true, '==', 'Y', 'String_t', true],
+  [true, '==', 'N', 'String_t', false],
+  [true, '==', 'maybe', 'Tenor_t', false],
+  [10, '>', '9', 'String_t', false],
+  [10, '<', '9', 'String_t', true],
+  [true, '>', 'false', 'String_t', true],
+] as const)(
+  'stringifies %j %s %j under %s as Contracts does',
+  (left, operator, right, type, expected) => {
+    expect(
+      tryEvaluateStateRule(
+        { kind: 'compare', field: 'a', operator, value: right, comparisonType: type },
+        { a: left },
+      ),
+    ).toBe(expected)
+  },
+)
+
 it.each([
   ['==', false],
   ['!=', true],
