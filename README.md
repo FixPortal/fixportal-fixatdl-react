@@ -97,10 +97,15 @@ export function Workbench({ strategy }: { strategy: AtdlStrategyDto }) {
   const { values, setValue, controlState, hasErrors, strategyErrors } = useAtdlFormState(strategy, {
     clock: () => new Date(),
   })
-  const preview = emitStrategyParametersGrp(
-    strategy,
-    mapControlValuesToParameters(strategy, values),
-  )
+  const parameters = mapControlValuesToParameters(strategy, values)
+  let preview: ReturnType<typeof emitStrategyParametersGrp> = []
+  let previewError: string | null = null
+  try {
+    preview = emitStrategyParametersGrp(strategy, parameters)
+  } catch (error) {
+    // Throws when a parameter name or wire value carries the FIX delimiter.
+    previewError = error instanceof Error ? error.message : String(error)
+  }
   return (
     <>
       {strategyErrors.map((error, index) => (
@@ -116,7 +121,9 @@ export function Workbench({ strategy }: { strategy: AtdlStrategyDto }) {
         highlightedControlId={null}
         onHighlightControl={() => {}}
       />
-      <output>{hasErrors ? 'Correct the highlighted fields.' : JSON.stringify(preview)}</output>
+      <output>
+        {hasErrors ? 'Correct the highlighted fields.' : (previewError ?? JSON.stringify(preview))}
+      </output>
     </>
   )
 }
@@ -128,7 +135,7 @@ State resets when the strategy DTO content changes, including duplicate-named st
 
 Connect `onHighlightControl` and `highlightedControlId` to your rules inspector to enable the form's "why?" buttons. Without that callback the buttons are omitted. An unset slider displays "Not selected" and offers a button to select its current position. Clock inputs display at most milliseconds; loaded instants retain their full fraction until edited. Native numeric and range widgets still have browser precision limits; exact decimal bounds and values are retained by the library where the browser supplies them.
 
-Supply `clock` at the host boundary when resolving time-only values or current-time initialization. Clock values retain both the UTC instant and the displayed local date/time in a `ClockValue` object, preserving loaded instants across DST overlaps. Use `clockDisplayValue`, `clockWireValue` or `mapControlValuesToParameters` instead of stringifying this object. Numeric inputs retain decimal strings when JavaScript numbers would lose precision. CHANGELOG.md records 0.2.0 only as the first public release and has no migration notes, so there is no earlier public value shape to migrate from. UNVERIFIED: that these shapes date from 0.2.0; refuted if the git history shows `ClockValue` or decimal-string values added after v0.2.0.
+Supply `clock` at the host boundary when resolving time-only values or current-time initialization. Clock values retain both the UTC instant and the displayed local date/time in a `ClockValue` object, preserving loaded instants across DST overlaps. Use `clockDisplayValue`, `clockWireValue` or `mapControlValuesToParameters` instead of stringifying this object. Numeric inputs retain decimal strings when JavaScript numbers would lose precision. CHANGELOG.md records 0.2.0 only as the first public release and has no migration notes, so there is no earlier public value shape to migrate from. Both shapes are present in the v0.2.0 source (`ClockValue` in `src/atdlClock.ts`, decimal-string retention through `decimalInputValue` in `src/decimalValue.ts`), checked against the pre-0.3.2 history.
 
 `PanelRenderer.text` accepts optional `unsupportedControlType` and `whyRule` objects with `value` and optional HTML text attributes, allowing hosts to retain localization and text-edit tooling. `FormRenderer` does not take `text`; its "why?" copy is English-only. All broker text is rendered as React text, never HTML or XAML.
 
@@ -137,7 +144,7 @@ Supply `clock` at the host boundary when resolving time-only values or current-t
 The controls emit Tailwind **v4** utility classes against ten design token names. There
 are two supported ways to resolve them, and which one is right depends on whether the
 host already runs Tailwind. `tailwindcss` is not a peer dependency, and native inputs
-remain functional under neither.
+remain functional without either.
 
 ### A host not running Tailwind: import the packaged stylesheet
 
@@ -202,6 +209,7 @@ npmjs.org links it by absolute URL.
 
 ```sh
 npm ci
+npm run format
 npm run typecheck
 npm run docs:check
 npm run lint

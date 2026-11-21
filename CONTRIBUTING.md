@@ -2,11 +2,13 @@
 
 Consumers need Node 22+. Development and CI use Node 24 and npm 11.
 All development dependencies are public.
-Run `npm ci`, `npm run docs:check`, `npm run typecheck`, `npm run lint`,
-`npm run test:coverage`, `npm run build`, the five distribution assertions,
-the workbench typecheck/build, and `npm pack --dry-run` before opening a pull
-request against `main`. Use `npm run browser:smoke` when changing the sample,
-package exports, rendering, or styles.
+Run `npm ci`, `npm run format`, `npm run docs:check`, `npm run typecheck`,
+`npm run lint`, `npm run test:coverage`, `npm run build`, the five distribution
+assertions, the workbench typecheck/build, and `npm pack --dry-run` before
+opening a pull request against `main`. Use `npm run browser:smoke` when
+changing the sample, package exports, rendering, or styles. CI also runs the
+mutation canary (`node scripts/assert-stryker-compat.mjs --canary`), which
+requires Linux.
 
 Keep the DTO contract compatible with `FixPortal.FixAtdl.Contracts`, which
 produces it: `src/contractsPackageSample.test.tsx` renders that package's real
