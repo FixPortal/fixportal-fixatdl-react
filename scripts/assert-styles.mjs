@@ -65,10 +65,14 @@ function* walk(dir) {
 }
 
 const used = new Set()
+// Every word in non-test source, for the "extra class" check: Tailwind harvests plain
+// words from prose and comments too, so only words found nowhere in it are leaks.
+const sourceWords = new Set()
 for (const path of walk(fileURLToPath(new URL('src', root)))) {
-  if (!path.endsWith('.tsx') || /\.(test|spec)\.tsx$/.test(path)) continue
+  if (!/\.tsx?$/.test(path) || /\.(test|spec)\.tsx?$/.test(path)) continue
   const source = readFileSync(path, 'utf8')
-  collect(source)
+  for (const word of source.match(/[\w:[\]/.-]+/g) ?? []) sourceWords.add(word)
+  if (path.endsWith('.tsx')) collect(source)
 }
 
 // Every string and template literal, wherever it sits (attribute, ternary branch,
@@ -131,7 +135,9 @@ const isUtility = (candidate) =>
   )
 // Exact membership: a substring match would let `.rounded-md` stand in for `.rounded`.
 const selectors = new Set(
-  [...css.matchAll(/\.((?:\\.|[\w-])+)/g)].map((match) => match[1].replace(/\\(.)/g, '$1')),
+  [...css.matchAll(/(?<![\w)-])\.((?:\\.|[\w-])+)/g)].map((match) =>
+    match[1].replace(/\\(.)/g, '$1'),
+  ),
 )
 const missing = []
 for (const candidate of [...used].sort()) {
@@ -141,6 +147,15 @@ for (const candidate of [...used].sort()) {
 if (missing.length > 0) {
   problems.push(
     `src emits ${missing.length} class name(s) with no rule in dist/styles.css: ${missing.join(', ')}`,
+  )
+}
+
+// The reverse direction: generic utilities harvested from words in tests or comments
+// (`.container`, `.invert`, ...) would ship to every host that imports the stylesheet.
+const extra = [...selectors].filter((name) => !sourceWords.has(name)).sort()
+if (extra.length > 0) {
+  problems.push(
+    `dist/styles.css carries ${extra.length} class(es) that no non-test source mentions: ${extra.join(', ')}`,
   )
 }
 
