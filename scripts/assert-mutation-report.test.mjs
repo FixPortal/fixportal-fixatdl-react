@@ -104,4 +104,12 @@ describe('actual mutation report CLI', () => {
       expect(result.stderr).toContain('configured mutation scope')
     },
   )
+  it('names both lists and the exact-path rule when mutate holds a glob', () => {
+    const result = run(['Killed'], undefined, ['src/**/*.ts'])
+    expect(result.status).not.toBe(0)
+    expect(result.stderr).toContain('configured mutation scope')
+    expect(result.stderr).toContain('configured: ["src/**/*.ts"]')
+    expect(result.stderr).toContain('reported: ["src/example.ts"]')
+    expect(result.stderr).toContain('exact file paths')
+  })
 })
