@@ -171,14 +171,9 @@ function compareValues(left: unknown, right: unknown, type?: string | null): num
 function compareUntyped(left: unknown, right: unknown): number | null {
   const numeric = compareFixDecimals(left, right)
   if (numeric !== null) return numeric
-  if (
-    typeof left === 'string' &&
-    typeof right === 'string' &&
-    compareFixDecimals(left, left) === null &&
-    compareFixDecimals(right, right) === null
-  ) {
-    return ordinal(left, right)
-  }
+  // Contracts CompareNumericOrder: two strings that are not both numeric compare ordinally,
+  // so "VWAP" > "100" holds; a string against a number stays unevaluable.
+  if (typeof left === 'string' && typeof right === 'string') return ordinal(left, right)
   return null
 }
 
