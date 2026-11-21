@@ -196,7 +196,7 @@ jobs:
       - uses: actions/checkout@v7
         with:
           repository: FixPortal/fixportal-fixatdl
-          ref: 5411d52998b5b05621f2edb72fd0050c9729a91e
+          ref: 564dd0badb2155b1bf6db9673504f2a8d213269f
           path: producer
           persist-credentials: false
       - uses: actions/setup-node@v7
