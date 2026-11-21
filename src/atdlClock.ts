@@ -158,10 +158,14 @@ export function createClockValue(
   ) {
     // Decode what clockWireValue emits: market midnight for LocalMktDate_t, UTC midnight otherwise.
     const midnight = parseClock(`${raw}-00:00`).epoch
-    return fromInstant(
+    const value = fromInstant(
       dateOnlyType === 'LocalMktDate_t' ? resolveLocal(midnight, zone) : midnight,
       zone,
     )
+    // A zone can skip a whole day (Pacific/Apia had no 30 December 2011); never emit another date.
+    if (dateOnlyType === 'LocalMktDate_t' && !value.localDateTime.startsWith(raw))
+      throw new Error(`Invalid FIXatdl clock value: ${raw}`)
+    return value
   }
   let date: string | undefined
   if (now) {

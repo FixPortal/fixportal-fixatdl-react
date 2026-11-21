@@ -146,8 +146,10 @@ export function assignControlValue(
           ? null
           : (formatDecimal(parameterValue, null, -2) ?? parameterValue)
       if (sibling.type === 'Clock_t') {
+        // A market date is relative to each Clock's zone, so it syncs as the date; every
+        // other Clock-to-Clock sync carries the edited instant.
         const wire =
-          control.type === 'Clock_t'
+          control.type === 'Clock_t' && sibling.parameter?.type !== 'LocalMktDate_t'
             ? clockWireValue(value)
             : sibling.parameter
               ? parameterWireValue(sibling.parameter, parameterValue)
@@ -155,10 +157,13 @@ export function assignControlValue(
         try {
           next = createClockValue(sibling, wire, now, 'wire')
         } catch (error) {
-          // Partial text stays on the edited control for validation; a value valid for the
-          // parameter that the Clock still cannot hold is reported on the Clock.
-          if (errors && sibling.parameter && isTemporalWireValue(sibling.parameter.type, wire))
+          // Partial text stays on the edited control for validation. A value valid for the
+          // parameter that the Clock still cannot hold is reported: on the Clock for a user
+          // edit, and to the caller (which rolls the rule back) for a value rule.
+          if (sibling.parameter && isTemporalWireValue(sibling.parameter.type, wire)) {
+            if (!errors) throw error
             errors[sibling.id] = error instanceof Error ? error.message : String(error)
+          }
           continue
         }
       }
