@@ -46,6 +46,13 @@ describe('the actual public declaration guard', () => {
     )
   })
 
+  it('reports a leaked fixture declaration by its path relative to dist', () => {
+    runDts({ files: { 'dist/__fixtures__/leak.d.ts': 'export {}\n' } }, (result) => {
+      expect(result.status).toBe(1)
+      expect(result.stderr).toContain('leaked into the build: __fixtures__/leak.d.ts\n')
+    })
+  })
+
   it('fails when an unintended type is added through the wildcard re-export', () => {
     runDts({ types: typesDeclaration([...dtoNames, 'InternalLeak']) }, (result) => {
       expect(result.status).toBe(1)
