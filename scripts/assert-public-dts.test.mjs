@@ -15,11 +15,45 @@ const dtoNames = [
   'AtdlStateRuleDto',
   'StateRuleAstNodeDto',
 ]
+// The named exports the guard requires besides the DTOs re-exported through `export type *`.
+const namedExports = [
+  'PanelRenderer',
+  'PanelRendererProps',
+  'PanelRendererText',
+  'FormRenderer',
+  'FormRendererHandle',
+  'FormRendererProps',
+  'useAtdlFormState',
+  'AtdlFormStateApi',
+  'AtdlFormOptions',
+  'ControlFormState',
+  'ControlProps',
+  'ControlState',
+  'controlRegistry',
+  'flattenControls',
+  'mapControlValuesToParameters',
+  'isUnfilledAtdlValue',
+  'clockDisplayValue',
+  'clockWireValue',
+  'ClockValue',
+  'evaluateStateRule',
+  'StateRuleAstNode',
+  'StateRuleOperator',
+  'stateRuleToText',
+  'stateRuleToTree',
+  'TreeLine',
+  'collectRuleRows',
+  'RuleRow',
+  'emitStrategyParametersGrp',
+  'fixTypeCodeName',
+  'FixTag',
+]
 const typesDeclaration = (names) => names.map((name) => `export interface ${name} {}`).join('\n')
+const baselineIndex = `export { ${namedExports.join(', ')} } from './impl.js';\nexport type * from './types.js';\n`
 
 function runDts({ types = typesDeclaration(dtoNames), files = {} }, inspect) {
   withGuardFixture(guard, (fixture) => {
-    fixture.write('dist/index.d.ts', "export type * from './types.js';\n")
+    fixture.write('dist/index.d.ts', baselineIndex)
     fixture.write('dist/types.d.ts', types)
     for (const [name, content] of Object.entries(files)) fixture.write(name, content)
     const result = fixture.run()
@@ -32,7 +66,8 @@ function runDts({ types = typesDeclaration(dtoNames), files = {} }, inspect) {
 describe('the actual public declaration guard', () => {
   it('pins the DTO names re-exported through export type *', () => {
     runDts({ types: typesDeclaration(dtoNames) }, (result) => {
-      expect(result.stderr).not.toContain('AtdlStrategyDto')
+      expect(result.stderr).toBe('')
+      expect(result.status).toBe(0)
     })
   })
 
