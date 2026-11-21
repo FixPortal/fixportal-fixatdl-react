@@ -41,6 +41,16 @@ describe('consumer declaration resolution', () => {
     }
   }, 30_000)
 
+  it('reports a missing root file as a global problem, not a clean compile', () => {
+    const root = fixture('./types.js')
+    try {
+      const problems = scopedTypeDiagnostics(root, [join(root, 'absent.ts')], nodeNext)
+      expect(problems.join('\n')).toMatch(/<global>/)
+    } finally {
+      rmSync(root, { recursive: true, force: true })
+    }
+  }, 30_000)
+
   it('accepts the same import once it ends in .js', () => {
     const root = fixture('./types.js')
     try {

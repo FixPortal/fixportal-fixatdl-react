@@ -26,7 +26,11 @@ export function scopedTypeDiagnostics(rootDir, files, compilerOptions) {
   const problems = []
   for (const diagnostic of ts.getPreEmitDiagnostics(program)) {
     const fileName = diagnostic.file?.fileName
-    if (!fileName) continue
+    // A diagnostic with no file (e.g. a missing root file) must not read as a clean compile.
+    if (!fileName) {
+      problems.push(`<global>: ${ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n')}`)
+      continue
+    }
     const resolved = path.resolve(fileName)
     if (!owned.has(resolved) && !resolved.startsWith(distPrefix)) continue
     const where = path.relative(rootDir, resolved)
