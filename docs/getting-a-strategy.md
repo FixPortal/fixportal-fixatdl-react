@@ -132,7 +132,13 @@ matching entry in `parameters`. The form reads requiredness, `min` / `max`
 and amendment mutability from `control.parameter` only; it does not look them
 up through `parameterRef`. An explicit seed wins over the document:
 `parameter.constValue`, then `options.initialValues`, then
-`options.initialFixValues`. When none of those provides a value, the initial
+`options.initialFixValues`. `initialFixValues` is keyed differently by mode.
+For a new order it is read as `initialFixValues[control.initFixField]`, and
+only for controls whose `initPolicy` is `UseFixField`; for any other control
+it is ignored. For an amendment (`isAmendment`) it is read as
+`initialFixValues[parameter.fixTag]`, and when `initialFixValues` is supplied
+but has no entry for that tag, the value is `null` rather than the authored
+default. When none of those provides a value, the initial
 value is `control.initValue`, then `parameter.defaultValue`, then `false` for
 a checkbox or radio. A control
 whose `parameter` is missing or `null` still renders, but none of the
