@@ -4,6 +4,7 @@ import { spawnSync } from 'node:child_process'
 import { createHash } from 'node:crypto'
 import ts from 'typescript'
 import { scopedTypeDiagnostics } from './assert-consumer-types.mjs'
+import { assertProducerCases } from './producer-cases.mjs'
 
 const source = process.env.FIXATDL_SOURCE_ROOT
 if (!source) throw new Error('FIXATDL_SOURCE_ROOT must name the pinned producer checkout')
@@ -37,6 +38,7 @@ try {
   ])
   const bytes = readFileSync(output)
   const cases = JSON.parse(bytes.toString('utf8'))
+  assertProducerCases(cases)
   console.log(
     `Fresh C# JSON: ${bytes.length} bytes SHA256 ${createHash('sha256').update(bytes).digest('hex')}`,
   )
