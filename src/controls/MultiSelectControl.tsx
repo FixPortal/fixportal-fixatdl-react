@@ -17,11 +17,19 @@ export function MultiSelectControl({ control, value, onChange, state }: ControlP
 
   const hasError = state.errors.length > 0
 
-  const items = listOptionsFor(control)
+  const listed = listOptionsFor(control)
 
   const selected: string[] = Array.isArray(value) ? (value as string[]) : []
   // Set, not repeated Array.includes: the membership test runs once per item.
   const selectedSet = new Set(selected)
+  // As DropDownControl does: a selected id with no listed option stays visible so it can be removed.
+  const listedIds = new Set(listed.map((item) => item.enumId))
+  const items = [
+    ...[...selectedSet]
+      .filter((id) => !listedIds.has(id))
+      .map((id) => ({ enumId: id, label: `Unknown selection: ${id}` })),
+    ...listed,
+  ]
 
   const borderClass = hasError ? 'border-bad-border' : 'border-border-base'
 

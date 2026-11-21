@@ -259,6 +259,31 @@ describe('useAtdlFormState', () => {
     expect(renderHook(() => useAtdlFormState(inline)).result.current.hasErrors).toBe(false)
   })
 
+  it('validates multi-select selections against the control list, not only the parameter', () => {
+    const parameter = makeParam({
+      type: 'MultipleStringValue_t',
+      enumValues: ['A', 'B', 'C'].map((id) => ({ enumId: id, wireValue: id.toLowerCase() })),
+    })
+    const strategy = makeStrategy([
+      makeControl({
+        id: 'ms',
+        type: 'MultiSelectList_t',
+        parameter,
+        listItems: [
+          { enumId: 'A', uiRep: 'A' },
+          { enumId: 'B', uiRep: 'B' },
+        ],
+        initValue: 'A C',
+      }),
+    ])
+    const { result } = renderHook(() => useAtdlFormState(strategy))
+    expect(result.current.controlState['ms'].errors).toEqual(['Must be a listed selection.'])
+    act(() => {
+      result.current.setValue('ms', ['A'])
+    })
+    expect(result.current.hasErrors).toBe(false)
+  })
+
   it('clears a stale input error on a radio its selected sibling rewrites', () => {
     const parameter = makeParam({
       enumValues: [

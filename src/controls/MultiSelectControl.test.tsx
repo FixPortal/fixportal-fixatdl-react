@@ -83,6 +83,22 @@ describe('MultiSelectControl', () => {
     expect(onChange).toHaveBeenCalledWith(['DARK', 'MTF'])
   })
 
+  it('renders an unlisted selected id as a checked unknown row the user can untick', () => {
+    const onChange = vi.fn()
+    render(
+      <MultiSelectControl
+        control={BASE_CONTROL}
+        value={['DARK', 'OLD']}
+        onChange={onChange}
+        state={ENABLED}
+      />,
+    )
+    const unknown = screen.getByRole('checkbox', { name: 'Unknown selection: OLD' })
+    expect(unknown).toBeChecked()
+    fireEvent.click(unknown)
+    expect(onChange).toHaveBeenCalledWith(['DARK'])
+  })
+
   it('renders all items as checkboxes', () => {
     render(
       <MultiSelectControl control={BASE_CONTROL} value={[]} onChange={vi.fn()} state={ENABLED} />,

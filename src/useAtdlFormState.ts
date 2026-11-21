@@ -33,6 +33,7 @@ import {
   compareTzTemporal,
 } from './temporalValue.js'
 import { controlRegistry } from './controls/controlRegistry.js'
+import { listOptionsFor } from './controls/listOptions.js'
 
 export interface ControlFormState {
   enabled: boolean
@@ -539,6 +540,18 @@ function validateControl(control: AtdlControlDto, raw: unknown, required: boolea
       multiValueEnumIds(parameter, logical) ?? (Array.isArray(logical) ? logical : [logical])
     if (selections.some((id) => !parameter.enumValues?.some((item) => item.enumId === id)))
       errors.push('Must be a declared enumeration value.')
+  }
+  if (
+    (control.type === 'MultiSelectList_t' || control.type === 'CheckBoxList_t') &&
+    !errors.includes('Must be a declared enumeration value.')
+  ) {
+    const listed = listOptionsFor(control)
+    if (
+      listed.length &&
+      Array.isArray(raw) &&
+      raw.some((id) => !listed.some((item) => item.enumId === id))
+    )
+      errors.push('Must be a listed selection.')
   }
   const type = parameter?.type ?? ''
   const text = String(value)
