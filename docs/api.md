@@ -94,5 +94,7 @@ change without a major bump.
 
 ---
 
-<sub>Diagram sources live in [`docs/diagrams/`](diagrams/) as self-contained HTML.
-Open one in a browser to edit, then re-export the PNG.</sub>
+<sub>Diagram sources live in [`docs/diagrams/`](diagrams/) as HTML.
+Open one in a browser to edit, then re-export the PNG. The page loads its fonts
+from `fonts.googleapis.com`, so re-export with network access or the PNG falls
+back to default fonts.</sub>

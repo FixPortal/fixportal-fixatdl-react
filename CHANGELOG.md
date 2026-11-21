@@ -107,7 +107,8 @@ with the pre-release history.
 - Diagrams. `docs/getting-a-strategy.md` replaces its ASCII pipeline with a
   server/browser data-flow diagram that makes the "you write the mapper" boundary
   explicit; the README leads with the same image by absolute URL so it renders on
-  npmjs.org. Source is self-contained HTML in `docs/diagrams/`.
+  npmjs.org. Source is HTML in `docs/diagrams/`; it loads its fonts from
+  `fonts.googleapis.com`, so re-exporting the image needs network access.
 - `docs/api.md` — exhaustive reference for every public export: renderers,
   the form-state hook, the control registry, clock and rule-explanation
   helpers, the FIX preview emitter, and the `AtdlStrategyDto` contract.
@@ -161,12 +162,13 @@ with the pre-release history.
 - `deriveControlState` called `flattenControls` inside its per-control loop, a
   full recursive panel walk per control on every value change. Hoisted, matching
   what `seedValues` and `setValue` already did.
-- The multi-select and checkbox-list now expose `aria-invalid` on each checkbox,
-  where the role supports it, rather than on their `group` wrapper. Error state
-  therefore reaches assistive technology without relying on deprecated group usage.
-  (`aria-required` is deliberately not used there: it is not a supported
-  attribute of role `group`, which is why the required state is folded into the
-  accessible name instead.)
+- The multi-select and checkbox-list now expose `aria-invalid` on their
+  `group` wrapper, which they did not do before. This entry originally said
+  the attribute was on each checkbox; corrected 2026-11-21 against the 0.2.1
+  source, where `aria-invalid={hasError}` sits on the `<fieldset>`. The
+  per-checkbox placement shipped in 0.3.0. (`aria-required` is deliberately
+  not used there: it is not a supported attribute of role `group`, which is
+  why the required state is folded into the accessible name instead.)
 - An unset slider announced its raw thumb position, so a screen reader read "0"
   as though the first item were selected. It now announces "Not selected",
   matching the visible pip.
