@@ -99,13 +99,19 @@ jobs:
           # red check. A commit with no linked login counts as not the bot's. A commit list this
           # job cannot read cannot be shown to be bot-only either, so it is classified too, but
           # tracked apart: on a HIGH path its failure asks for a re-run, not a maintainer PR.
+          # The commits endpoint stops at 250 even under --paginate, so the list counts as
+          # complete only when it matches the PR's own commit count. A shorter list is
+          # classified as mixed, not unreadable: a re-run would return the same 250.
           bot_author_mixed=false
           commits_unreadable=false
           if [ "$PR_AUTHOR" = "dependabot[bot]" ] || [ "$PR_AUTHOR" = "renovate[bot]" ]; then
             if ! commit_authors=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER/commits" --paginate --jq '.[] | (.author.login // "<unknown>")') \
-               || [ -z "$commit_authors" ]; then
+               || [ -z "$commit_authors" ] \
+               || ! total_commits=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER" --jq '.commits'); then
               commits_unreadable=true
               echo "::warning::Could not read this $PR_AUTHOR pull request's commits; classifying it rather than assuming they are all the bot's."
+            elif listed=$(grep -c . <<< "$commit_authors"); [ "$listed" != "$total_commits" ]; then
+              echo "::notice::The commits API listed $listed of this $PR_AUTHOR pull request's $total_commits commits; classifying it rather than assuming the rest are the bot's."
             elif ! grep -vqxF -e "$PR_AUTHOR" <<< "$commit_authors"; then
               echo "::notice::Dependency PRs are out of AI review by policy; skipping review tier classification."
               gh pr edit "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --remove-label review-high >/dev/null 2>&1 || true
