@@ -2,8 +2,8 @@
   "schema": 1,
   "canonical": {
     "repository": "FixPortal/fixportal-agents-skills",
-    "commit": "1fdcdfe41634576aea3683d67364c13afc05fedf",
-    "syncedAt": "2026-11-18"
+    "commit": "b2f292c53c192c95fc2963e97583729490938081",
+    "syncedAt": "2026-11-22"
   },
   "assets": [
     {
@@ -162,10 +162,10 @@
     },
     {
       "path": ".github/workflows/ai-smells.yml",
-      "sha256": "0f87e8ca3a60f7dc58c970da9c92952422ac9582235a5d839e73ea7fb25272c3",
+      "sha256": "e43fc7125672d5f0925b5db81c908fb1532e817b38c702304823b102faab90ff",
       "verbatim": false,
-      "commit": "1fdcdfe41634576aea3683d67364c13afc05fedf",
-      "syncedAt": "2026-11-18"
+      "commit": "b2f292c53c192c95fc2963e97583729490938081",
+      "syncedAt": "2026-11-22"
     },
     {
       "path": ".github/workflows/review-policy-guard.yml",
@@ -176,10 +176,10 @@
     },
     {
       "path": ".github/workflows/review-tier.yml",
-      "sha256": "c54b26304367f8b811d79ab23864995240145e8d5aa3c6c3e9339675eddda472",
+      "sha256": "8158a91f7c7db951b360a0c1b956948952847f5ea924a8b7eabd3c61ffc45e94",
       "verbatim": false,
-      "commit": "a87430ddc51e149a7d0e2c42eb61df67adb6e224",
-      "syncedAt": "2026-10-12"
+      "commit": "b2f292c53c192c95fc2963e97583729490938081",
+      "syncedAt": "2026-11-22"
     }
   ]
 }
