@@ -16,8 +16,11 @@ concurrency:
 jobs:
   ai-smells:
     name: ai-smells
-    # Fork PRs get a read-only token, so the post step could never succeed there.
-    if: github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login != 'dependabot[bot]' && github.event.pull_request.user.login != 'renovate[bot]'
+    # Fork PRs get a read-only token, so the post step could never succeed there. So does a
+    # run a dependency bot triggers, and that follows github.actor (a re-run keeps the original
+    # actor's privileges), not the PR author: after a maintainer pushes to a bot branch the
+    # token is writable and the maintainer's lines are exactly what needs scanning.
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]' && github.actor != 'renovate[bot]'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
